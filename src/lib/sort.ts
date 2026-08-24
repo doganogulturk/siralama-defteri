@@ -1,9 +1,17 @@
 import { AyranEntry } from '../types/ayran';
 
+/** Denenmiş ayranlar: kullanıcının sürükleyerek belirlediği sıra. */
 export function sortAyranlar(items: AyranEntry[]): AyranEntry[] {
   return [...items].sort((a, b) => {
     const diff = (a.sira ?? 9999) - (b.sira ?? 9999);
     if (diff !== 0) return diff;
     return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
   });
+}
+
+/** İstek listesinin sıralaması yok — en son eklenen en üstte. */
+export function sortIstekListesi(items: AyranEntry[]): AyranEntry[] {
+  return [...items].sort(
+    (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+  );
 }

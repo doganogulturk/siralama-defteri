@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import {
   DndContext, closestCenter, PointerSensor, KeyboardSensor,
   useSensor, useSensors, DragEndEvent,
@@ -9,15 +10,14 @@ import {
   SortableContext, verticalListSortingStrategy, arrayMove, sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { AyranEntry, Kategori, kategoriler } from '../types/ayran';
-import {
-  getAyranlar, createAyran, updateAyran, deleteAyran, updateAyranlarSira, deleteFotograf,
-} from '../lib/ayranlar';
 import { sortAyranlar } from '../lib/sort';
+import { useAyranStore } from '../hooks/useAyranStore';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import FilterPanel, { ViewMode } from '../components/FilterPanel';
 import { StaticRow, DraggableRow } from '../components/AyranRow';
 import DetailPane from '../components/DetailPane';
-import AyranForm from '../components/AyranForm';
+import WishlistDrawer from '../components/WishlistDrawer';
+import AyranForm, { FormMode } from '../components/AyranForm';
 
 const VIEW_TITLE: Record<ViewMode, string> = {
   hepsi: 'Tüm Kayıtlar',
@@ -27,44 +27,26 @@ const VIEW_TITLE: Record<ViewMode, string> = {
 
 export default function Home() {
   const isDesktop = useIsDesktop();
-
-  const [ayrans, setAyrans] = useState<AyranEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    denenenler: ranked, istekListesi,
+    loading, error, isSaving,
+    load, saveEntry, removeEntry, reorder,
+  } = useAyranStore();
 
   const [view, setView] = useState<ViewMode>('hepsi');
   const [categories, setCategories] = useState<Set<Kategori>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState<FormMode>('siralama');
   const [editingItem, setEditingItem] = useState<AyranEntry | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const load = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      setAyrans(await getAyranlar());
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void load();
-  }, []);
-
   /* ── Derived data ────────────────────────────────── */
-  const ranked = useMemo(() => sortAyranlar(ayrans), [ayrans]);
-
   const visible = useMemo(() => {
     let items = ranked;
     if (view === 'eksi') items = items.filter(i => i.eksi_mi);
@@ -75,22 +57,22 @@ export default function Home() {
 
   const canReorder = view === 'hepsi' && categories.size === 0;
 
-  const total = ayrans.length;
-  const eksiCount = ayrans.filter(a => a.eksi_mi).length;
+  const total = ranked.length;
+  const eksiCount = ranked.filter(a => a.eksi_mi).length;
   const viewCounts: Record<ViewMode, number> = {
     hepsi: total, eksi: eksiCount, tatli: total - eksiCount,
   };
 
   const categoryCounts = useMemo(() => {
     const base = kategoriler.reduce((acc, k) => { acc[k] = 0; return acc; }, {} as Record<Kategori, number>);
-    let source = ayrans;
+    let source = ranked;
     if (view === 'eksi') source = source.filter(a => a.eksi_mi);
     if (view === 'tatli') source = source.filter(a => !a.eksi_mi);
     for (const a of source) base[a.kategori]++;
     return base;
-  }, [ayrans, view]);
+  }, [ranked, view]);
 
-  const selectedItem = selectedId ? ayrans.find(a => a.id === selectedId) ?? null : null;
+  const selectedItem = selectedId ? ranked.find(a => a.id === selectedId) ?? null : null;
   const selectedRank = selectedItem ? ranked.findIndex(a => a.id === selectedItem.id) + 1 : null;
 
   /* ── Interactions ────────────────────────────────── */
@@ -107,75 +89,49 @@ export default function Home() {
     if (isDesktop) {
       setSelectedId(prev => (prev === item.id ? null : item.id));
     } else {
-      setEditingItem(item);
-      setIsFormOpen(true);
-    }
-  };
-
-  const persistSira = async (list: AyranEntry[]) => {
-    setIsSaving(true);
-    try {
-      await updateAyranlarSira(list.map(i => ({ id: i.id, sira: i.sira ?? 0 })));
-    } catch (e: unknown) {
-      alert('Sıralama kaydedilemedi: ' + (e instanceof Error ? e.message : String(e)));
-    } finally {
-      setIsSaving(false);
+      openForm('siralama', item);
     }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    setAyrans(prev => {
-      const sorted = sortAyranlar(prev);
-      const from = sorted.findIndex(i => i.id === active.id);
-      const to = sorted.findIndex(i => i.id === over.id);
-      if (from === -1 || to === -1) return prev;
-      const next = arrayMove(sorted, from, to).map((item, idx) => ({ ...item, sira: idx }));
-      void persistSira(next);
-      return next;
-    });
+    const sorted = sortAyranlar(ranked);
+    const from = sorted.findIndex(i => i.id === active.id);
+    const to = sorted.findIndex(i => i.id === over.id);
+    if (from === -1 || to === -1) return;
+    reorder(arrayMove(sorted, from, to).map((item, idx) => ({ ...item, sira: idx })));
   };
 
-  /* ── CRUD ────────────────────────────────────────── */
+  /* ── Form ────────────────────────────────────────── */
+  const openForm = (mode: FormMode, item: AyranEntry | null = null) => {
+    setFormMode(mode);
+    setEditingItem(item);
+    setIsFormOpen(true);
+  };
+  const closeForm = () => { setIsFormOpen(false); setEditingItem(null); };
+  const openAdd = () => openForm('siralama');
+
   const handleSave = async (entry: AyranEntry, targetIndex?: number) => {
     try {
-      const { id, ...fields } = entry;
-      if (editingItem) {
-        const oldPhoto = editingItem.fotograf_url;
-        const updated = await updateAyran(id, fields);
-        if (oldPhoto && oldPhoto !== updated.fotograf_url) void deleteFotograf(oldPhoto);
-        setAyrans(prev => prev.map(a => (a.id === id ? updated : a)));
-      } else {
-        const created = await createAyran(fields);
-        const list = [...sortAyranlar(ayrans)];
-        list.splice(targetIndex !== undefined && targetIndex >= 0 ? targetIndex : 0, 0, created);
-        const next = list.map((item, idx) => ({ ...item, sira: idx }));
-        await updateAyranlarSira(next.map(i => ({ id: i.id, sira: i.sira ?? 0 })));
-        setAyrans(next);
-        setSelectedId(created.id);
-      }
-      setIsFormOpen(false);
-      setEditingItem(null);
+      const saved = await saveEntry(entry, editingItem, targetIndex);
+      if (saved.denendi && !editingItem?.denendi) setSelectedId(saved.id);
+      closeForm();
     } catch (e: unknown) {
       alert('Hata: ' + (e instanceof Error ? e.message : String(e)));
     }
   };
 
-  const removeEntry = async (item: AyranEntry) => {
+  const handleDelete = async (item: AyranEntry) => {
     if (!window.confirm(`“${item.marka}” kaydını silmek istediğinize emin misiniz?`)) return;
     try {
-      await deleteAyran(item.id, item.fotograf_url);
-      setAyrans(prev => prev.filter(a => a.id !== item.id));
+      await removeEntry(item);
       setSelectedId(prev => (prev === item.id ? null : prev));
-      setIsFormOpen(false);
-      setEditingItem(null);
+      closeForm();
     } catch (e: unknown) {
       alert('Silme sırasında hata oluştu: ' + (e instanceof Error ? e.message : String(e)));
     }
   };
-
-  const openAdd = () => { setEditingItem(null); setIsFormOpen(true); };
 
   const renderFilterPanel = (instanceId: string, layout: 'stack' | 'inline') => (
     <FilterPanel
@@ -283,6 +239,17 @@ export default function Home() {
           </p>
         )}
 
+        {/* Mobilde istek listesi ayrı bir sayfa; masaüstünde sağdaki çekmece */}
+        <Link href="/listem" className="wish-link">
+          <span className="wish-link-icon" aria-hidden="true">🔖</span>
+          <span className="wish-link-text">
+            <strong>Listem</strong>
+            <em>denemek istediklerin</em>
+          </span>
+          <span className="wish-link-count">{istekListesi.length}</span>
+          <span className="wish-link-arrow" aria-hidden="true">→</span>
+        </Link>
+
         {/* Mobilde filtreler ve başlık kaydırma boyunca sabit kalır */}
         <div className="sticky-top">
           <div className="mobile-filters">{renderFilterPanel('strip', 'inline')}</div>
@@ -310,19 +277,29 @@ export default function Home() {
         {listBody}
       </main>
 
-      {/* ── Right: detail / standings (desktop) ──────── */}
+      {/* ── Right: detail + wishlist drawer (desktop) ── */}
       <section className="pane">
-        <DetailPane
-          item={selectedItem}
-          rank={selectedRank}
-          total={total}
-          ranked={ranked}
-          eksiCount={eksiCount}
-          categoryCounts={categoryCounts}
-          onEdit={(item) => { setEditingItem(item); setIsFormOpen(true); }}
-          onDelete={removeEntry}
-          onSelect={(item) => setSelectedId(item.id)}
-          onClose={() => setSelectedId(null)}
+        <div className="pane-main">
+          <DetailPane
+            item={selectedItem}
+            rank={selectedRank}
+            total={total}
+            ranked={ranked}
+            eksiCount={eksiCount}
+            categoryCounts={categoryCounts}
+            onEdit={(item) => openForm('siralama', item)}
+            onDelete={handleDelete}
+            onSelect={(item) => setSelectedId(item.id)}
+            onClose={() => setSelectedId(null)}
+          />
+        </div>
+
+        <WishlistDrawer
+          items={istekListesi}
+          loading={loading}
+          onEdit={(item) => openForm('istek', item)}
+          onTried={(item) => openForm('denedim', item)}
+          onAdd={() => openForm('istek')}
         />
       </section>
 
@@ -331,14 +308,15 @@ export default function Home() {
       {isSaving && <div className="toast">Sıralama kaydediliyor…</div>}
 
       <AyranForm
-        key={`${editingItem?.id ?? 'new'}-${isFormOpen ? 'open' : 'closed'}`}
+        key={`${editingItem?.id ?? 'new'}-${formMode}-${isFormOpen ? 'open' : 'closed'}`}
         isOpen={isFormOpen}
         editingItem={editingItem}
+        mode={formMode}
         initialCategory={categories.size === 1 ? [...categories][0] : 'yaygin_market'}
         existingAyrans={ranked}
-        onClose={() => { setIsFormOpen(false); setEditingItem(null); }}
+        onClose={closeForm}
         onSave={handleSave}
-        onDelete={editingItem ? () => removeEntry(editingItem) : undefined}
+        onDelete={editingItem ? () => handleDelete(editingItem) : undefined}
       />
     </div>
   );

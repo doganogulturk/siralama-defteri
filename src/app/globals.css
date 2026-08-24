@@ -604,6 +604,7 @@ fieldset { border: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field-textarea { resize: vertical; min-height: 62px; line-height: 1.45; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field-label {
   font-size: 0.7rem;
@@ -875,6 +876,161 @@ fieldset { border: none; }
 .overview-breakdown .breakdown-row:last-child { padding-bottom: 8px; }
 
 /* ═══════════════════════════════════════════════════════
+   WISHLIST — denenmemişler
+═══════════════════════════════════════════════════════ */
+.wish-rows { display: flex; flex-direction: column; gap: 6px; }
+
+.wish-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  background: var(--card);
+  border: 1px solid var(--edge);
+  border-radius: var(--r-m);
+  border-left: 3px solid var(--edge-firm);
+  transition: border-color var(--t) var(--ease), box-shadow var(--t) var(--ease);
+}
+.wish-row:hover { border-color: var(--edge-firm); box-shadow: var(--lift-1); }
+
+.wish-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 4px 9px 10px;
+  text-align: left;
+  border-radius: var(--r-m);
+}
+.wish-row-main:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+
+.wish-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-s);
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--card-sunk);
+}
+
+.wish-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.wish-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wish-variant { font-weight: 400; color: var(--ink-soft); }
+.wish-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.73rem;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wish-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.wish-eksi {
+  font-style: normal;
+  font-weight: 700;
+  font-size: 0.67rem;
+  color: var(--sour);
+  background: var(--sour-wash);
+  padding: 1px 7px;
+  border-radius: var(--r-pill);
+  flex-shrink: 0;
+}
+.wish-note {
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wish-tried {
+  flex-shrink: 0;
+  align-self: center;
+  margin-right: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--teal);
+  background: var(--teal-wash);
+  border: 1px solid transparent;
+  padding: 7px 12px;
+  border-radius: var(--r-pill);
+  transition: background var(--t), color var(--t);
+}
+.wish-tried:hover { background: var(--teal); color: #fff; }
+.wish-tried:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+.wish-empty {
+  padding: 34px 20px;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.wish-empty-title { font-family: var(--serif); font-size: 1.05rem; font-weight: 600; color: var(--ink); }
+
+/* Mobil giriş noktası — masaüstünde yerini sağdaki çekmece alıyor */
+.wish-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 2px;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px solid var(--edge);
+  border-radius: var(--r-m);
+  color: inherit;
+  text-decoration: none;
+}
+.wish-link:active { background: var(--card-sunk); }
+.wish-link-icon { font-size: 1.1rem; }
+.wish-link-text { flex: 1; display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.wish-link-text strong { font-size: 0.88rem; font-weight: 600; }
+.wish-link-text em { font-style: normal; font-size: 0.7rem; color: var(--ink-faint); }
+.wish-link-count {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--teal);
+  background: var(--teal-wash);
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+  font-variant-numeric: tabular-nums;
+}
+.wish-link-arrow { color: var(--ink-faint); font-size: 0.9rem; }
+
+/* /listem sayfasının üst bağlantısı */
+.page-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 16px 0 2px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+.page-back:hover { color: var(--teal); }
+.page-back-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-faint);
+  background: var(--card-sunk);
+  padding: 1px 7px;
+  border-radius: var(--r-pill);
+}
+
+/* ═══════════════════════════════════════════════════════
    DESKTOP — three columns
 ═══════════════════════════════════════════════════════ */
 @media (min-width: 1024px) {
@@ -926,12 +1082,13 @@ fieldset { border: none; }
   .list-head { padding: 0 0 18px; }
   .list-title { font-size: 1.5rem; }
 
-  /* Detail pane */
+  /* Detail pane — üstte detay/genel bakış, altta sabit istek listesi çekmecesi */
   .pane {
-    display: block;
-    padding: 26px 30px;
-    overflow-y: auto;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    overflow: hidden;
   }
+  .pane-main { overflow-y: auto; padding: 26px 30px; }
   .detail { max-width: 460px; margin: 0 auto; min-height: 100%; }
 
   .form-screen { width: 470px; height: 100dvh; }
@@ -943,4 +1100,100 @@ fieldset { border: none; }
 @media (min-width: 1500px) {
   .app { grid-template-columns: 272px 480px 1fr; }
   .detail { max-width: 520px; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   WISHLIST DRAWER — masaüstü sağ panelin alt kenarı
+═══════════════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+  .wish-link { display: none; }
+
+  .wish-drawer {
+    border-top: 1px solid var(--edge);
+    background: var(--card-sunk);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .wish-drawer-head { display: flex; align-items: center; padding: 0 10px 0 4px; }
+
+  .wish-drawer-toggle {
+    flex: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 12px 8px;
+    min-width: 0;
+  }
+  .wish-drawer-toggle:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; border-radius: var(--r-s); }
+
+  .wish-drawer-chevron {
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--ink-faint);
+    transform: rotate(-90deg);
+    transition: transform var(--t) var(--ease);
+    align-self: center;
+  }
+  .wish-drawer.is-open .wish-drawer-chevron { transform: rotate(90deg); }
+
+  .wish-drawer-title { font-family: var(--serif); font-size: 1.02rem; font-weight: 600; }
+  .wish-drawer-sub {
+    flex: 1;
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .wish-drawer-count {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--teal);
+    background: var(--teal-wash);
+    padding: 2px 9px;
+    border-radius: var(--r-pill);
+    font-variant-numeric: tabular-nums;
+    align-self: center;
+  }
+
+  .wish-drawer-add {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--r-pill);
+    background: var(--card);
+    border: 1px solid var(--edge-firm);
+    color: var(--ink-soft);
+    font-size: 1.1rem;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    transition: background var(--t), color var(--t);
+  }
+  .wish-drawer-add:hover { background: var(--teal); border-color: var(--teal); color: #fff; }
+
+  .wish-drawer-body {
+    max-height: 40vh;
+    overflow-y: auto;
+    padding: 0 14px 14px;
+    animation: drop 0.18s var(--ease);
+  }
+
+  /* Çekmecede satırlar biraz daha sıkı */
+  .wish-drawer .wish-thumb { width: 34px; height: 34px; }
+  .wish-drawer .wish-row-main { padding: 7px 4px 7px 9px; }
+  .wish-drawer .wish-empty { padding: 20px 8px; font-size: 0.82rem; }
+
+  /* /listem masaüstünde tek kolon olarak da açılabilir */
+  .app-solo { display: block; height: auto; overflow: visible; }
+  .app-solo .list {
+    max-width: 640px;
+    margin: 0 auto;
+    border-right: none;
+    overflow: visible;
+    padding: 30px 22px 120px;
+  }
+  .app-solo .fab { display: block; }
 }

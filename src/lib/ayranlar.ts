@@ -3,6 +3,9 @@ import { AyranEntry } from '../types/ayran';
 
 const TABLE = 'ay_ayranlar';
 
+/** `denendi` kolonu sonradan eklendi: null/eksik gelen eski satırlar denenmiş sayılır. */
+const normalize = (row: AyranEntry): AyranEntry => ({ ...row, denendi: row.denendi ?? true });
+
 export async function getAyranlar(): Promise<AyranEntry[]> {
   const { data, error } = await supabase
     .from(TABLE)
@@ -11,7 +14,7 @@ export async function getAyranlar(): Promise<AyranEntry[]> {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data as AyranEntry[];
+  return (data as AyranEntry[]).map(normalize);
 }
 
 export async function createAyran(
@@ -24,7 +27,7 @@ export async function createAyran(
     .single();
 
   if (error) throw error;
-  return data as AyranEntry;
+  return normalize(data as AyranEntry);
 }
 
 export async function updateAyran(
@@ -39,7 +42,7 @@ export async function updateAyran(
     .single();
 
   if (error) throw error;
-  return data as AyranEntry;
+  return normalize(data as AyranEntry);
 }
 
 export async function deleteAyran(id: string, fotografUrl?: string | null): Promise<void> {

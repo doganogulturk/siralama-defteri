@@ -11,6 +11,10 @@ export interface AyranEntry {
   yore?: string | null;         // Yalnızca yoresel kategorisi için
   fotograf_url?: string | null;
   sira?: number;
+  /** false ise kayıt istek listesinde: henüz denenmemiş, sıralamaya girmemiş. */
+  denendi: boolean;
+  /** Serbest not — özellikle istek listesinde "nerede gördüm / kim önerdi" için. */
+  notlar?: string | null;
 }
 
 export const kategoriler: Kategori[] = ['yaygin_market', 'market_markasi', 'yoresel'];

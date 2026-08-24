@@ -6,9 +6,17 @@ import { AyranEntry, Kategori, kategoriler, kategoriEtiketleri } from '../types/
 import { uploadFotograf, deleteFotograf } from '../lib/ayranlar';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 
+/**
+ * 'siralama' — denenmiş ayran (varsayılan akış)
+ * 'istek'    — istek listesi kaydı: ekşilik ve sıra henüz bilinmiyor
+ * 'denedim'  — istek listesindeki kaydı sıralamaya taşıyan dönüşüm
+ */
+export type FormMode = 'siralama' | 'istek' | 'denedim';
+
 interface AyranFormProps {
   isOpen: boolean;
   editingItem: AyranEntry | null;
+  mode?: FormMode;
   initialCategory?: Kategori;
   /** Sıralamadaki mevcut kayıtlar (sıralı) — "şunun altına" seçimi için. */
   existingAyrans?: AyranEntry[];
@@ -26,6 +34,7 @@ const kategoriEmoji: Record<Kategori, string> = {
 export default function AyranForm({
   isOpen,
   editingItem,
+  mode = 'siralama',
   initialCategory,
   existingAyrans = [],
   onClose,
@@ -44,10 +53,17 @@ export default function AyranForm({
   const [marketAdi, setMarketAdi] = useState(editingItem?.market_adi ?? '');
   const [yore, setYore] = useState(editingItem?.yore ?? '');
   const [fotografUrl, setFotografUrl] = useState(editingItem?.fotograf_url ?? '');
+  const [notlar, setNotlar] = useState(editingItem?.notlar ?? '');
   const [positionMode, setPositionMode] = useState<'top' | 'bottom' | 'after'>('top');
   const [afterItemId, setAfterItemId] = useState<string>(existingAyrans[0]?.id ?? '');
 
   const originalFotografUrl = useRef(editingItem?.fotograf_url ?? '');
+
+  const isIstek = mode === 'istek';
+  const isDonusum = mode === 'denedim';
+  // Sıra yalnızca sıralamaya giren kayıtlar için sorulur (yeni kayıt ya da
+  // "denedim" dönüşümü) — istek listesinde henüz bir sıralama yeri yok.
+  const showPosition = !isIstek && (!editingItem || isDonusum) && existingAyrans.length > 0;
 
   const handleClose = () => {
     if (fotografUrl && fotografUrl !== originalFotografUrl.current) {
@@ -79,7 +95,7 @@ export default function AyranForm({
     if (!marka.trim()) return;
 
     let targetIndex: number | undefined;
-    if (!editingItem) {
+    if (showPosition) {
       if (positionMode === 'top') {
         targetIndex = 0;
       } else if (positionMode === 'bottom') {
@@ -101,6 +117,8 @@ export default function AyranForm({
         market_adi: kategori === 'market_markasi' ? (marketAdi.trim() || null) : null,
         yore: kategori === 'yoresel' ? (yore.trim() || null) : null,
         fotograf_url: fotografUrl.trim() || null,
+        notlar: notlar.trim() || null,
+        denendi: !isIstek,
       },
       targetIndex
     );
@@ -142,7 +160,7 @@ export default function AyranForm({
             <span className="form-screen-back-mobile">←</span>
           </button>
           <h2 className="form-screen-title">
-            {editingItem ? 'Kaydı Düzenle' : 'Yeni Ayran'}
+            {isDonusum ? 'Denedim!' : editingItem ? 'Kaydı Düzenle' : isIstek ? 'Listeme Ekle' : 'Yeni Ayran'}
           </h2>
           {editingItem && onDelete ? (
             <button type="button" className="form-screen-delete" onClick={onDelete} aria-label="Sil">🗑️</button>
@@ -265,9 +283,21 @@ export default function AyranForm({
             </label>
           )}
 
+          <label className="field">
+            <span className="field-label">Not</span>
+            <textarea
+              className="field-input field-textarea"
+              rows={2}
+              placeholder={isIstek ? 'Nerede gördüm, kim önerdi…' : 'Tadı, dokusu, aklında kalanlar…'}
+              value={notlar}
+              onChange={(e) => setNotlar(e.target.value)}
+            />
+          </label>
+
           <div className="field-toggle">
             <div>
               <span className="field-label">Ekşi ayran mı?</span>
+              {isIstek && <p className="field-hint">Biliyorsan şimdi işaretle; denedikten sonra da değiştirebilirsin.</p>}
             </div>
             <button
               type="button"
@@ -279,7 +309,7 @@ export default function AyranForm({
             </button>
           </div>
 
-          {!editingItem && existingAyrans.length > 0 && (
+          {showPosition && (
             <div className="field">
               <span className="field-label">Listeye Ekleneceği Yer</span>
               <p className="field-hint">Sonrasında listeden sürükleyerek sırasını değiştirebilirsin.</p>
@@ -327,7 +357,12 @@ export default function AyranForm({
           <div className="form-screen-actions">
             <button type="button" className="btn-quiet" onClick={handleClose}>Vazgeç</button>
             <button type="submit" className="btn-primary" disabled={uploading}>
-              {uploading ? 'Yükleniyor…' : editingItem ? 'Güncelle' : 'Kaydet'}
+              {uploading
+                ? 'Yükleniyor…'
+                : isDonusum ? 'Sıralamaya Ekle'
+                : editingItem ? 'Güncelle'
+                : isIstek ? 'Listeme Ekle'
+                : 'Kaydet'}
             </button>
           </div>
         </form>

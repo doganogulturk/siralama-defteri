@@ -8,7 +8,9 @@ Proje "Ayran Gurmesi" olarak başladı; ayran kısıtı kaldırılıp **çok lis
 
 ## Durum
 
-Uygulama çalışır hâlde: giriş, çok listeli sıralama, kategori ve alan yönetimi, yeni tasarım.
+Uygulama çalışır ve **canlıda**: giriş, çok listeli sıralama, kategori ve alan yönetimi, Baskı arayüzü.
+
+**Dağıtım** — Vercel, `main` dalından otomatik. Push üretimi günceller. Vercel'de `NEXT_PUBLIC_SUPABASE_URL` ve `NEXT_PUBLIC_SUPABASE_ANON_KEY` tanımlı olmalı; Supabase'in Redirect URLs listesinde üretim alan adı da bulunmalı, yoksa build geçer ama Google girişi canlıda başarısız olur.
 
 **Veri** — `si_lists` / `si_categories` / `si_items` şeması RLS ile kurulu. Eski `ay_ayranlar` tablosundaki 42 kayıt "Ayran" listesine taşındı (38 sıralı + 4 bekleyen); eski tablo yedek olarak duruyor.
 
@@ -16,7 +18,13 @@ Uygulama çalışır hâlde: giriş, çok listeli sıralama, kategori ve alan y�
 
 **Arayüz** — Üç ekran: `/` liste indeksi, `/l/[slug]` sıralama, `/l/[slug]/ayarlar` yönetim. Bekleyenler ayrı bir route değil, sıralama ekranının ikinci sekmesi ("Sırada"); iki sekmenin kayıtları da aynı sağ panelde açılıyor. Masaüstünde sıralama ve ayarlar aynı sol rayı paylaşıyor: ray satırları kayıt sayısı + liste adı + ayar dişlisi taşıyor, listeler kayıt sayısına göre sıralı. Kodda ayrana özel hiçbir alan adı geçmiyor: kategoriler veritabanından, ek alanlar `si_lists.alanlar` tanımından üretiliyor.
 
-**Tasarım** — Baskı yönü uygulandı: `globals.css` stil sayfasındaki değerlerle baştan yazıldı, ekranlar taslaktaki anatomiye getirildi (künye + sayaç kutusu, sekme şeridi, zirve bandı, iki sütunlu ayarlar, monogram kutusu, vurgu rengi seçici). Liste vurgu rengi `si_lists.renk`'ten gelip `--accent` olarak uygulanıyor.
+**Tasarım** — Baskı yönü uygulandı, sonra bir sadeleştirme turundan geçti. Liste vurgu rengi `si_lists.renk`'ten gelip `--accent` olarak uygulanıyor. Turda değişenler:
+
+- **Kural çizgileri inceldi** — kalınlıklar `3/2/1px`'ten `2/1/1px`'e indi; hiyerarşi kalınlıktan çok değerle kuruluyor (mürekkep çizgi mi, soluk çizgi mi). Tekrar eden çizgiler kaldırıldı.
+- **Yazı ağırlıkları indi** — `700` → `600`, gövde metni sayılan yerler `500`.
+- **Dolu yüzeyler seyreltildi** — düğme ve seçili kutular saf mürekkep değil `--fill` (`rgba(19,18,16,.82)`). Tek yerden ayarlanır.
+- **Versal daraldı** — büyük harf yalnızca küçük aralıklı etiketlerde ve sabit başlıklarda. Kullanıcının yazdığı adlar (liste, kayıt, kategori) ve düğme metinleri normal yazımda; harf aralığı ve punto buna göre yeniden ayarlandı.
+- **Dikey ritim açıldı** — satır, bölüm ve sütun boşlukları ~%20-25 arttı.
 
 ---
 
@@ -27,10 +35,12 @@ Uygulama çalışır hâlde: giriş, çok listeli sıralama, kategori ve alan y�
 | # | İş | Neden / not |
 |---|---|---|
 | 1 | **Kategori sırasını sürüklenebilir yap** | Ayarlardaki tutamak şu an göstermelik. `si_categories.sira` şemada var ve bu sıra filtre şeridindeki sırayı belirliyor; dnd-kit zaten projede. |
-| 2 | **İkili karşılaştırma ekranı** | "Hangisi daha iyi?" akışı — 42 kayıtta telefonda sürükleyerek sıralamak zahmetli. Tasarım kararının parçasıydı, Baskı diline uyarlanması gerekiyor. Yeni bir sıralama algoritması demek. |
-| 3 | **Apple girişi** | Supabase'de hazır provider; Apple Developer hesabı ($99/yıl) gerektiriyor. |
-| 4 | **`ay_ayranlar` tablosunu DROP et** | Taşımanın doğruluğundan emin olununca. |
-| 5 | **Fotoğraf kovasını yeniden adlandır** *(isteğe bağlı)* | Kova hâlâ `ayran`; kullanıcıya görünmüyor. `lib/items.ts` içindeki `KOVA` sabiti tek değişiklik noktası, silme işlevi kova adını URL'den kendi çözüyor. |
+| 2 | **Ek alan filtresine yeni bir yer bul** | Evet/Hayır alanlarına göre filtreleme (ör. "yalnızca ekşi olanlar") arayüzden çıkarıldı: şeridi kalabalıklaştırıyordu. Ayrımın kendisi işe yarıyor, kaybolmaması gerek — ikincil bir kontrol ya da açılır menü. Mantık `lib/filtre.ts`'te duruyor, `FilterPanel`'in `stack` düzeni de hâlâ çiziyor; eksik olan yalnızca ona giden bir kapı. |
+| 3 | **İkili karşılaştırma ekranı** | "Hangisi daha iyi?" akışı — 42 kayıtta telefonda sürükleyerek sıralamak zahmetli. Tasarım kararının parçasıydı, Baskı diline uyarlanması gerekiyor. Yeni bir sıralama algoritması demek. |
+| 4 | **Depo ve Vercel projesi adını değiştir** | İkisi de hâlâ `ayran-gurmesi`; uygulama artık "Sıralama Defteri". Kod işi değil, panel işi — sırası: GitHub'da yeniden adlandır → Vercel'de Git bağlantısını doğrula → Vercel proje adını değiştir → `git remote set-url`. Vercel adı değişince `ayran-gurmesi.vercel.app` adresi serbest kalır, eski bağlantılar kırılır. `package.json`'daki `name` de güncellenmeli. |
+| 5 | **Apple girişi** | Supabase'de hazır provider; Apple Developer hesabı ($99/yıl) gerektiriyor. |
+| 6 | **`ay_ayranlar` tablosunu DROP et** | Taşımanın doğruluğundan emin olununca. |
+| 7 | **Fotoğraf kovasını yeniden adlandır** *(isteğe bağlı)* | Kova hâlâ `ayran`; kullanıcıya görünmüyor. `lib/items.ts` içindeki `KOVA` sabiti tek değişiklik noktası, silme işlevi kova adını URL'den kendi çözüyor. **Dikkat:** Supabase kovaları yeniden adlandırılamıyor; yeni kova açmak mevcut `fotograf_url` değerlerini kırar. Göründüğü kadar ucuz değil. |
 
 ### Kabul edilmiş sınırlar
 
@@ -41,6 +51,7 @@ Bunlar iş değil, bilinçli kararlar:
 - **`si_items.sira` benzersiz değil** — sürükle-bırak satırları tek tek UPDATE ettiği için ara durumlarda geçici çakışma olur.
 - **`si_lists.sira` arayüzde kullanılmıyor** — listeler kayıt sayısına göre sıralanıyor (eşitlikte `sira`, sonra `created_at`). Sütun şemada duruyor ama elle liste sıralama diye bir iş kalmadı.
 - **Bekleyenlerin kendi URL'i yok** — "Sırada" bir sekme; donanım geri tuşu sekmeler arasında gezmiyor, listeden çıkıyor.
+- **Filtre şeridi yalnızca kategori taşıyor** — "Tümü" + kategoriler. Ek alanların Evet/Hayır seçenekleri sıralamanın hemen üstünü kalabalıklaştırdığı için çıkarıldı. Ayrım tamamen kaybolmadı: sağ paneldeki kapsam sekmelerinde duruyor — ama orası yalnızca podyumu ve son eklenenleri daraltıyor, listeyi değil. Geri getirmek yol haritasında 2. sırada.
 - **Liste adı değişince slug değişmez** — kayıtlı bağlantılar kırılmasın diye.
 - **Sunucu tarafı koruma yok** — uygulama tamamen istemci tarafında; `AuthGate` bir kapı, güvenlik RLS'te.
 
@@ -54,7 +65,7 @@ Neden bu: uygulama markette, gündüz, telefon parlarken kullanılıyor — aç�
 
 Diğer yönlerden alınmasına karar verilenler:
 - **Liste başına vurgu rengi** (Sıvı yönünden) — gradyan değil düz renk. Uygulandı: `si_lists.renk`.
-- **İkili karşılaştırma** (Deste yönünden) — sürükleyerek sıralamaya alternatif "hangisi daha iyi?" akışı. Henüz yapılmadı, yol haritasında 2. sırada.
+- **İkili karşılaştırma** (Deste yönünden) — sürükleyerek sıralamaya alternatif "hangisi daha iyi?" akışı. Henüz yapılmadı, yol haritasında 3. sırada.
 
 **Tasarım kanvasları** (claude.ai bağlantıları, kalıcı):
 
@@ -65,6 +76,8 @@ Diğer yönlerden alınmasına karar verilenler:
 | [Liste ayarları yönleri](https://claude.ai/code/artifact/ced7ae20-2b3a-4324-a972-822a6d08b185) | Ayarlar ekranı için erken üç seçenek. Baskı kararından önce yapıldı, arşiv değeri var. |
 
 Uygulanacak değerler (tip ölçeği, renkler, kural kalınlıkları, kontrol anatomisi, beş kural) **Baskı · Ekranlar** kanvasının en altındaki stil sayfasında.
+
+> Kanvas ile `globals.css` artık birebir aynı değil. Kanvastaki değerler uygulandıktan sonra bir sadeleştirme turu geçti (yukarıdaki **Durum → Tasarım** maddesi). Uyuşmazlıkta doğru kaynak koddur; kanvas kararın kaydı.
 
 > Kanvasların kaynak dosyaları geçici çalışma klasöründeydi ve oturumla birlikte silinir. Kanvasları düzenlemek gerekirse içerik bağlantıdan geri okunabilir.
 

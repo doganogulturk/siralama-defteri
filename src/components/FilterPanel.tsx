@@ -1,101 +1,135 @@
 'use client';
 
 import React from 'react';
-import { Kategori, kategoriler, kategoriEtiketleri } from '../types/ayran';
-
-export type ViewMode = 'hepsi' | 'eksi' | 'tatli';
-
-export const KAT_COLOR: Record<Kategori, string> = {
-  yaygin_market: '#3f6cd4',
-  market_markasi: '#c9812a',
-  yoresel: '#2f8f6b',
-};
-
-const VIEW_OPTIONS: { key: ViewMode; label: string; short: string }[] = [
-  { key: 'hepsi', label: 'Tüm Kayıtlar', short: 'Tümü' },
-  { key: 'eksi', label: 'Ekşiler', short: 'Ekşi' },
-  { key: 'tatli', label: 'Ekşi Olmayanlar', short: 'Ekşisiz' },
-];
-
-/** Mobil şeritte üç seçenek tek satıra sığsın diye kısa etiketler. */
-const KAT_SHORT: Record<Kategori, string> = {
-  yaygin_market: 'Yaygın',
-  market_markasi: 'Market',
-  yoresel: 'Yöresel',
-};
+import { AlanTanimi, Kategori, alanKisa, filtreAlanlari } from '../types/item';
+import { BayrakDurumu, Filtre, bayrakDurumu } from '../lib/filtre';
 
 interface FilterPanelProps {
-  /** Panel iki kez render ediliyor (masaüstü rayı + mobil şerit); radio
+  /** Panel iki kez render ediliyor (mobil şerit + masaüstü şeridi); radio
    *  grupları belge genelinde çakışmasın diye ad benzersiz olmalı. */
   instanceId: string;
   /** 'stack' masaüstü rayı, 'inline' mobil tek satır şeritleri. */
   layout?: 'stack' | 'inline';
-  view: ViewMode;
-  onChangeView: (v: ViewMode) => void;
-  viewCounts: Record<ViewMode, number>;
-  categories: Set<Kategori>;
-  onToggleCategory: (k: Kategori) => void;
-  onClearCategories: () => void;
-  categoryCounts: Record<Kategori, number>;
+  kategoriler: Kategori[];
+  alanlar: AlanTanimi[];
+  filtre: Filtre;
+  onChange: (next: Filtre) => void;
+  kategoriSayilari: Record<string, number>;
+  bayrakSayilari: Record<string, Record<BayrakDurumu, number>>;
 }
+
+const DURUMLAR: BayrakDurumu[] = ['hepsi', 'evet', 'hayir'];
+
+const durumEtiketi = (durum: BayrakDurumu, alan: AlanTanimi, kisaMod: boolean): string => {
+  const ad = alanKisa(alan);
+  if (durum === 'hepsi') return kisaMod ? 'Tümü' : 'Tüm Kayıtlar';
+  if (durum === 'evet') return kisaMod ? ad : `${ad} Olanlar`;
+  return kisaMod ? `${ad} değil` : `${ad} Olmayanlar`;
+};
 
 export default function FilterPanel({
   instanceId,
   layout = 'stack',
-  view, onChangeView, viewCounts,
-  categories, onToggleCategory, onClearCategories, categoryCounts,
+  kategoriler,
+  alanlar,
+  filtre,
+  onChange,
+  kategoriSayilari,
+  bayrakSayilari,
 }: FilterPanelProps) {
   const inline = layout === 'inline';
+  const bayrakAlanlari = filtreAlanlari(alanlar);
+  /** Şeritte "Tümü" kategori seçimini temizler; hiçbiri seçili değilken açıktır. */
+  const tumuAcik = filtre.kategoriler.size === 0;
+
+  // Şerit yalnızca kategori taşıyor: ek alanların Evet/Hayır seçenekleri
+  // sıralamanın hemen üstünü kalabalıklaştırdığı için oraya çıkmıyor.
+  if (inline && kategoriler.length === 0) return null;
+
+  const setBayrak = (anahtar: string, durum: BayrakDurumu) =>
+    onChange({ ...filtre, bayraklar: { ...filtre.bayraklar, [anahtar]: durum } });
+
+  const toggleKategori = (id: string) => {
+    const next = new Set(filtre.kategoriler);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    onChange({ ...filtre, kategoriler: next });
+  };
 
   return (
     <div className={`filters filters-${layout}`}>
-      {/* Tek seçim — radio */}
-      <fieldset className="filter-group">
-        <legend className="filter-legend">Görünüm</legend>
-        <div className="filter-options">
-          {VIEW_OPTIONS.map(opt => (
-            <label key={opt.key} className={`opt opt-radio${view === opt.key ? ' is-on' : ''}`}>
-              <input
-                type="radio"
-                name={`ayran-view-${instanceId}`}
-                value={opt.key}
-                checked={view === opt.key}
-                onChange={() => onChangeView(opt.key)}
-              />
-              <span className="opt-mark" aria-hidden="true" />
-              <span className="opt-label">{inline ? opt.short : opt.label}</span>
-              {!inline && <span className="opt-count">{viewCounts[opt.key]}</span>}
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      {!inline && bayrakAlanlari.map(alan => (
+        /* Tek seçim — radio */
+        <fieldset className="filter-group" key={alan.anahtar}>
+          <legend className="filter-legend">{alanKisa(alan)}</legend>
+          <div className="filter-options">
+            {DURUMLAR.map(durum => {
+              const secili = bayrakDurumu(filtre, alan.anahtar) === durum;
+              return (
+                <label key={durum} className={`opt opt-radio${secili ? ' is-on' : ''}`}>
+                  <input
+                    type="radio"
+                    name={`${alan.anahtar}-${instanceId}`}
+                    value={durum}
+                    checked={secili}
+                    onChange={() => setBayrak(alan.anahtar, durum)}
+                  />
+                  <span className="opt-mark" aria-hidden="true" />
+                  <span className="opt-label">{durumEtiketi(durum, alan, inline)}</span>
+                  {!inline && (
+                    <span className="opt-count">{bayrakSayilari[alan.anahtar]?.[durum] ?? 0}</span>
+                  )}
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+      ))}
 
-      {/* Çoklu seçim — checkbox */}
-      <fieldset className="filter-group">
-        <legend className="filter-legend">
-          Kategoriler
-          {categories.size > 0 && (
-            <button type="button" className="filter-clear" onClick={onClearCategories}>Temizle</button>
-          )}
-        </legend>
-        <div className="filter-options">
-          {kategoriler.map(kat => {
-            const checked = categories.has(kat);
-            return (
-              <label
-                key={kat}
-                className={`opt opt-check${checked ? ' is-on' : ''}`}
-                style={{ '--kat': KAT_COLOR[kat] } as React.CSSProperties}
+      {kategoriler.length > 0 && (
+        /* Çoklu seçim — checkbox */
+        <fieldset className="filter-group">
+          <legend className="filter-legend">
+            Kategoriler
+            {filtre.kategoriler.size > 0 && (
+              <button
+                type="button"
+                className="filter-clear"
+                onClick={() => onChange({ ...filtre, kategoriler: new Set() })}
               >
-                <input type="checkbox" checked={checked} onChange={() => onToggleCategory(kat)} />
+                Temizle
+              </button>
+            )}
+          </legend>
+          <div className="filter-options">
+            {inline && (
+              <button
+                type="button"
+                className={`opt opt-radio${tumuAcik ? ' is-on' : ''}`}
+                aria-pressed={tumuAcik}
+                onClick={() => onChange({ ...filtre, kategoriler: new Set() })}
+              >
                 <span className="opt-mark" aria-hidden="true" />
-                <span className="opt-label">{inline ? KAT_SHORT[kat] : kategoriEtiketleri[kat]}</span>
-                {!inline && <span className="opt-count">{categoryCounts[kat]}</span>}
-              </label>
-            );
-          })}
-        </div>
-      </fieldset>
+                <span className="opt-label">Tümü</span>
+              </button>
+            )}
+            {kategoriler.map(kat => {
+              const checked = filtre.kategoriler.has(kat.id);
+              return (
+                <label
+                  key={kat.id}
+                  className={`opt opt-check${checked ? ' is-on' : ''}`}
+                  style={{ '--kat': kat.renk } as React.CSSProperties}
+                >
+                  <input type="checkbox" checked={checked} onChange={() => toggleKategori(kat.id)} />
+                  <span className="opt-mark" aria-hidden="true" />
+                  <span className="opt-label">{kat.ad}</span>
+                  {!inline && <span className="opt-count">{kategoriSayilari[kat.id] ?? 0}</span>}
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+      )}
     </div>
   );
 }

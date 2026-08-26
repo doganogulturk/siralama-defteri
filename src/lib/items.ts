@@ -1,0 +1,232 @@
+import { supabase } from './supabase';
+import { AlanTanimi, Item, Kategori, Liste } from '../types/item';
+
+const T_LISTS = 'si_lists';
+const T_CATS = 'si_categories';
+const T_ITEMS = 'si_items';
+
+/**
+ * Fotoğraflar hâlâ ilk kurulumdaki kovada. Kova adı kullanıcıya görünmüyor ve
+ * Supabase kovaları yeniden adlandırılamıyor; yeni bir kovaya geçilirse eski
+ * URL'lerin çalışmaya devam etmesi için `kovaYolu` adı sabitten türetmiyor.
+ */
+const KOVA = 'ayran';
+
+/* ── Listeler ───────────────────────────────────────── */
+
+export async function getListeler(): Promise<Liste[]> {
+  const { data, error } = await supabase
+    .from(T_LISTS)
+    .select('*')
+    .order('sira', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  if (error) throw error;
+  return data as Liste[];
+}
+
+export async function getListeBySlug(slug: string): Promise<Liste | null> {
+  const { data, error } = await supabase
+    .from(T_LISTS)
+    .select('*')
+    .eq('slug', slug)
+    .maybeSingle();
+
+  if (error) throw error;
+  return (data as Liste) ?? null;
+}
+
+export async function createListe(
+  entry: { ad: string; slug: string; emoji?: string | null; renk?: string; sira?: number; alanlar?: AlanTanimi[] }
+): Promise<Liste> {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  if (!userData.user) throw new Error('Oturum bulunamadı.');
+
+  const { data, error } = await supabase
+    .from(T_LISTS)
+    .insert({ ...entry, user_id: userData.user.id })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Liste;
+}
+
+export async function updateListe(
+  id: string,
+  entry: Partial<Pick<Liste, 'ad' | 'slug' | 'emoji' | 'renk' | 'sira' | 'alanlar'>>
+): Promise<Liste> {
+  const { data, error } = await supabase
+    .from(T_LISTS)
+    .update(entry)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Liste;
+}
+
+/** Kategoriler ve öğeler cascade ile birlikte silinir; fotoğraflar kovada kalır. */
+export async function deleteListe(id: string): Promise<void> {
+  const { error } = await supabase.from(T_LISTS).delete().eq('id', id);
+  if (error) throw error;
+}
+
+export interface ListeSayisi {
+  toplam: number;
+  /** Henüz denenmemiş, sıralamaya girmemiş kayıtlar. */
+  bekleyen: number;
+}
+
+/**
+ * Liste başına kayıt sayıları. RLS zaten kullanıcının satırlarıyla sınırladığı için
+ * tek sorguda iki kolonu çekip bellekte saymak yeterli — kişisel ölçekte liste
+ * başına ayrı count sorgusu açmaya değmiyor.
+ */
+export async function getListeSayilari(): Promise<Record<string, ListeSayisi>> {
+  const { data, error } = await supabase.from(T_ITEMS).select('list_id, denendi');
+  if (error) throw error;
+
+  return (data as { list_id: string; denendi: boolean }[]).reduce<Record<string, ListeSayisi>>(
+    (acc, r) => {
+      const kayit = acc[r.list_id] ?? { toplam: 0, bekleyen: 0 };
+      kayit.toplam += 1;
+      if (!r.denendi) kayit.bekleyen += 1;
+      acc[r.list_id] = kayit;
+      return acc;
+    },
+    {}
+  );
+}
+
+/* ── Kategoriler ────────────────────────────────────── */
+
+export async function getKategoriler(listId: string): Promise<Kategori[]> {
+  const { data, error } = await supabase
+    .from(T_CATS)
+    .select('*')
+    .eq('list_id', listId)
+    .order('sira', { ascending: true });
+
+  if (error) throw error;
+  return data as Kategori[];
+}
+
+export async function createKategori(
+  entry: { list_id: string; ad: string; renk: string; sira: number }
+): Promise<Kategori> {
+  const { data, error } = await supabase.from(T_CATS).insert(entry).select().single();
+  if (error) throw error;
+  return data as Kategori;
+}
+
+export async function updateKategori(
+  id: string,
+  entry: Partial<Pick<Kategori, 'ad' | 'renk' | 'sira'>>
+): Promise<Kategori> {
+  const { data, error } = await supabase
+    .from(T_CATS)
+    .update(entry)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Kategori;
+}
+
+/** Kategorideki öğeler silinmez; şema `on delete set null` ile kategorisiz kalır. */
+export async function deleteKategori(id: string): Promise<void> {
+  const { error } = await supabase.from(T_CATS).delete().eq('id', id);
+  if (error) throw error;
+}
+
+/* ── Öğeler ─────────────────────────────────────────── */
+
+export async function getItems(listId: string): Promise<Item[]> {
+  const { data, error } = await supabase
+    .from(T_ITEMS)
+    .select('*')
+    .eq('list_id', listId)
+    .order('sira', { ascending: true })
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data as Item[];
+}
+
+export async function createItem(
+  entry: Omit<Item, 'id' | 'created_at'>
+): Promise<Item> {
+  const { data, error } = await supabase.from(T_ITEMS).insert(entry).select().single();
+  if (error) throw error;
+  return data as Item;
+}
+
+export async function updateItem(
+  id: string,
+  entry: Partial<Omit<Item, 'id' | 'created_at'>>
+): Promise<Item> {
+  const { data, error } = await supabase
+    .from(T_ITEMS)
+    .update(entry)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Item;
+}
+
+export async function deleteItem(id: string, fotografUrl?: string | null): Promise<void> {
+  const { error } = await supabase.from(T_ITEMS).delete().eq('id', id);
+  if (error) throw error;
+  await deleteFotograf(fotografUrl);
+}
+
+export async function updateItemsSira(updates: { id: string; sira: number }[]): Promise<void> {
+  if (updates.length === 0) return;
+  // Tek upsert değil: Postgres, ON CONFLICT bir UPDATE'e yönlense bile NOT NULL
+  // kolonları INSERT değerlerine göre doğruluyor; çıplak {id, sira} yükü 23502
+  // veriyor. Satır satır UPDATE diğer kolonlara hiç dokunmadığı için sorun çıkmıyor.
+  const results = await Promise.all(
+    updates.map(u => supabase.from(T_ITEMS).update({ sira: u.sira }).eq('id', u.id))
+  );
+  for (const r of results) {
+    if (r.error) throw r.error;
+  }
+}
+
+/* ── Fotoğraf ───────────────────────────────────────── */
+
+export async function uploadFotograf(file: File): Promise<string> {
+  const ext = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+  const { error } = await supabase.storage.from(KOVA).upload(fileName, file, { upsert: false });
+  if (error) throw error;
+
+  const { data } = supabase.storage.from(KOVA).getPublicUrl(fileName);
+  return data.publicUrl;
+}
+
+/** URL'den kovayı ve yolu ayırır — kova adı sabite bağlı değil, eski URL'ler de silinebilsin. */
+function kovaYolu(url: string): { kova: string; yol: string } | null {
+  const marker = '/storage/v1/object/public/';
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  const rest = url.slice(idx + marker.length);
+  const slash = rest.indexOf('/');
+  if (slash === -1) return null;
+  return { kova: rest.slice(0, slash), yol: rest.slice(slash + 1) };
+}
+
+export async function deleteFotograf(url?: string | null): Promise<void> {
+  if (!url) return;
+  const parsed = kovaYolu(url);
+  if (!parsed) return;
+  const { error } = await supabase.storage.from(parsed.kova).remove([parsed.yol]);
+  if (error) console.warn('Fotoğraf silinemedi:', error.message);
+}

@@ -2,30 +2,30 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React from 'react';
-import { AyranEntry, kategoriEtiketleri } from '../types/ayran';
-import { KAT_COLOR } from './FilterPanel';
-import { brandColor, brandInitials } from './AyranRow';
+import { AlanTanimi, Item, Kategori, kategoriBul } from '../types/item';
+import { brandColor, brandInitials, altBilgi, rozetler } from './ItemRow';
 
 interface WishlistPanelProps {
-  items: AyranEntry[];
-  loading?: boolean;
-  /** Kayda dokunulduğunda düzenleme — istek listesinde detay paneli yok. */
-  onEdit: (item: AyranEntry) => void;
+  items: Item[];
+  kategoriler: Kategori[];
+  alanlar: AlanTanimi[];
+  /** Sağ panelde açık olan kayıt — sıralama satırlarındaki vurgunun aynısı. */
+  selectedId?: string | null;
+  /** Kayda dokunulduğunda: masaüstünde sağ panelde seçer, mobilde formu açar. */
+  onSelect: (item: Item) => void;
   /** "Denedim": kaydı sıralamaya taşıyan dönüşüm formunu açar. */
-  onTried: (item: AyranEntry) => void;
+  onTried: (item: Item) => void;
   onAdd: () => void;
 }
 
 export default function WishlistPanel({
-  items, loading, onEdit, onTried, onAdd,
+  items, kategoriler, alanlar, selectedId, onSelect, onTried, onAdd,
 }: WishlistPanelProps) {
-  if (loading) return <p className="state-msg">Yükleniyor…</p>;
-
   if (items.length === 0) {
     return (
       <div className="wish-empty">
         <p className="wish-empty-title">Listen boş</p>
-        <p>Denemek istediğin ama henüz sırası gelmemiş ayranları buraya ekle.</p>
+        <p>Denemek istediğin ama henüz sırası gelmemiş kayıtları buraya ekle.</p>
         <button type="button" className="btn-primary" onClick={onAdd}>Listeye Ekle</button>
       </div>
     );
@@ -33,53 +33,60 @@ export default function WishlistPanel({
 
   return (
     <div className="wish-rows">
-      {items.map(item => (
-        <div key={item.id} className="wish-row">
-          <button
-            type="button"
-            className="wish-row-main"
-            onClick={() => onEdit(item)}
-            aria-label={`${item.marka} kaydını düzenle`}
+      {items.map(item => {
+        const kat = kategoriBul(kategoriler, item.category_id);
+        // Kategoriye bağlı bir metin alanı doluysa onu, değilse kategorinin adını göster.
+        const alt = altBilgi(item, alanlar) || kat?.ad || '';
+
+        return (
+          <div
+            key={item.id}
+            className={`wish-row${selectedId === item.id ? ' is-selected' : ''}`}
           >
-            {item.fotograf_url
-              ? <img src={item.fotograf_url} className="wish-thumb" alt="" />
-              : (
-                <span
-                  className="wish-thumb thumb-fallback"
-                  style={{ background: brandColor(item.marka || '') }}
-                >
-                  {brandInitials(item.marka)}
+            <button
+              type="button"
+              className="wish-row-main"
+              aria-pressed={selectedId === item.id}
+              onClick={() => onSelect(item)}
+            >
+              {item.fotograf_url
+                ? <img src={item.fotograf_url} className="wish-thumb" alt="" />
+                : (
+                  <span
+                    className="wish-thumb thumb-fallback"
+                    style={{ background: brandColor(item.ad || '') }}
+                  >
+                    {brandInitials(item.ad)}
+                  </span>
+                )
+              }
+
+              <span className="wish-text">
+                <span className="wish-name">
+                  {item.ad}
+                  {item.alt_ad && <span className="wish-variant"> {item.alt_ad}</span>}
                 </span>
-              )
-            }
-
-            <span className="wish-text">
-              <span className="wish-name">
-                {item.marka}
-                {item.urun_adi && <span className="wish-variant"> {item.urun_adi}</span>}
+                <span className="wish-meta">
+                  {kat && <i className="wish-dot" style={{ background: kat.renk }} />}
+                  {alt}
+                  {rozetler(item, alanlar).map(r => (
+                    <em className="wish-eksi" key={r}>{r}</em>
+                  ))}
+                </span>
+                {item.notlar && <span className="wish-note">{item.notlar}</span>}
               </span>
-              <span className="wish-meta">
-                <i className="wish-dot" style={{ background: KAT_COLOR[item.kategori] }} />
-                {item.kategori === 'market_markasi' && item.market_adi
-                  ? item.market_adi
-                  : item.kategori === 'yoresel' && item.yore
-                    ? item.yore
-                    : kategoriEtiketleri[item.kategori]}
-                {item.eksi_mi && <em className="wish-eksi">Ekşi</em>}
-              </span>
-              {item.notlar && <span className="wish-note">{item.notlar}</span>}
-            </span>
-          </button>
+            </button>
 
-          <button
-            type="button"
-            className="wish-tried"
-            onClick={() => onTried(item)}
-          >
-            Denedim
-          </button>
-        </div>
-      ))}
+            <button
+              type="button"
+              className="wish-tried"
+              onClick={() => onTried(item)}
+            >
+              Denedim
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }

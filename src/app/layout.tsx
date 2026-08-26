@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import AuthGate from "../components/AuthGate";
 
 export const metadata: Metadata = {
-  title: "Ayran Gurmesi | İçtiğin Ayranları Keşfet ve Sırala",
-  description: "Bugüne kadar içtiğiniz ayranları kaydedebileceğiniz, puanlayabileceğiniz ve kolayca listeleyebileceğiniz modern ayran günlüğü.",
+  title: {
+    default: "Sıralama Defteri",
+    template: "%s | Sıralama Defteri",
+  },
+  description: "Denediklerini kendi listelerinde sırala: kola, döner, kahve — ne istersen.",
 };
 
 export default function RootLayout({
@@ -13,7 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body>{children}</body>
+      <body>
+        <AuthGate>{children}</AuthGate>
+      </body>
     </html>
   );
 }

@@ -2,60 +2,81 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { AyranEntry, Kategori, kategoriler, kategoriEtiketleri } from '../types/ayran';
-import { uploadFotograf, deleteFotograf } from '../lib/ayranlar';
+import {
+  AlanTanimi, Item, Kategori, OzellikDeger, alanGorunur, alanKisa,
+} from '../types/item';
+import { uploadFotograf, deleteFotograf } from '../lib/items';
 import { useIsDesktop } from '../hooks/useIsDesktop';
+import { hataMetni } from '../lib/hata';
 
 /**
- * 'siralama' — denenmiş ayran (varsayılan akış)
- * 'istek'    — istek listesi kaydı: ekşilik ve sıra henüz bilinmiyor
+ * 'siralama' — denenmiş kayıt (varsayılan akış)
+ * 'istek'    — istek listesi kaydı: sırası henüz belli değil
  * 'denedim'  — istek listesindeki kaydı sıralamaya taşıyan dönüşüm
  */
 export type FormMode = 'siralama' | 'istek' | 'denedim';
 
-interface AyranFormProps {
+interface ItemFormProps {
   isOpen: boolean;
-  editingItem: AyranEntry | null;
+  editingItem: Item | null;
   mode?: FormMode;
-  initialCategory?: Kategori;
+  /** Başlıklarda kullanılıyor: "Yeni Ayran", "Yeni Kola"… */
+  listeAdi: string;
+  kategoriler: Kategori[];
+  alanlar: AlanTanimi[];
+  initialCategoryId?: string | null;
   /** Sıralamadaki mevcut kayıtlar (sıralı) — "şunun altına" seçimi için. */
-  existingAyrans?: AyranEntry[];
+  existingItems?: Item[];
   onClose: () => void;
-  onSave: (entry: AyranEntry, targetIndex?: number) => void;
+  onSave: (entry: Item, targetIndex?: number) => void;
   onDelete?: () => void;
 }
 
-const kategoriEmoji: Record<Kategori, string> = {
-  yaygin_market: '🛒',
-  market_markasi: '🏪',
-  yoresel: '🌿',
-};
+const KameraIkon = (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M3 8h3.5L8 5.5h8L17.5 8H21v12H3z" />
+    <circle cx="12" cy="13.5" r="3.6" />
+  </svg>
+);
 
-export default function AyranForm({
+const SilIkon = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
+  </svg>
+);
+
+export default function ItemForm({
   isOpen,
   editingItem,
   mode = 'siralama',
-  initialCategory,
-  existingAyrans = [],
+  listeAdi,
+  kategoriler,
+  alanlar,
+  initialCategoryId,
+  existingItems = [],
   onClose,
   onSave,
   onDelete,
-}: AyranFormProps) {
+}: ItemFormProps) {
   const isDesktop = useIsDesktop();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const markaRef = useRef<HTMLInputElement>(null);
+  const adRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  const [marka, setMarka] = useState(editingItem?.marka ?? '');
-  const [urunAdi, setUrunAdi] = useState(editingItem?.urun_adi ?? '');
-  const [kategori, setKategori] = useState<Kategori>(editingItem?.kategori ?? initialCategory ?? 'yaygin_market');
-  const [eksiMi, setEksiMi] = useState(editingItem?.eksi_mi ?? false);
-  const [marketAdi, setMarketAdi] = useState(editingItem?.market_adi ?? '');
-  const [yore, setYore] = useState(editingItem?.yore ?? '');
+  const [ad, setAd] = useState(editingItem?.ad ?? '');
+  const [altAd, setAltAd] = useState(editingItem?.alt_ad ?? '');
+  const [categoryId, setCategoryId] = useState<string | null>(
+    editingItem?.category_id ?? initialCategoryId ?? kategoriler[0]?.id ?? null
+  );
+  const [ozellikler, setOzellikler] = useState<Record<string, OzellikDeger>>(
+    editingItem?.ozellikler ?? {}
+  );
   const [fotografUrl, setFotografUrl] = useState(editingItem?.fotograf_url ?? '');
   const [notlar, setNotlar] = useState(editingItem?.notlar ?? '');
   const [positionMode, setPositionMode] = useState<'top' | 'bottom' | 'after'>('top');
-  const [afterItemId, setAfterItemId] = useState<string>(existingAyrans[0]?.id ?? '');
+  const [afterItemId, setAfterItemId] = useState<string>(existingItems[0]?.id ?? '');
 
   const originalFotografUrl = useRef(editingItem?.fotograf_url ?? '');
 
@@ -63,7 +84,19 @@ export default function AyranForm({
   const isDonusum = mode === 'denedim';
   // Sıra yalnızca sıralamaya giren kayıtlar için sorulur (yeni kayıt ya da
   // "denedim" dönüşümü) — istek listesinde henüz bir sıralama yeri yok.
-  const showPosition = !isIstek && (!editingItem || isDonusum) && existingAyrans.length > 0;
+  const showPosition = !isIstek && (!editingItem || isDonusum) && existingItems.length > 0;
+
+  const gorunurAlanlar = alanlar.filter(a => alanGorunur(a, categoryId));
+  const metinAlanlari = gorunurAlanlar.filter(a => a.tip === 'metin');
+  const boolAlanlari = gorunurAlanlar.filter(a => a.tip === 'bool');
+
+  const setOzellik = (anahtar: string, deger: OzellikDeger) =>
+    setOzellikler(prev => ({ ...prev, [anahtar]: deger }));
+
+  const metinDeger = (anahtar: string) => {
+    const v = ozellikler[anahtar];
+    return typeof v === 'string' ? v : '';
+  };
 
   const handleClose = () => {
     if (fotografUrl && fotografUrl !== originalFotografUrl.current) {
@@ -82,42 +115,53 @@ export default function AyranForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, fotografUrl]);
 
-  // Marka alanına yalnızca masaüstünde odaklanılıyor; mobilde otomatik odak
+  // Ad alanına yalnızca masaüstünde odaklanılıyor; mobilde otomatik odak
   // ekran klavyesini anında açıp formun görünümünü bozuyor.
   useEffect(() => {
-    if (isOpen && isDesktop) markaRef.current?.focus();
+    if (isOpen && isDesktop) adRef.current?.focus();
   }, [isOpen, isDesktop]);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!marka.trim()) return;
+    if (!ad.trim()) return;
 
     let targetIndex: number | undefined;
     if (showPosition) {
       if (positionMode === 'top') {
         targetIndex = 0;
       } else if (positionMode === 'bottom') {
-        targetIndex = existingAyrans.length;
+        targetIndex = existingItems.length;
       } else {
-        const idx = existingAyrans.findIndex(a => a.id === afterItemId);
+        const idx = existingItems.findIndex(i => i.id === afterItemId);
         targetIndex = idx !== -1 ? idx + 1 : 0;
+      }
+    }
+
+    // Yalnızca seçili kategoride görünen alanlar kaydediliyor; kategori
+    // değiştiğinde eskisine ait değerler kayda taşınmıyor.
+    const temizOzellikler: Record<string, OzellikDeger> = {};
+    for (const alan of gorunurAlanlar) {
+      if (alan.tip === 'bool') {
+        temizOzellikler[alan.anahtar] = ozellikler[alan.anahtar] === true;
+      } else {
+        const deger = metinDeger(alan.anahtar).trim();
+        if (deger) temizOzellikler[alan.anahtar] = deger;
       }
     }
 
     onSave(
       {
         id: editingItem?.id || '',
+        list_id: editingItem?.list_id || '',
         created_at: editingItem?.created_at,
-        marka: marka.trim(),
-        urun_adi: urunAdi.trim() || null,
-        kategori,
-        eksi_mi: eksiMi,
-        market_adi: kategori === 'market_markasi' ? (marketAdi.trim() || null) : null,
-        yore: kategori === 'yoresel' ? (yore.trim() || null) : null,
+        category_id: categoryId,
+        ad: ad.trim(),
+        alt_ad: altAd.trim() || null,
         fotograf_url: fotografUrl.trim() || null,
         notlar: notlar.trim() || null,
+        ozellikler: temizOzellikler,
         denendi: !isIstek,
       },
       targetIndex
@@ -138,8 +182,7 @@ export default function AyranForm({
         void deleteFotograf(previousUrl);
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      alert('Fotoğraf yüklenirken hata oluştu: ' + message);
+      alert('Fotoğraf yüklenirken hata oluştu: ' + hataMetni(err));
     } finally {
       setUploading(false);
     }
@@ -160,10 +203,10 @@ export default function AyranForm({
             <span className="form-screen-back-mobile">←</span>
           </button>
           <h2 className="form-screen-title">
-            {isDonusum ? 'Denedim!' : editingItem ? 'Kaydı Düzenle' : isIstek ? 'Listeme Ekle' : 'Yeni Ayran'}
+            {isDonusum ? 'Denedim!' : editingItem ? 'Kaydı Düzenle' : isIstek ? 'Listeye Ekle' : `Kayıt Ekle · ${listeAdi}`}
           </h2>
           {editingItem && onDelete ? (
-            <button type="button" className="form-screen-delete" onClick={onDelete} aria-label="Sil">🗑️</button>
+            <button type="button" className="form-screen-delete" onClick={onDelete} aria-label="Sil">{SilIkon}</button>
           ) : <span className="form-screen-header-spacer" />}
         </header>
 
@@ -176,12 +219,11 @@ export default function AyranForm({
           >
             {uploading ? (
               <div className="photo-drop-state">
-                <span className="photo-drop-spinner">⌛</span>
-                <span>Yükleniyor…</span>
+                <span className="photo-drop-title">Yükleniyor…</span>
               </div>
             ) : fotografUrl ? (
               <>
-                <img src={fotografUrl} className="photo-drop-img" alt="Ayran görseli" />
+                <img src={fotografUrl} className="photo-drop-img" alt="" />
                 <div className="photo-drop-overlay">
                   <span className="photo-drop-change">Değiştir</span>
                   <button
@@ -201,7 +243,7 @@ export default function AyranForm({
               </>
             ) : (
               <div className="photo-drop-placeholder">
-                <span className="photo-drop-icon">📸</span>
+                <span className="photo-drop-icon">{KameraIkon}</span>
                 <span className="photo-drop-title">Fotoğraf Ekle</span>
                 <span className="photo-drop-sub">Sürükle bırak veya tıkla</span>
               </div>
@@ -217,71 +259,61 @@ export default function AyranForm({
 
           <div className="field-grid">
             <label className="field">
-              <span className="field-label">Marka *</span>
+              <span className="field-label">Ad *</span>
               <input
-                ref={markaRef}
+                ref={adRef}
                 type="text"
                 className="field-input"
-                placeholder="Sütaş, Pınar, Özerhisar…"
-                value={marka}
-                onChange={(e) => setMarka(e.target.value)}
+                placeholder="Marka ya da isim"
+                value={ad}
+                onChange={(e) => setAd(e.target.value)}
                 required
               />
             </label>
             <label className="field">
-              <span className="field-label">Ürün Adı / Çeşidi</span>
+              <span className="field-label">Çeşit / Alt Ad</span>
               <input
                 type="text"
                 className="field-input"
-                placeholder="Cam Şişe, Yayık, Tam Yağlı…"
-                value={urunAdi}
-                onChange={(e) => setUrunAdi(e.target.value)}
+                placeholder="Varsa çeşidi"
+                value={altAd}
+                onChange={(e) => setAltAd(e.target.value)}
               />
             </label>
           </div>
 
-          <div className="field">
-            <span className="field-label">Kategori *</span>
-            <div className="kategori-picker">
-              {kategoriler.map((kat) => (
-                <button
-                  key={kat}
-                  type="button"
-                  className={`kategori-chip ${kat}${kategori === kat ? ' selected' : ''}`}
-                  onClick={() => setKategori(kat)}
-                >
-                  <span>{kategoriEmoji[kat]}</span>
-                  {kategoriEtiketleri[kat]}
-                </button>
-              ))}
+          {kategoriler.length > 0 && (
+            <div className="field">
+              <span className="field-label">Kategori</span>
+              <div className="kategori-picker">
+                {kategoriler.map((kat) => (
+                  <button
+                    key={kat.id}
+                    type="button"
+                    className={`kategori-chip${categoryId === kat.id ? ' selected' : ''}`}
+                    style={{ '--kat': kat.renk } as React.CSSProperties}
+                    onClick={() => setCategoryId(kat.id)}
+                  >
+                    <i className="kategori-chip-dot" aria-hidden="true" />
+                    {kat.ad}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {kategori === 'market_markasi' && (
-            <label className="field field-fade-in">
-              <span className="field-label">Satılan Market</span>
+          {metinAlanlari.map(alan => (
+            <label className="field field-fade-in" key={alan.anahtar}>
+              <span className="field-label">{alan.etiket}</span>
               <input
                 type="text"
                 className="field-input"
-                placeholder="Migros, BİM, A101, File…"
-                value={marketAdi}
-                onChange={(e) => setMarketAdi(e.target.value)}
+                placeholder={alan.ipucu ?? ''}
+                value={metinDeger(alan.anahtar)}
+                onChange={(e) => setOzellik(alan.anahtar, e.target.value)}
               />
             </label>
-          )}
-
-          {kategori === 'yoresel' && (
-            <label className="field field-fade-in">
-              <span className="field-label">Yöre / Şehir / Köy</span>
-              <input
-                type="text"
-                className="field-input"
-                placeholder="Balıkesir Susurluk, Konya, Erzurum…"
-                value={yore}
-                onChange={(e) => setYore(e.target.value)}
-              />
-            </label>
-          )}
+          ))}
 
           <label className="field">
             <span className="field-label">Not</span>
@@ -294,20 +326,40 @@ export default function AyranForm({
             />
           </label>
 
-          <div className="field-toggle">
-            <div>
-              <span className="field-label">Ekşi ayran mı?</span>
-              {isIstek && <p className="field-hint">Biliyorsan şimdi işaretle; denedikten sonra da değiştirebilirsin.</p>}
-            </div>
-            <button
-              type="button"
-              className={`switch ${eksiMi ? 'on' : ''}`}
-              onClick={() => setEksiMi(prev => !prev)}
-              aria-pressed={eksiMi}
-            >
-              <span className="switch-knob" />
-            </button>
-          </div>
+          {boolAlanlari.map(alan => {
+            const acik = ozellikler[alan.anahtar] === true;
+            return (
+              <div className="field-toggle" key={alan.anahtar}>
+                <div>
+                  <span className="field-label">{alan.etiket}</span>
+                  {isIstek && (
+                    <p className="field-hint">
+                      Biliyorsan şimdi işaretle; denedikten sonra da değiştirebilirsin.
+                    </p>
+                  )}
+                </div>
+                {/* Anahtar yerine iki kutu: hangi tarafın seçili olduğu tartışmasız. */}
+                <div className="switch" role="group" aria-label={alanKisa(alan)}>
+                  <button
+                    type="button"
+                    className={`switch-opt${acik ? ' is-on' : ''}`}
+                    onClick={() => setOzellik(alan.anahtar, true)}
+                    aria-pressed={acik}
+                  >
+                    Evet
+                  </button>
+                  <button
+                    type="button"
+                    className={`switch-opt${acik ? '' : ' is-on'}`}
+                    onClick={() => setOzellik(alan.anahtar, false)}
+                    aria-pressed={!acik}
+                  >
+                    Hayır
+                  </button>
+                </div>
+              </div>
+            );
+          })}
 
           {showPosition && (
             <div className="field">
@@ -342,11 +394,11 @@ export default function AyranForm({
                   className="field-select field-fade-in"
                   value={afterItemId}
                   onChange={(e) => setAfterItemId(e.target.value)}
-                  aria-label="Hangi ayranın altına eklensin"
+                  aria-label="Hangi kaydın altına eklensin"
                 >
-                  {existingAyrans.map((item, idx) => (
+                  {existingItems.map((item, idx) => (
                     <option key={item.id} value={item.id}>
-                      {idx + 1}. {item.marka}{item.urun_adi ? ` — ${item.urun_adi}` : ''}
+                      {idx + 1}. {item.ad}{item.alt_ad ? ` — ${item.alt_ad}` : ''}
                     </option>
                   ))}
                 </select>

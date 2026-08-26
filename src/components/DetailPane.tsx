@@ -2,48 +2,43 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useMemo, useState } from 'react';
-import { AyranEntry, Kategori, kategoriEtiketleri } from '../types/ayran';
-import { KAT_COLOR } from './FilterPanel';
-import { brandColor, brandInitials } from './AyranRow';
+import {
+  AlanTanimi, Item, Kategori, alanGorunur, alanKisa, bayrak, filtreAlanlari, kategoriBul, metin,
+} from '../types/item';
+import { brandColor, brandInitials } from './ItemRow';
 
-type Scope = 'genel' | 'eksi' | 'tatli' | Kategori;
+/** 'genel' | 'kat:<id>' | 'bayrak:<anahtar>:evet' | 'bayrak:<anahtar>:hayir' */
+type Scope = string;
 
-const SCOPES: { key: Scope; label: string }[] = [
-  { key: 'genel', label: 'Genel' },
-  { key: 'yaygin_market', label: kategoriEtiketleri.yaygin_market },
-  { key: 'market_markasi', label: kategoriEtiketleri.market_markasi },
-  { key: 'yoresel', label: kategoriEtiketleri.yoresel },
-  { key: 'eksi', label: 'Ekşi' },
-  { key: 'tatli', label: 'Ekşi Değil' },
-];
-
-const matchesScope = (item: AyranEntry, scope: Scope) => {
+const matchesScope = (item: Item, scope: Scope): boolean => {
   if (scope === 'genel') return true;
-  if (scope === 'eksi') return item.eksi_mi;
-  if (scope === 'tatli') return !item.eksi_mi;
-  return item.kategori === scope;
+  const [tip, a, b] = scope.split(':');
+  if (tip === 'kat') return item.category_id === a;
+  if (tip === 'bayrak') return bayrak(item, a) === (b === 'evet');
+  return true;
 };
 
 interface DetailPaneProps {
-  item: AyranEntry | null;
+  item: Item | null;
   rank: number | null;
   total: number;
-  eksiCount: number;
   /** Sıraya dizilmiş tam liste — sekme podyumları ve son eklenenler buradan türetiliyor. */
-  ranked: AyranEntry[];
-  categoryCounts: Record<Kategori, number>;
-  onEdit: (item: AyranEntry) => void;
-  onDelete: (item: AyranEntry) => void;
-  onSelect: (item: AyranEntry) => void;
+  ranked: Item[];
+  kategoriler: Kategori[];
+  alanlar: AlanTanimi[];
+  kategoriSayilari: Record<string, number>;
+  onEdit: (item: Item) => void;
+  onDelete: (item: Item) => void;
+  onSelect: (item: Item) => void;
   onClose: () => void;
 }
 
-function Thumb({ item, className }: { item: AyranEntry; className: string }) {
+function Thumb({ item, className }: { item: Item; className: string }) {
   return item.fotograf_url
     ? <img src={item.fotograf_url} className={className} alt="" />
     : (
-      <span className={`${className} thumb-fallback`} style={{ background: brandColor(item.marka || '') }}>
-        {brandInitials(item.marka)}
+      <span className={`${className} thumb-fallback`} style={{ background: brandColor(item.ad || '') }}>
+        {brandInitials(item.ad)}
       </span>
     );
 }
@@ -52,10 +47,22 @@ const formatDate = (iso?: string) =>
   iso ? new Date(iso).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) : '';
 
 export default function DetailPane({
-  item, rank, total, eksiCount, ranked, categoryCounts,
+  item, rank, total, ranked, kategoriler, alanlar, kategoriSayilari,
   onEdit, onDelete, onSelect, onClose,
 }: DetailPaneProps) {
   const [scope, setScope] = useState<Scope>('genel');
+
+  const bayrakAlanlari = filtreAlanlari(alanlar);
+
+  const scopes = useMemo(() => {
+    const list: { key: Scope; label: string }[] = [{ key: 'genel', label: 'Genel' }];
+    kategoriler.forEach(k => list.push({ key: `kat:${k.id}`, label: k.ad }));
+    bayrakAlanlari.forEach(a => {
+      list.push({ key: `bayrak:${a.anahtar}:evet`, label: alanKisa(a) });
+      list.push({ key: `bayrak:${a.anahtar}:hayir`, label: `${alanKisa(a)} Değil` });
+    });
+    return list;
+  }, [kategoriler, bayrakAlanlari]);
 
   const podium = useMemo(
     () => ranked.filter(i => matchesScope(i, scope)).slice(0, 3),
@@ -73,6 +80,10 @@ export default function DetailPane({
 
   /* ── Bir kayıt seçili ─────────────────────────────── */
   if (item) {
+    const kat = kategoriBul(kategoriler, item.category_id);
+    const metinAlanlari = alanlar.filter(a => a.tip === 'metin' && alanGorunur(a, item.category_id));
+    const boolAlanlari = alanlar.filter(a => a.tip === 'bool');
+
     return (
       <div className="detail">
         <div className="detail-bar">
@@ -85,25 +96,28 @@ export default function DetailPane({
         </div>
 
         <div className="detail-body">
-          <h2 className="detail-name">{item.marka}</h2>
-          {item.urun_adi && <p className="detail-variant">{item.urun_adi}</p>}
+          <h2 className="detail-name">{item.ad}</h2>
+          {item.alt_ad && <p className="detail-variant">{item.alt_ad}</p>}
 
           <div className="detail-chips">
-            <span className="chip" style={{ '--chip': KAT_COLOR[item.kategori] } as React.CSSProperties}>
-              {kategoriEtiketleri[item.kategori]}
-            </span>
-            {item.eksi_mi
-              ? <span className="chip chip-sour">Ekşi</span>
-              : <span className="chip chip-plain">Ekşi değil</span>}
+            {kat && (
+              <span className="chip" style={{ '--chip': kat.renk } as React.CSSProperties}>
+                {kat.ad}
+              </span>
+            )}
+            {boolAlanlari.map(a => (
+              bayrak(item, a.anahtar)
+                ? <span className="chip chip-sour" key={a.anahtar}>{alanKisa(a)}</span>
+                : <span className="chip chip-plain" key={a.anahtar}>{alanKisa(a)} değil</span>
+            ))}
           </div>
 
           <dl className="detail-facts">
-            {item.kategori === 'market_markasi' && item.market_adi && (
-              <div><dt>Market</dt><dd>{item.market_adi}</dd></div>
-            )}
-            {item.kategori === 'yoresel' && item.yore && (
-              <div><dt>Yöre</dt><dd>{item.yore}</dd></div>
-            )}
+            {metinAlanlari.map(a => {
+              const deger = metin(item, a.anahtar);
+              if (!deger) return null;
+              return <div key={a.anahtar}><dt>{alanKisa(a)}</dt><dd>{deger}</dd></div>;
+            })}
             {item.created_at && (
               <div>
                 <dt>Eklendi</dt>
@@ -122,22 +136,20 @@ export default function DetailPane({
   }
 
   /* ── Seçim yok: genel bakış ───────────────────────── */
+
   return (
     <div className="detail detail-overview">
       <div className="overview-head">
         <p className="overview-eyebrow">Sıralaman</p>
         <h2 className="overview-title">
-          {total > 0 ? `${total} ayran denedin` : 'Henüz kayıt yok'}
+          {total > 0 ? `${total} kayıt sıraladın` : 'Henüz kayıt yok'}
         </h2>
-        {total > 0 && (
-          <p className="overview-sub">{eksiCount} tanesi ekşi · {total - eksiCount} tanesi değil</p>
-        )}
       </div>
 
       {total > 0 && (
         <>
           <div className="scope-tabs" role="tablist">
-            {SCOPES.map(s => (
+            {scopes.map(s => (
               <button
                 key={s.key}
                 type="button"
@@ -160,10 +172,10 @@ export default function DetailPane({
                   className={`podium-slot podium-${i + 1}`}
                   onClick={() => onSelect(p)}
                 >
-                  <span className="podium-medal">{['🥇', '🥈', '🥉'][i]}</span>
+                  <span className="podium-medal">{i + 1}</span>
                   <Thumb item={p} className="podium-thumb" />
-                  <span className="podium-name">{p.marka}</span>
-                  {p.urun_adi && <span className="podium-variant">{p.urun_adi}</span>}
+                  <span className="podium-name">{p.ad}</span>
+                  {p.alt_ad && <span className="podium-variant">{p.alt_ad}</span>}
                 </button>
               ))}
             </div>
@@ -179,8 +191,8 @@ export default function DetailPane({
                 <button type="button" key={r.id} className="recent-item" onClick={() => onSelect(r)}>
                   <Thumb item={r} className="recent-thumb" />
                   <span className="recent-text">
-                    <span className="recent-name">{r.marka}</span>
-                    {r.urun_adi && <span className="recent-variant">{r.urun_adi}</span>}
+                    <span className="recent-name">{r.ad}</span>
+                    {r.alt_ad && <span className="recent-variant">{r.alt_ad}</span>}
                   </span>
                   <span className="recent-date">{formatDate(r.created_at)}</span>
                 </button>
@@ -188,27 +200,29 @@ export default function DetailPane({
             </div>
           </section>
 
-          <section className="pane-section">
-            <h3 className="pane-section-title">Kategori Dağılımı</h3>
-            <div className="overview-breakdown">
-              {(Object.keys(categoryCounts) as Kategori[]).map(kat => {
-                const count = categoryCounts[kat];
-                const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-                return (
-                  <div className="breakdown-row" key={kat}>
-                    <span className="breakdown-label">
-                      <i style={{ background: KAT_COLOR[kat] }} />
-                      {kategoriEtiketleri[kat]}
-                    </span>
-                    <span className="breakdown-bar">
-                      <span style={{ width: `${pct}%`, background: KAT_COLOR[kat] }} />
-                    </span>
-                    <span className="breakdown-value">{count}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+          {kategoriler.length > 0 && (
+            <section className="pane-section">
+              <h3 className="pane-section-title">Kategori Dağılımı</h3>
+              <div className="overview-breakdown">
+                {kategoriler.map(kat => {
+                  const count = kategoriSayilari[kat.id] ?? 0;
+                  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                  return (
+                    <div className="breakdown-row" key={kat.id}>
+                      <span className="breakdown-label">
+                        <i style={{ background: kat.renk }} />
+                        {kat.ad}
+                      </span>
+                      <span className="breakdown-bar">
+                        <span style={{ width: `${pct}%`, background: kat.renk }} />
+                      </span>
+                      <span className="breakdown-value">{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
         </>
       )}
     </div>

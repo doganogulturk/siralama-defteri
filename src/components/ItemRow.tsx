@@ -4,32 +4,52 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { AyranEntry } from '../types/ayran';
+import {
+  AlanTanimi, Item, alanGorunur, alanKisa, bayrak, metin,
+} from '../types/item';
 
-export const brandColor = (marka: string) => {
+export const brandColor = (ad: string) => {
   let hash = 0;
-  for (let i = 0; i < marka.length; i++) {
-    hash = marka.charCodeAt(i) + ((hash << 5) - hash);
+  for (let i = 0; i < ad.length; i++) {
+    hash = ad.charCodeAt(i) + ((hash << 5) - hash);
   }
   return `hsl(${Math.abs(hash) % 360}, 42%, 44%)`;
 };
 
-export const brandInitials = (marka: string | null | undefined) => {
-  const words = (marka || '').trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return 'A';
-  return words.slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('') || 'A';
+export const brandInitials = (ad: string | null | undefined) => {
+  const words = (ad || '').trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '?';
+  return words.slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('') || '?';
 };
 
+/** Kayda ait ilk dolu metin alanı — satırın altındaki ince açıklama. */
+export function altBilgi(item: Item, alanlar: AlanTanimi[]): string {
+  for (const alan of alanlar) {
+    if (alan.tip !== 'metin' || !alanGorunur(alan, item.category_id)) continue;
+    const deger = metin(item, alan.anahtar);
+    if (deger) return deger;
+  }
+  return '';
+}
+
+/** Kayıtta işaretli bool alanların kısa adları — satır ve panellerdeki rozetler. */
+export function rozetler(item: Item, alanlar: AlanTanimi[]): string[] {
+  return alanlar
+    .filter(a => a.tip === 'bool' && bayrak(item, a.anahtar))
+    .map(alanKisa);
+}
+
 interface RowProps {
-  item: AyranEntry;
+  item: Item;
+  alanlar: AlanTanimi[];
   rank: number;
   isSelected: boolean;
-  onSelect: (item: AyranEntry) => void;
+  onSelect: (item: Item) => void;
   draggable?: boolean;
 }
 
 function RowShell({
-  item, rank, isSelected, onSelect, draggable,
+  item, alanlar, rank, isSelected, onSelect, draggable,
   handleProps, nodeRef, style, dragging,
 }: RowProps & {
   handleProps?: Record<string, unknown>;
@@ -38,6 +58,8 @@ function RowShell({
   dragging?: boolean;
 }) {
   const isPodium = rank <= 3;
+  const alt = altBilgi(item, alanlar);
+  const tags = rozetler(item, alanlar);
 
   return (
     <div
@@ -77,26 +99,21 @@ function RowShell({
       {item.fotograf_url
         ? <img src={item.fotograf_url} className="row-thumb" alt="" />
         : (
-          <span className="row-thumb row-thumb-fallback" style={{ background: brandColor(item.marka || '') }}>
-            {brandInitials(item.marka)}
+          <span className="row-thumb row-thumb-fallback" style={{ background: brandColor(item.ad || '') }}>
+            {brandInitials(item.ad)}
           </span>
         )
       }
 
       <span className="row-text">
         <span className="row-name">
-          {item.marka}
-          {item.urun_adi && <span className="row-variant"> {item.urun_adi}</span>}
+          {item.ad}
+          {item.alt_ad && <span className="row-variant"> {item.alt_ad}</span>}
         </span>
-        {(item.market_adi || item.yore) && (
-          <span className="row-sub">
-            {item.kategori === 'market_markasi' && item.market_adi}
-            {item.kategori === 'yoresel' && item.yore}
-          </span>
-        )}
+        {alt && <span className="row-sub">{alt}</span>}
       </span>
 
-      {item.eksi_mi && <span className="row-tag">Ekşi</span>}
+      {tags.map(t => <span key={t} className="row-tag">{t}</span>)}
     </div>
   );
 }

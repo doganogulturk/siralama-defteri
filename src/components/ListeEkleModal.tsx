@@ -20,7 +20,6 @@ interface ListeEkleModalProps {
 export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkleModalProps) {
   const router = useRouter();
   const [ad, setAd] = useState('');
-  const [emoji, setEmoji] = useState('');
   const [kaydediliyor, setKaydediliyor] = useState(false);
 
   if (!isOpen) return null;
@@ -34,7 +33,6 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
       const olusan = await createListe({
         ad: ad.trim(),
         slug: benzersizSlug(slugify(ad), mevcut.map(l => l.slug)),
-        emoji: emoji.trim() || null,
         sira: mevcut.length,
       });
       onCreated?.();
@@ -62,31 +60,18 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
         </header>
 
         <form onSubmit={handleSubmit} className="form-screen-body">
-          <div className="field-grid">
-            <label className="field">
-              <span className="field-label">Liste Adı *</span>
-              <input
-                type="text"
-                className="field-input"
-                placeholder="Kola, Döner, Türk Kahvesi…"
-                value={ad}
-                onChange={(e) => setAd(e.target.value)}
-                required
-                autoFocus
-              />
-            </label>
-            <label className="field">
-              <span className="field-label">Simge</span>
-              <input
-                type="text"
-                className="field-input"
-                placeholder="🥤"
-                maxLength={4}
-                value={emoji}
-                onChange={(e) => setEmoji(e.target.value)}
-              />
-            </label>
-          </div>
+          <label className="field">
+            <span className="field-label">Liste Adı *</span>
+            <input
+              type="text"
+              className="field-input"
+              placeholder="Kola, Döner, Türk Kahvesi…"
+              value={ad}
+              onChange={(e) => setAd(e.target.value)}
+              required
+              autoFocus
+            />
+          </label>
 
           <p className="field-hint">
             Kategorileri ve ek alanları bir sonraki adımda tanımlayacaksın.

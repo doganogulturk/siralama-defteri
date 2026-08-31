@@ -240,7 +240,6 @@ export default function ListePage() {
         {/* Masaüstünde marka rayda; mobilde bu ince başlık üstleniyor */}
         <div className="mobile-brand">
           <Link href="/" className="mobile-brand-back" aria-label="Listelerim">←</Link>
-          <span className="mobile-brand-mark">{liste?.emoji ?? '🏆'}</span>
           <span className="mobile-brand-text">
             <strong>{listeAdi}</strong>
             <em>kişisel sıralaman</em>

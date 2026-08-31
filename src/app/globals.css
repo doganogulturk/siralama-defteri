@@ -102,7 +102,6 @@ a { color: var(--accent); }
   gap: 10px;
   padding: 18px 0 12px;
 }
-.mobile-brand-mark { font-size: 1.5rem; }
 .mobile-brand-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
 .mobile-brand-text strong {
   font-family: var(--display);
@@ -593,7 +592,7 @@ a { color: var(--accent); }
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(19, 18, 16, 0.42);
+  background: rgba(19, 18, 16, 0.52);
   display: flex;
   justify-content: center;
 }
@@ -1184,13 +1183,12 @@ a { color: var(--accent); }
 .kat-satirlar { display: flex; flex-direction: column; }
 .kat-satir {
   display: grid;
-  grid-template-columns: 16px 18px minmax(0, 1fr) 74px 30px;
+  grid-template-columns: 18px minmax(0, 1fr) 74px 30px;
   align-items: center;
   gap: 12px;
   padding: 11px 0;
   border-bottom: 1px solid var(--rule);
 }
-.kat-tutamak { color: var(--faint); cursor: grab; }
 .kat-renk { width: 18px; height: 18px; }
 .kat-ad {
   min-width: 0;
@@ -1621,10 +1619,16 @@ a { color: var(--accent); }
 
   .form-screen { width: 620px; height: 100dvh; border-left: var(--r-3) solid var(--ink); }
   .form-screen-backdrop { justify-content: flex-end; }
+  /*
+   * Tam boy form (kayıt) sağ kenardan açılıyor: arkasındaki sıralama görünür
+   * kalsın diye. Kısa form (yeni liste) o bağlamı taşımıyor, sağa yapışınca
+   * öksüz duruyordu — `margin-inline: auto` perdedeki flex-end'i ezip ortalıyor.
+   */
   .form-screen-short {
     align-self: center;
+    margin-inline: auto;
+    width: 460px;
     border: var(--r-3) solid var(--ink);
-    border-left-width: 2px;
     height: auto;
   }
   .form-screen-back-desktop { display: inline; }
@@ -1645,7 +1649,7 @@ a { color: var(--accent); }
   .ayar-bolum-tehlike { margin-top: auto; padding-top: 14px; border-top: var(--r-2) solid var(--accent); }
   .ayar-bolum-tehlike .ayar-bolum-baslik { border-bottom: none; padding-bottom: 0; }
 
-  .kat-satir { grid-template-columns: 16px 18px minmax(0, 1fr) 150px 84px 30px; gap: 14px; }
+  .kat-satir { grid-template-columns: 18px minmax(0, 1fr) 150px 84px 30px; gap: 14px; }
   .kat-bar { display: block; }
 
   .alan-satir { grid-template-columns: 118px minmax(0, 1fr) 200px 30px; gap: 14px; }
@@ -1674,3 +1678,4 @@ a { color: var(--accent); }
   .detail { max-width: 540px; }
   .account-btn { width: 296px; }
 }
+

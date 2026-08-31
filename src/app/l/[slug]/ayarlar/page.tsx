@@ -27,14 +27,6 @@ const KaldirIkon = (
   </svg>
 );
 
-const TutamakIkon = (
-  <svg width="11" height="17" viewBox="0 0 12 18" fill="currentColor" aria-hidden="true">
-    <circle cx="2.5" cy="2.5" r="1.5" /><circle cx="9.5" cy="2.5" r="1.5" />
-    <circle cx="2.5" cy="9" r="1.5" /><circle cx="9.5" cy="9" r="1.5" />
-    <circle cx="2.5" cy="15.5" r="1.5" /><circle cx="9.5" cy="15.5" r="1.5" />
-  </svg>
-);
-
 /** "Türk Kahvesi" → "TK" */
 const monogram = (ad: string) =>
   ad.trim().split(/\s+/).slice(0, 2).map(w => w[0] ?? '').join('').toLocaleUpperCase('tr') || '?';
@@ -262,7 +254,7 @@ export default function AyarlarPage() {
             <section className="ayar-bolum">
               <h2 className="ayar-bolum-baslik">
                 Kategoriler
-                <span>sıraları filtre şeridindeki sırayı belirler</span>
+                <span>filtre şeridinde kayıt sayısına göre sıralanır</span>
               </h2>
 
               <div className="kat-satirlar">
@@ -271,7 +263,6 @@ export default function AyarlarPage() {
                   const pay = toplam > 0 ? Math.round((adet / toplam) * 100) : 0;
                   return (
                     <div className="kat-satir" key={kat.id}>
-                      <span className="kat-tutamak" aria-hidden="true">{TutamakIkon}</span>
                       <span className="kat-renk" style={{ background: kat.renk }} />
                       <input
                         className="kat-ad"

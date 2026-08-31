@@ -37,7 +37,7 @@ export async function getListeBySlug(slug: string): Promise<Liste | null> {
 }
 
 export async function createListe(
-  entry: { ad: string; slug: string; emoji?: string | null; renk?: string; sira?: number; alanlar?: AlanTanimi[] }
+  entry: { ad: string; slug: string; renk?: string; sira?: number; alanlar?: AlanTanimi[] }
 ): Promise<Liste> {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError) throw userError;
@@ -55,7 +55,7 @@ export async function createListe(
 
 export async function updateListe(
   id: string,
-  entry: Partial<Pick<Liste, 'ad' | 'slug' | 'emoji' | 'renk' | 'sira' | 'alanlar'>>
+  entry: Partial<Pick<Liste, 'ad' | 'slug' | 'renk' | 'sira' | 'alanlar'>>
 ): Promise<Liste> {
   const { data, error } = await supabase
     .from(T_LISTS)

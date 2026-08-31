@@ -17,7 +17,7 @@ import { hataMetni } from '../lib/hata';
  */
 export function useListStore(slug: string) {
   const [liste, setListe] = useState<Liste | null>(null);
-  const [kategoriler, setKategoriler] = useState<Kategori[]>([]);
+  const [kategorilerHam, setKategoriler] = useState<Kategori[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +48,22 @@ export function useListStore(slug: string) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
+
+  /**
+   * Kategoriler kayıt sayısına göre sıralı — liste indeksiyle aynı kural.
+   * Eşitlikte `sira`, sonra `created_at`. Elle sıralama diye bir iş yok.
+   */
+  const kategoriler = useMemo(() => {
+    const adet = items.reduce<Record<string, number>>((acc, i) => {
+      if (i.category_id) acc[i.category_id] = (acc[i.category_id] ?? 0) + 1;
+      return acc;
+    }, {});
+    return [...kategorilerHam].sort((a, b) =>
+      (adet[b.id] ?? 0) - (adet[a.id] ?? 0)
+      || (a.sira ?? 0) - (b.sira ?? 0)
+      || (a.created_at ?? '').localeCompare(b.created_at ?? '')
+    );
+  }, [kategorilerHam, items]);
 
   const denenenler = useMemo(() => sortSirali(items.filter(i => i.denendi)), [items]);
   const istekListesi = useMemo(() => sortIstekListesi(items.filter(i => !i.denendi)), [items]);

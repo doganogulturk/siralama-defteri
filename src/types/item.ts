@@ -22,7 +22,6 @@ export interface Liste {
   user_id: string;
   ad: string;
   slug: string;
-  emoji?: string | null;
   /** Listenin vurgu rengi — arayüzde --accent olarak uygulanır. */
   renk: string;
   sira: number;

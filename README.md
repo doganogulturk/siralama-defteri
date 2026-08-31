@@ -20,9 +20,11 @@ Eski `ayran-gurmesi.vercel.app` hâlâ aynı deployment'a bağlı ve çalışıy
 
 **Kimlik** — Google girişi Supabase Auth üzerinden; tüm sayfalar `AuthGate` arkasında, asıl koruma RLS'te.
 
-**Arayüz** — Üç ekran: `/` liste indeksi, `/l/[slug]` sıralama, `/l/[slug]/ayarlar` yönetim. Bekleyenler ayrı bir route değil, sıralama ekranının ikinci sekmesi ("Sırada"); iki sekmenin kayıtları da aynı sağ panelde açılıyor. Masaüstünde sıralama ve ayarlar aynı sol rayı paylaşıyor: ray satırları kayıt sayısı + liste adı + ayar dişlisi taşıyor, listeler kayıt sayısına göre sıralı. Kodda ayrana özel hiçbir alan adı geçmiyor: kategoriler veritabanından, ek alanlar `si_lists.alanlar` tanımından üretiliyor. Hem listeler hem kategoriler kayıt sayısına göre sıralı — elle sıralama diye bir iş yok.
+**Arayüz** — Üç ekran: `/` liste indeksi, `/l/[slug]` sıralama, `/l/[slug]/ayarlar` yönetim. Bekleyenler ayrı bir route değil, sıralama ekranının ikinci sekmesi ("Denenmemiş"); iki sekmenin kayıtları da aynı sağ panelde açılıyor. Sekme bir süre "Sırada" adını taşıdı: "Sıralamam" ile aynı kökten, birbirine karışıyordu ve kelimenin kendisinde "henüz denenmedi" yoktu — uygulamanın zaten kullandığı `denedi` sözlüğüne çekildi. Masaüstünde sıralama ve ayarlar aynı sol rayı paylaşıyor: ray satırları sıralanmış kayıt sayısı + liste adı + ayar simgesi taşıyor, listeler de o sayıya göre sıralı. Rakam bekleyenleri saymadığı için bir kayıt "Denedim" ile sıralamaya geçtiğinde artıyor — ölçü "kaç kayıt var" değil, "kaç şeyi sıraladım". Ray sayıları sayfadan ayrı bir sorgudan geldiği için `useListeler`'de küçük bir haber kanalı var: sayfa bir mutasyondan sonra `listeleriTazele()` çağırıyor, yoksa ray sayfa yenilenene kadar eski sayıyı gösteriyordu. Kodda ayrana özel hiçbir alan adı geçmiyor: kategoriler veritabanından, ek alanlar `si_lists.alanlar` tanımından üretiliyor. Hem listeler hem kategoriler kayıt sayısına göre sıralı — elle sıralama diye bir iş yok.
 
-Masaüstünde iki form iki ayrı davranışta: **kayıt formu** sağ kenardan açılıyor (arkasındaki sıralama görünür kalsın diye), **yeni liste formu** ortalanıyor — o bağlamı taşımadığı için sağa yapıştığında öksüz duruyordu.
+Masaüstünde formların hepsi ortalanmış kutu. Kayıt formu bir süre sağ kenardan açıldı — "şunun altına ekle" seçerken arkadaki sıralama görünsün diye — ama yanında ortalanan başka formlar durunca iki davranış tutarsız kaldı; tek dil seçildi. Yükseklik içeriğe göre, taşarsa gövde kendi içinde kayıyor.
+
+**Toplu ekleme** — Kayıt formunun ikinci sekmesi ("Toplu"). Alt alta yazılan her satır bir kayıt; sonu iki nokta ile biten satır (`Patates:`) listenin içinde bir kategori açar, altındaki satırlar oraya yazılır. İlk virgülden sonrası kaydın "Çeşit / Alt ad" değeri olur (`Doritos, Nacho`) — sonraki virgüller alt adın içinde kalır. Virgül önce kayıtları ayırıyordu; asıl işe yarayan ayrım bu çıktı, çünkü toplu girilen listeler genelde tek markanın çeşitleri oluyor. Karşılığında bir satıra birden çok kayıt yazılamıyor. Ayrıştırma `lib/toplu.ts`'te; form kaydetmeden önce sonucu önizleme olarak gösteriyor — virgül ya da iki nokta kayıt adının içinde geçtiğinde bölünme yanlış olur, kullanıcı bunu kaydetmeden görmeli. Sekme formun kipini miras alıyor: sıralamadayken kayıtlar yazıldıkları sırayla sıralamanın altına, "Denenmemiş" sekmesindeyken bekleyenlere düşüyor. Aynı kutu Yeni Liste formunda da var (kapalı doğar): listeyi ve kategorilerini tek hamlede kurmak için. Tekrar kontrolü bilerek yok.
 
 **Tasarım** — Baskı yönü uygulandı, sonra bir sadeleştirme turundan geçti. Liste vurgu rengi `si_lists.renk`'ten gelip `--accent` olarak uygulanıyor. Turda değişenler:
 
@@ -31,6 +33,14 @@ Masaüstünde iki form iki ayrı davranışta: **kayıt formu** sağ kenardan a�
 - **Dolu yüzeyler seyreltildi** — düğme ve seçili kutular saf mürekkep değil `--fill` (`rgba(19,18,16,.82)`). Tek yerden ayarlanır.
 - **Versal daraldı** — büyük harf yalnızca küçük aralıklı etiketlerde ve sabit başlıklarda. Kullanıcının yazdığı adlar (liste, kayıt, kategori) ve düğme metinleri normal yazımda; harf aralığı ve punto buna göre yeniden ayarlandı.
 - **Dikey ritim açıldı** — satır, bölüm ve sütun boşlukları ~%20-25 arttı.
+
+Sonraki turda sol ray ve sekmeler ele alındı:
+
+- **Sekmelerden dolu bant kalktı** — seçili sekme mürekkep bloğu yerine altındaki kuralın vurgu rengine dönmesiyle işaretleniyor; iki dolu blok yan yana fazla baskındı. Aynı şerit kayıt formunun sekmelerinde de kullanılıyor.
+- **Ray satırı üç bölgeye ayrıldı** — sayı bloğu, liste adı, ayar hücresi. Sayı bloğunun zemini listenin kendi vurgu rengi (`si_lists.renk`, satıra `--satir` olarak veriliyor); ray böylece renkle taranabilir bir indeks oluyor ve renk artık yalnızca o listenin sayfasında değil, indekste de görünüyor. Ayar hücresi nötr `--tint` zeminde, üstüne gelinince satırın rengine dönüyor. Aradaki ad büyüyüp satırın asıl öğesi oldu. Hücreyi ayıran dikey çizgi denendi, kaldırıldı: zemin farkı ayırmaya zaten yetiyor, çizgi fazlaydı.
+- **Sağ panel kaydın tamamını gösteriyor** — not da panele girdi (satır sonları korunuyor). Amaç, bir şeyi okumak için Düzenle'ye basmak zorunda kalmamak; düğme yalnızca değiştirmek için. Sırası olmayan kayıt künye şeridinde rakam yerine "Denenmemiş" yazıyor, Evet/Hayır rozetleri de metin alanları gibi kategori kapsamına uyuyor.
+- **Kayıt formunun tepesi bir kimlik bandı oldu** — fotoğraf kutusu solda, ad ve çeşit sağında alt alta. Üstteki üç öğe yan yana durunca form ~170px kısaldı ve "listeye ekleneceği yer" seçimi 900px yükseklikte kaydırmadan görünüyor; fotoğraf kutusu artık sabit yükseklik değil, yanındaki iki alan kadar. Yer kalmadığı için kutunun "sürükle bırak veya tıkla" alt satırı düştü — sürükleme çalışmaya devam ediyor.
+- **Ayar simgesi sürgüye döndü** — ışınlı daire 15 pikselde güneşe benziyordu; yerine üç kural çizgisi ve tutamakları geldi, sekme simgesiyle aynı sözlük.
 
 **Sekme simgesi** — `src/app/icon.svg`: mürekkep zeminde azalan uzunlukta üç kural çizgisi. Baskı yönü hiyerarşiyi zaten kural çizgileriyle kurduğu için simge aynı sözlükten; harf yok, 16 pikselde monogram okunmuyor. Vurgu rengi bilerek kullanılmadı — `--accent` liste başına değişiyor, simge sabit olmalı. Koyu sekme şeridinde mürekkep zemin şeride karışıp geriye üç kağıt rengi çizgi kalıyor; okunurluk korunduğu için kabul edildi.
 
@@ -67,7 +77,7 @@ Bunlar iş değil, bilinçli kararlar:
 - **Kategori silmek kayıtları silmez** — `on delete set null` ile kayıtlar kategorisiz kalır.
 - **`si_items.sira` benzersiz değil** — sürükle-bırak satırları tek tek UPDATE ettiği için ara durumlarda geçici çakışma olur.
 - **`si_lists.sira` arayüzde kullanılmıyor** — yukarıdaki kategori kuralının aynısı listeler için de geçerli.
-- **Bekleyenlerin kendi URL'i yok** — "Sırada" bir sekme; donanım geri tuşu sekmeler arasında gezmiyor, listeden çıkıyor.
+- **Bekleyenlerin kendi URL'i yok** — "Denenmemiş" bir sekme; donanım geri tuşu sekmeler arasında gezmiyor, listeden çıkıyor.
 - **Filtre şeridi yalnızca kategori taşıyor** — "Tümü" + kategoriler. Ek alanların Evet/Hayır seçenekleri sıralamanın hemen üstünü kalabalıklaştırdığı için çıkarıldı. Ayrım tamamen kaybolmadı: sağ paneldeki kapsam sekmelerinde duruyor — ama orası yalnızca podyumu ve son eklenenleri daraltıyor, listeyi değil. Geri getirmek yol haritasında 1. sırada.
 - **Liste adı değişince slug değişmez** — kayıtlı bağlantılar kırılmasın diye.
 - **Sunucu tarafı koruma yok** — uygulama tamamen istemci tarafında; `AuthGate` bir kapı, güvenlik RLS'te.
@@ -161,7 +171,7 @@ src/
     globals.css                   tüm stiller — Baskı tasarım sistemi
     icon.svg                      sekme simgesi — azalan üç kural çizgisi
     l/[slug]/
-      page.tsx                    sıralama ekranı — "Sıralamam" ve "Sırada" sekmeleri
+      page.tsx                    sıralama ekranı — "Sıralamam" ve "Denenmemiş" sekmeleri
       ayarlar/page.tsx            liste, kategori ve alan yönetimi
   components/
     AuthGate.tsx                  giriş kapısı + hesap bloğu (kimlik + çıkış)
@@ -171,7 +181,7 @@ src/
     ListeEkleModal.tsx            yeni liste formu (ana ekran ve raydan açılır)
     FilterPanel.tsx               veri güdümlü filtre şeridi (sekme görünümlü)
     DetailPane.tsx                masaüstü detay paneli — iki sekmenin kayıtlarını da açar
-    WishlistPanel.tsx             "Sırada" sekmesinin satırları
+    WishlistPanel.tsx             "Denenmemiş" sekmesinin satırları
   hooks/
     useAuth.ts                    oturum durumu
     useListStore.ts               bir listenin tüm verisi (liste + kategoriler + öğeler)

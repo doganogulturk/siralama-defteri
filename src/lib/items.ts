@@ -12,6 +12,12 @@ const T_ITEMS = 'si_items';
  */
 const KOVA = 'ayran';
 
+/** Yeni kategorilere sırayla atanan renkler — ayarlar ekranı ve toplu ekleme aynı sırayı kullanır. */
+export const KATEGORI_PALET = [
+  '#1f6feb', '#b45309', '#127a5b', '#a8342c', '#6b4fbb',
+  '#0f7d8c', '#8a5cf6', '#8a8f2b', '#c2436f',
+];
+
 /* ── Listeler ───────────────────────────────────────── */
 
 export async function getListeler(): Promise<Liste[]> {
@@ -163,6 +169,17 @@ export async function createItem(
   const { data, error } = await supabase.from(T_ITEMS).insert(entry).select().single();
   if (error) throw error;
   return data as Item;
+}
+
+/** Toplu ekleme yolu: tek insert, dönen kayıtlar gönderilen sırayla. */
+export async function createItems(
+  entries: Omit<Item, 'id' | 'created_at'>[]
+): Promise<Item[]> {
+  if (entries.length === 0) return [];
+  const { data, error } = await supabase.from(T_ITEMS).insert(entries).select();
+  if (error) throw error;
+  // Postgres dönüş sırasını garanti etmiyor; `sira` girilen sırayı zaten taşıyor.
+  return (data as Item[]).sort((a, b) => (a.sira ?? 0) - (b.sira ?? 0));
 }
 
 export async function updateItem(

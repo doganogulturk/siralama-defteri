@@ -16,6 +16,8 @@ import {
   bosFiltre, filtreBos, filtreUygula, kategoriSayilari, bayrakSayilari,
 } from '../../../lib/filtre';
 import { useListStore } from '../../../hooks/useListStore';
+import { listeleriTazele } from '../../../hooks/useListeler';
+import { TopluBlok, topluKaydet } from '../../../lib/toplu';
 import { hataMetni } from '../../../lib/hata';
 import { useIsDesktop } from '../../../hooks/useIsDesktop';
 import FilterPanel from '../../../components/FilterPanel';
@@ -29,7 +31,7 @@ export default function ListePage() {
   const isDesktop = useIsDesktop();
   const SLUG = String(useParams().slug ?? '');
   const {
-    liste, kategoriler,
+    liste, kategoriler, items,
     denenenler: ranked, istekListesi,
     loading, error, isSaving,
     load, saveEntry, removeEntry, reorder,
@@ -108,16 +110,28 @@ export default function ListePage() {
     try {
       const saved = await saveEntry(entry, editingItem, targetIndex);
       if (saved.denendi && !editingItem?.denendi) setSelectedId(saved.id);
+      // Kayıt eklendi ya da bekleyenlerden sıralamaya geçti: raydaki sayı da değişti.
+      listeleriTazele();
       closeForm();
     } catch (e: unknown) {
       alert('Hata: ' + hataMetni(e));
     }
   };
 
+  /** Toplu sekmesi: kayıtlar sıralamanın altına eklenir, sonra veri baştan okunur. */
+  const handleTopluSave = async (bloklar: TopluBlok[], denendi: boolean) => {
+    if (!liste) return;
+    const sonSira = items.reduce((max, i) => Math.max(max, i.sira ?? 0), -1);
+    await topluKaydet({ liste, kategoriler, bloklar, baslangicSira: sonSira + 1, denendi });
+    await load();
+    listeleriTazele();
+  };
+
   const handleDelete = async (item: Item) => {
     if (!window.confirm(`“${item.ad}” kaydını silmek istediğinize emin misiniz?`)) return;
     try {
       await removeEntry(item);
+      listeleriTazele();
       setSelectedId(prev => (prev === item.id ? null : prev));
       closeForm();
     } catch (e: unknown) {
@@ -177,7 +191,10 @@ export default function ListePage() {
       return (
         <div className="state-empty">
           <p className="state-empty-title">Henüz kaydın yok</p>
-          <p>İlk kaydını ekleyerek kendi sıralamanı oluşturmaya başla.</p>
+          <p>
+            İlk kaydını ekleyerek kendi sıralamanı oluşturmaya başla — uzun bir listen varsa
+            formun “Toplu” sekmesine hepsini birden yapıştırabilirsin.
+          </p>
           <button type="button" className="btn-primary" onClick={openAdd}>İlk Kaydı Ekle</button>
         </div>
       );
@@ -274,7 +291,7 @@ export default function ListePage() {
             aria-current={sekme === 'sirada' ? 'page' : undefined}
             onClick={() => sekmeSec('sirada')}
           >
-            Sırada · {istekListesi.length}
+            Denenmemiş · {istekListesi.length}
           </button>
         </nav>
 
@@ -306,7 +323,7 @@ export default function ListePage() {
           className="fab"
           onClick={() => openForm(sekme === 'sirada' ? 'istek' : 'siralama')}
         >
-          {sekme === 'sirada' ? 'Sıraya ekle' : 'Kayıt ekle'}
+          {sekme === 'sirada' ? 'Denenmemiş kayıt ekle' : 'Kayıt ekle'}
         </button>
       </main>
 
@@ -343,6 +360,7 @@ export default function ListePage() {
         existingItems={ranked}
         onClose={closeForm}
         onSave={handleSave}
+        onTopluSave={handleTopluSave}
         onDelete={editingItem ? () => handleDelete(editingItem) : undefined}
       />
     </div>

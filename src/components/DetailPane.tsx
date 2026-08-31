@@ -82,12 +82,14 @@ export default function DetailPane({
   if (item) {
     const kat = kategoriBul(kategoriler, item.category_id);
     const metinAlanlari = alanlar.filter(a => a.tip === 'metin' && alanGorunur(a, item.category_id));
-    const boolAlanlari = alanlar.filter(a => a.tip === 'bool');
+    const boolAlanlari = alanlar.filter(a => a.tip === 'bool' && alanGorunur(a, item.category_id));
 
     return (
       <div className="detail">
         <div className="detail-bar">
-          {rank !== null && <span className="detail-rank">#{rank}</span>}
+          {rank !== null
+            ? <span className="detail-rank">#{rank}</span>
+            : <span className="detail-rank detail-rank-bekleyen">Denenmemiş</span>}
           <button type="button" className="detail-close" onClick={onClose} aria-label="Seçimi kaldır">✕</button>
         </div>
 
@@ -125,6 +127,13 @@ export default function DetailPane({
               </div>
             )}
           </dl>
+
+          {item.notlar && (
+            <section className="pane-section">
+              <h3 className="pane-section-title">Not</h3>
+              <p className="detail-not">{item.notlar}</p>
+            </section>
+          )}
         </div>
 
         <div className="detail-actions">

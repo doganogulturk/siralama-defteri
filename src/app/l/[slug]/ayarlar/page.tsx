@@ -5,17 +5,11 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { AlanTanimi, AlanTipi, Kategori } from '../../../../types/item';
 import {
-  createKategori, deleteKategori, deleteListe, updateKategori, updateListe,
+  KATEGORI_PALET, createKategori, deleteKategori, deleteListe, updateKategori, updateListe,
 } from '../../../../lib/items';
 import { useListStore } from '../../../../hooks/useListStore';
 import { hataMetni } from '../../../../lib/hata';
 import ListeRayi from '../../../../components/ListeRayi';
-
-/** Yeni kategorilere sırayla atanan renkler. */
-const PALET = [
-  '#1f6feb', '#b45309', '#127a5b', '#a8342c', '#6b4fbb',
-  '#0f7d8c', '#8a5cf6', '#8a8f2b', '#c2436f',
-];
 
 /** Listenin vurgu rengi için seçenekler. */
 const VURGU = ['#e03c10', '#1f6feb', '#127a5b', '#8a5cf6', '#b45309'];
@@ -100,7 +94,7 @@ export default function AyarlarPage() {
       await createKategori({
         list_id: liste.id,
         ad: temiz,
-        renk: PALET[kategoriler.length % PALET.length],
+        renk: KATEGORI_PALET[kategoriler.length % KATEGORI_PALET.length],
         sira: kategoriler.length,
       });
       setYeniKategori('');

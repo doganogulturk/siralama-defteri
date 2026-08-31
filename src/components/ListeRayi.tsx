@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useListeler } from '../hooks/useListeler';
+import { useListeler, siralanan } from '../hooks/useListeler';
 import ListeEkleModal from './ListeEkleModal';
 
 const ArtiIkon = (
@@ -12,11 +12,16 @@ const ArtiIkon = (
   </svg>
 );
 
+/**
+ * Ayar simgesi: üç kural çizgisi ve tutamakları. Dişli yerine sürgü, çünkü sekme
+ * simgesi de (`app/icon.svg`) üç kural çizgisinden kurulu — aynı sözlük.
+ * Öncesinde ışınlı bir daire vardı, 15 pikselde güneşe benziyordu.
+ */
 const AyarIkon = (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="3.4" />
-    <path d="M12 2.6v3M12 18.4v3M2.6 12h3M18.4 12h3M5.4 5.4l2.1 2.1M16.5 16.5l2.1 2.1M18.6 5.4l-2.1 2.1M7.5 16.5l-2.1 2.1" />
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="1.9" strokeLinecap="round" aria-hidden="true">
+    <path d="M3 6h7M16 6h5M3 12h3M12 12h9M3 18h9M18 18h3" />
+    <circle cx="13" cy="6" r="2.1" /><circle cx="9" cy="12" r="2.1" /><circle cx="15" cy="18" r="2.1" />
   </svg>
 );
 
@@ -52,13 +57,16 @@ export default function ListeRayi({ aktifSlug }: ListeRayiProps) {
             <div
               key={l.id}
               className={`rail-index-item${l.slug === aktifSlug ? ' is-on' : ''}`}
+              // Satır kendi listesinin vurgu rengini taşıyor: sayı bloğu ve ayar
+              // hücresinin üstüne gelme rengi buradan geliyor.
+              style={{ '--satir': l.renk } as React.CSSProperties}
             >
               <Link
                 href={`/l/${l.slug}`}
                 className="rail-index-link"
                 aria-current={l.slug === aktifSlug ? 'page' : undefined}
               >
-                <span className="rail-index-sayi">{sayilar[l.id]?.toplam ?? 0}</span>
+                <span className="rail-index-sayi">{siralanan(sayilar[l.id])}</span>
                 <span className="rail-index-ad">{l.ad}</span>
               </Link>
               <Link

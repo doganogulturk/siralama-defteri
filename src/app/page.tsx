@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useListeler } from '../hooks/useListeler';
+import { useListeler, siralanan } from '../hooks/useListeler';
 import ListeEkleModal from '../components/ListeEkleModal';
 import { useAuth } from '../hooks/useAuth';
 
@@ -15,7 +15,7 @@ export default function ListelerPage() {
   // Künye sayıları tüm listelerin toplamı.
   const toplamKayit = Object.values(sayilar).reduce((a, s) => a + s.toplam, 0);
   const bekleyen = Object.values(sayilar).reduce((a, s) => a + s.bekleyen, 0);
-  const siralanan = toplamKayit - bekleyen;
+  const siralananToplam = toplamKayit - bekleyen;
   const kullanici = user?.email?.split('@')[0] ?? '';
 
   return (
@@ -32,12 +32,12 @@ export default function ListelerPage() {
         {/* İki hücreli künye kutusu — vurgu hücresi bekleyenleri taşıyor. */}
         <div className="tally">
           <div className="tally-cell">
-            <strong>{siralanan}</strong>
+            <strong>{siralananToplam}</strong>
             <em>Sıralandı</em>
           </div>
           <div className="tally-cell is-accent">
             <strong>{bekleyen}</strong>
-            <em>Sırada</em>
+            <em>Denenmemiş</em>
           </div>
         </div>
 
@@ -77,10 +77,10 @@ export default function ListelerPage() {
           <div className="liste-grid">
             {listeler.map((l) => (
               <Link key={l.id} href={`/l/${l.slug}`} className="liste-card">
-                <span className="liste-card-no">{sayilar[l.id]?.toplam ?? 0}</span>
+                <span className="liste-card-no">{siralanan(sayilar[l.id])}</span>
                 <span className="liste-card-text">
                   <strong>{l.ad}</strong>
-                  <em>{sayilar[l.id]?.bekleyen ?? 0} sırada</em>
+                  <em>{sayilar[l.id]?.bekleyen ?? 0} denenmemiş</em>
                 </span>
                 <span className="liste-card-arrow" aria-hidden="true">→</span>
               </Link>

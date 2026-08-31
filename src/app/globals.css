@@ -18,6 +18,12 @@
   --accent:      #e03c10;
   --accent-wash: rgba(224, 60, 16, 0.07);
 
+  /* Satır içi hücre zemini (ray sayısı, ayar hücresi). Alfa olduğu için
+     arkasındaki zemin ne olursa olsun bir kademe koyu kalıyor — satır
+     vurgulanınca hücre kaybolmuyor. */
+  --tint:       rgba(19, 18, 16, 0.06);
+  --tint-paper: rgba(247, 245, 240, 0.14);
+
   /* Dolu yüzeyler mürekkebin kendisi değil, seyreltilmişi: düğmeler ve
      seçili kutular kağıttan kopmasın, sayfada delik gibi durmasın. */
   --fill:       rgba(19, 18, 16, 0.82);
@@ -419,8 +425,21 @@ a { color: var(--accent); }
 }
 .tab + .tab { border-left: var(--r-2) solid var(--ink); }
 .tab:hover { background: var(--sunk); }
-.tab.is-on { background: var(--fill); color: var(--paper); }
-.tab.is-on:hover { background: var(--fill-hover); }
+.tab { position: relative; }
+.tab + .tab { border-left: var(--r-2) solid var(--rule); }
+.tab:hover { color: var(--soft); }
+.tab.is-on { color: var(--ink); }
+/* Seçili sekme dolu bantla değil, altındaki kuralı vurgu rengine çevirerek
+   işaretleniyor: iki mürekkep blok yan yana durunca şerit fazla baskındı. */
+.tab.is-on::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(-1 * var(--r-3));
+  height: 3px;
+  background: var(--accent);
+}
 
 /* ═══════════════════════════════════════════════════════
    KÜNYE — ana ekran başlığı ve sayaç kutusu
@@ -642,16 +661,16 @@ a { color: var(--accent); }
 .form-screen-body {
   flex: 1;
   overflow-y: auto;
-  padding: 26px 18px 32px;
+  padding: 22px 18px 28px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 22px;
 }
 
 /* Fotoğraf — kesikli çerçeve, dolduğunda görselin kendisi */
 .photo-drop {
   position: relative;
-  min-height: 168px;
+  min-height: 100%;
   border: var(--r-2) dashed var(--ink);
   display: grid;
   place-items: center;
@@ -664,11 +683,10 @@ a { color: var(--accent); }
 .photo-drop-icon { color: var(--ink); }
 .photo-drop-title {
   font-family: var(--display);
-  font-size: 0.84rem;
+  font-size: 0.74rem;
   letter-spacing: 0.02em;
 }
-.photo-drop-sub { font-size: 0.74rem; font-weight: 500; color: var(--mute); }
-.photo-drop-img { width: 100%; height: 100%; max-height: 260px; object-fit: cover; }
+.photo-drop-img { width: 100%; height: 100%; object-fit: cover; }
 .photo-drop-overlay {
   position: absolute;
   inset: auto 0 0 0;
@@ -678,19 +696,23 @@ a { color: var(--accent); }
 .photo-drop-change,
 .photo-drop-remove {
   flex: 1;
-  min-height: var(--tap);
+  min-height: 34px;
   display: grid;
   place-items: center;
   background: var(--paper);
   font-family: var(--display);
-  font-size: 0.8rem;
+  font-size: 0.68rem;
   letter-spacing: 0.02em;
 }
 .photo-drop-change { border-right: 1px solid var(--rule); }
 .photo-drop-remove { color: var(--accent); }
 
 /* Alanlar — çerçeve değil, alt çizgi. Form bir doldurma fişi gibi. */
-.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+/* Formun kimlik bandı: solda fotoğraf kutusu, sağında ad ve çeşit alt alta.
+   Üçü yan yana durunca formun tepesi ~170px kısalıyor ve sıra seçimi
+   kaydırmadan görünüyor. */
+.form-kimlik { display: grid; grid-template-columns: 118px minmax(0, 1fr); gap: 14px; }
+.form-kimlik-alanlar { display: flex; flex-direction: column; gap: 14px; }
 .field { display: flex; flex-direction: column; gap: 8px; }
 .field-hint { font-size: 0.75rem; font-weight: 500; color: var(--mute); text-wrap: pretty; }
 .field-input {
@@ -817,6 +839,42 @@ a { color: var(--accent); }
 .form-screen-actions .btn-quiet { flex: 1; border-right: var(--r-2) solid var(--ink); color: var(--mute); }
 .form-screen-actions .btn-primary { flex: 2; }
 
+
+/* ── Toplu giriş kutusu ve ayrıştırma önizlemesi ────── */
+.toplu-alan {
+  min-height: 150px;
+  line-height: 1.55;
+}
+.toplu-onizleme {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: var(--r-2) solid var(--ink);
+}
+.toplu-onizleme-ozet {
+  font-family: var(--display);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.toplu-onizleme-blok {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--soft);
+  text-wrap: pretty;
+}
+.toplu-onizleme-alt { color: var(--mute); }
+.toplu-onizleme-kat {
+  margin-right: 8px;
+  font-family: var(--display);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
 /* ═══════════════════════════════════════════════════════
    DETAY PANELİ (masaüstü; stiller başka yerde zararsız)
 ═══════════════════════════════════════════════════════ */
@@ -872,6 +930,19 @@ a { color: var(--accent); }
   border-bottom: 1px solid var(--rule);
 }
 .detail-facts dd { font-size: 0.84rem; font-weight: 500; text-align: right; }
+
+/* Bekleyen kaydın sırası yok; künye şeridi rakam yerine durumu söylüyor. */
+.detail-rank-bekleyen { color: var(--mute); }
+/* Not, kaydın kendi cümlesi: satır sonları korunuyor. */
+.detail-not {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--soft);
+  white-space: pre-wrap;
+  text-wrap: pretty;
+}
 
 .detail-actions { display: flex; gap: 0; margin-top: auto; padding-top: 20px; }
 .detail-actions .btn-danger { flex: 1; border-right-width: 0; }
@@ -1521,21 +1592,29 @@ a { color: var(--accent); }
     color: inherit;
     text-decoration: none;
   }
+  /* Sayı bir künye bloğu: zemini listenin kendi vurgu rengi (`si_lists.renk`),
+     üstündeki rakam sıralanmış kayıt sayısı — bekleyenler değil, satırların
+     sırası da ona göre. Ray böylece renkle taranabilir bir indeks oluyor. */
   .rail-index-sayi {
-    min-width: 26px;
-    font-size: 0.8rem;
+    display: grid;
+    place-items: center;
+    min-width: 32px;
+    height: 27px;
+    padding: 0 6px;
+    background: var(--satir, var(--tint));
+    font-size: 0.76rem;
     font-weight: 600;
-    color: var(--mute);
+    color: var(--paper);
     font-variant-numeric: tabular-nums;
     flex-shrink: 0;
   }
-  .rail-index-item.is-on .rail-index-sayi { color: rgba(247, 245, 240, 0.7); }
+  /* Satırın asıl işi liste adı: sayı ve ayar zeminlerinin arasında en baskın öğe. */
   .rail-index-ad {
     flex: 1;
     min-width: 0;
     font-family: var(--display);
-    font-size: 1rem;
-    letter-spacing: -0.02em;
+    font-size: 1.06rem;
+    letter-spacing: -0.03em;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1543,15 +1622,19 @@ a { color: var(--accent); }
   .rail-index-ayar {
     display: grid;
     place-items: center;
-    width: 48px;
+    width: 46px;
     flex-shrink: 0;
-    color: var(--faint);
+    background: var(--tint);
+    color: var(--mute);
     text-decoration: none;
-    transition: color var(--t) var(--ease);
+    transition: background var(--t) var(--ease), color var(--t) var(--ease);
   }
-  .rail-index-ayar:hover { color: var(--accent); }
-  .rail-index-item.is-on .rail-index-ayar { color: rgba(247, 245, 240, 0.5); }
-  .rail-index-item.is-on .rail-index-ayar:hover { color: var(--paper); }
+  .rail-index-ayar:hover { background: var(--satir, var(--accent)); color: var(--paper); }
+  .rail-index-item.is-on .rail-index-ayar {
+    background: var(--tint-paper);
+    color: rgba(247, 245, 240, 0.72);
+  }
+  .rail-index-item.is-on .rail-index-ayar:hover { background: var(--satir, var(--accent)); color: var(--paper); }
 
   .rail-add {
     display: flex;
@@ -1617,20 +1700,20 @@ a { color: var(--accent); }
   .pane-main { overflow-y: auto; padding: 30px 32px; }
   .detail { max-width: 480px; margin: 0 auto; min-height: 100%; }
 
-  .form-screen { width: 620px; height: 100dvh; border-left: var(--r-3) solid var(--ink); }
-  .form-screen-backdrop { justify-content: flex-end; }
   /*
-   * Tam boy form (kayıt) sağ kenardan açılıyor: arkasındaki sıralama görünür
-   * kalsın diye. Kısa form (yeni liste) o bağlamı taşımıyor, sağa yapışınca
-   * öksüz duruyordu — `margin-inline: auto` perdedeki flex-end'i ezip ortalıyor.
+   * Formlar masaüstünde ortalanmış kutu. Kayıt formu bir süre sağ kenarda açıldı —
+   * arkadaki sıralama görünsün diye — ama iki formun iki ayrı davranışı tutarsızdı;
+   * tek dil seçildi. Yükseklik içeriğe göre, taşarsa gövde kendi içinde kayıyor.
    */
-  .form-screen-short {
-    align-self: center;
-    margin-inline: auto;
-    width: 460px;
-    border: var(--r-3) solid var(--ink);
+  .form-screen {
+    width: 560px;
     height: auto;
+    max-height: 92dvh;
+    align-self: center;
+    border: var(--r-3) solid var(--ink);
   }
+  .form-screen-short { width: 460px; }
+  .form-kimlik { grid-template-columns: 146px minmax(0, 1fr); gap: 18px; }
   .form-screen-back-desktop { display: inline; }
   .form-screen-back-mobile { display: none; }
 

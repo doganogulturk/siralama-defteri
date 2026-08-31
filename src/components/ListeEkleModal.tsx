@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createListe, getListeler } from '../lib/items';
 import { benzersizSlug, slugify } from '../lib/slug';
+import { topluAyristir, topluKaydet, topluKayitSayisi } from '../lib/toplu';
 import { hataMetni } from '../lib/hata';
+import TopluAlan from './TopluAlan';
 
 interface ListeEkleModalProps {
   isOpen: boolean;
@@ -21,8 +23,14 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
   const router = useRouter();
   const [ad, setAd] = useState('');
   const [kaydediliyor, setKaydediliyor] = useState(false);
+  /** Toplu giriş kutusu bilerek kapalı doğuyor: liste açmanın kısa yolu kısa kalsın. */
+  const [topluAcik, setTopluAcik] = useState(false);
+  const [toplu, setToplu] = useState('');
+  const bloklar = useMemo(() => topluAyristir(toplu), [toplu]);
 
   if (!isOpen) return null;
+
+  const topluAdet = topluKayitSayisi(bloklar);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,9 +43,13 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
         slug: benzersizSlug(slugify(ad), mevcut.map(l => l.slug)),
         sira: mevcut.length,
       });
+      if (topluAdet > 0) {
+        await topluKaydet({ liste: olusan, kategoriler: [], bloklar, baslangicSira: 0 });
+      }
       onCreated?.();
-      // Yeni liste kategorisiz doğuyor; kullanıcı doğrudan ayarlara düşsün.
-      router.push(`/l/${olusan.slug}/ayarlar`);
+      // Kategorisiz doğan listede yapılacak ilk iş ayarlar; toplu giriş bunu zaten
+      // hallettiyse kullanıcı doğrudan sıralamasına düşsün.
+      router.push(topluAdet > 0 ? `/l/${olusan.slug}` : `/l/${olusan.slug}/ayarlar`);
     } catch (err: unknown) {
       alert('Liste oluşturulamadı: ' + hataMetni(err));
       setKaydediliyor(false);
@@ -73,14 +85,26 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
             />
           </label>
 
+          {topluAcik ? (
+            <TopluAlan deger={toplu} onChange={setToplu} bloklar={bloklar} autoFocus />
+          ) : (
+            <button type="button" className="btn-quiet" onClick={() => setTopluAcik(true)}>
+              Kayıtları da şimdi yaz
+            </button>
+          )}
+
           <p className="field-hint">
-            Kategorileri ve ek alanları bir sonraki adımda tanımlayacaksın.
+            {topluAdet > 0
+              ? 'Kayıtlar denenmiş sayılır; sıralamayı sonra sürükleyerek düzeltirsin.'
+              : 'Kategorileri ve ek alanları bir sonraki adımda tanımlayacaksın.'}
           </p>
 
           <div className="form-screen-actions">
             <button type="button" className="btn-quiet" onClick={onClose}>Vazgeç</button>
             <button type="submit" className="btn-primary" disabled={kaydediliyor}>
-              {kaydediliyor ? 'Oluşturuluyor…' : 'Oluştur'}
+              {kaydediliyor
+                ? 'Oluşturuluyor…'
+                : topluAdet > 0 ? `Oluştur · ${topluAdet} kayıt` : 'Oluştur'}
             </button>
           </div>
         </form>

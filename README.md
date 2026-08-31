@@ -2,7 +2,7 @@
 
 Kişisel sıralama uygulaması: denediğin şeyleri kendi listelerinde sürükleyerek sırala, kendi kategorilerini kur, henüz denemediklerini bekleme listesinde tut.
 
-Proje "Ayran Gurmesi" olarak başladı; ayran kısıtı kaldırılıp **çok listeli, kullanıcı bazlı** bir yapıya çevrildi. Ayran artık yalnızca listelerden biri (`/l/ayran`). Depo ve Vercel projesi `siralama-defteri` adına taşınıyor (yol haritası 1).
+Proje "Ayran Gurmesi" olarak başladı; ayran kısıtı kaldırılıp **çok listeli, kullanıcı bazlı** bir yapıya çevrildi. Ayran artık yalnızca listelerden biri (`/l/ayran`). Depo, Vercel projesi ve `package.json` adı `siralama-defteri`; ayrandan kalan tek ad fotoğraf kovası (bkz. yol haritası 3).
 
 ---
 
@@ -10,13 +10,19 @@ Proje "Ayran Gurmesi" olarak başladı; ayran kısıtı kaldırılıp **çok lis
 
 Uygulama çalışır ve **canlıda**: giriş, çok listeli sıralama, kategori ve alan yönetimi, Baskı arayüzü.
 
-**Dağıtım** — Vercel, `main` dalından otomatik. Push üretimi günceller. Vercel'de `NEXT_PUBLIC_SUPABASE_URL` ve `NEXT_PUBLIC_SUPABASE_ANON_KEY` tanımlı olmalı; Supabase'in Redirect URLs listesinde üretim alan adı da bulunmalı, yoksa build geçer ama Google girişi canlıda başarısız olur.
+**Dağıtım** — Vercel, `main` dalından otomatik: <https://siralama-defteri.vercel.app>. Push üretimi günceller. Vercel'de `NEXT_PUBLIC_SUPABASE_URL` ve `NEXT_PUBLIC_SUPABASE_ANON_KEY` tanımlı olmalı; Supabase'in Redirect URLs listesinde üretim alan adı da bulunmalı, yoksa build geçer ama Google girişi canlıda **sessizce** başarısız olur — giriş `redirectTo` olarak `window.location.origin` kullandığı için tek kapı o liste.
 
-**Veri** — `si_lists` / `si_categories` / `si_items` şeması RLS ile kurulu. Eski `ay_ayranlar` tablosundaki 42 kayıt "Ayran" listesine taşındı (38 sıralı + 4 bekleyen); eski tablo yedek olarak duruyor.
+Eski `ayran-gurmesi.vercel.app` hâlâ aynı deployment'a bağlı ve çalışıyor. Bilinçli: kayıtlı bağlantılar ve telefon kısayolu bir süre yaşasın diye. Temizlenecek iki artık var — Supabase Site URL'i hâlâ eski adresi gösteriyor, ve eski adres hem Vercel Domains'te hem Redirect URLs'te duruyor. İkisi de acele değil, ama Site URL çevrilmeden eski adres silinmemeli.
+
+> Proje adı değişince Vercel yeni kısa adresi kendiliğinden **oluşturmuyor**. Yeniden adlandırma yalnızca üretilen adresleri (hesap kapsamlı ve dal adresleri) çeviriyor; kısa `<proje>.vercel.app` proje kurulurken iliştirildiği için yerinde kalıyor. Yenisi Settings → Domains'ten elle eklendi. Beklemek düzeltmiyor.
+
+**Veri** — `si_lists` / `si_categories` / `si_items` şeması RLS ile kurulu. Eski `ay_ayranlar` tablosundaki 42 kayıt "Ayran" listesine taşındı (38 sıralı + 4 bekleyen); taşıma doğrulandıktan sonra eski tablo düşürüldü. Şemada artık yalnızca üç tablo var.
 
 **Kimlik** — Google girişi Supabase Auth üzerinden; tüm sayfalar `AuthGate` arkasında, asıl koruma RLS'te.
 
 **Arayüz** — Üç ekran: `/` liste indeksi, `/l/[slug]` sıralama, `/l/[slug]/ayarlar` yönetim. Bekleyenler ayrı bir route değil, sıralama ekranının ikinci sekmesi ("Sırada"); iki sekmenin kayıtları da aynı sağ panelde açılıyor. Masaüstünde sıralama ve ayarlar aynı sol rayı paylaşıyor: ray satırları kayıt sayısı + liste adı + ayar dişlisi taşıyor, listeler kayıt sayısına göre sıralı. Kodda ayrana özel hiçbir alan adı geçmiyor: kategoriler veritabanından, ek alanlar `si_lists.alanlar` tanımından üretiliyor. Hem listeler hem kategoriler kayıt sayısına göre sıralı — elle sıralama diye bir iş yok.
+
+Masaüstünde iki form iki ayrı davranışta: **kayıt formu** sağ kenardan açılıyor (arkasındaki sıralama görünür kalsın diye), **yeni liste formu** ortalanıyor — o bağlamı taşımadığı için sağa yapıştığında öksüz duruyordu.
 
 **Tasarım** — Baskı yönü uygulandı, sonra bir sadeleştirme turundan geçti. Liste vurgu rengi `si_lists.renk`'ten gelip `--accent` olarak uygulanıyor. Turda değişenler:
 
@@ -26,19 +32,29 @@ Uygulama çalışır ve **canlıda**: giriş, çok listeli sıralama, kategori v
 - **Versal daraldı** — büyük harf yalnızca küçük aralıklı etiketlerde ve sabit başlıklarda. Kullanıcının yazdığı adlar (liste, kayıt, kategori) ve düğme metinleri normal yazımda; harf aralığı ve punto buna göre yeniden ayarlandı.
 - **Dikey ritim açıldı** — satır, bölüm ve sütun boşlukları ~%20-25 arttı.
 
+**Sekme simgesi** — `src/app/icon.svg`: mürekkep zeminde azalan uzunlukta üç kural çizgisi. Baskı yönü hiyerarşiyi zaten kural çizgileriyle kurduğu için simge aynı sözlükten; harf yok, 16 pikselde monogram okunmuyor. Vurgu rengi bilerek kullanılmadı — `--accent` liste başına değişiyor, simge sabit olmalı. Koyu sekme şeridinde mürekkep zemin şeride karışıp geriye üç kağıt rengi çizgi kalıyor; okunurluk korunduğu için kabul edildi.
+
 ---
 
 ## Yol haritası
 
-Öncelik sırasıyla; maddeler birbirinden bağımsız.
+Öncelik sırasıyla; maddeler birbirinden bağımsız. Üçü de "ne zaman yapılacağı belli değil" kategorisinde — uygulama bunlarsız da tam çalışıyor.
 
 | # | İş | Neden / not |
 |---|---|---|
-| 1 | **Depo ve Vercel projesi adını değiştir** | Yeni ad: `siralama-defteri`. Kod tarafı bitti (`package.json`). Kalanı panel işi, sırası önemli: GitHub'da yeniden adlandır → Vercel'de Git bağlantısını doğrula → Vercel proje adını değiştir → `git remote set-url` → Supabase Redirect URLs'e yeni `*.vercel.app` adresini ekle. Vercel adı değişince `ayran-gurmesi.vercel.app` serbest kalır, eski bağlantılar kırılır. |
-| 2 | **`ay_ayranlar` tablosunu DROP et** | `supabase/005_eski_tablo_dusur.sql` hazır: önce başındaki sayım sorgusunu tek başına çalıştır, sayılar tutuyorsa dosyayı çalıştır. Geri alınamaz. |
-| 3 | **Ek alan filtresine yeni bir yer bul** *(ayrıntılandırılacak)* | Evet/Hayır alanlarına göre filtreleme (ör. "yalnızca ekşi olanlar") arayüzden çıkarıldı: şeridi kalabalıklaştırıyordu. Ayrımın kendisi işe yarıyor, kaybolmaması gerek — ikincil bir kontrol ya da açılır menü. Mantık `lib/filtre.ts`'te duruyor, `FilterPanel`'in `stack` düzeni de hâlâ çiziyor; eksik olan yalnızca ona giden bir kapı. |
-| 4 | **İkili karşılaştırma ekranı** *(gerekli mi, karar verilmedi)* | "Hangisi daha iyi?" akışı — 42 kayıtta telefonda sürükleyerek sıralamak zahmetli. Tasarım kararının parçasıydı. Yeni bir sıralama algoritması demek; maliyeti yüksek, ihtiyaç netleşmeden başlanmayacak. |
-| 5 | **Fotoğraf kovasını yeniden adlandır** *(ayrıntılandırılacak)* | Kova hâlâ `ayran`; kullanıcıya görünmüyor. `lib/items.ts` içindeki `KOVA` sabiti tek değişiklik noktası, silme işlevi kova adını URL'den kendi çözüyor. **Dikkat:** Supabase kovaları yeniden adlandırılamıyor; yeni kova açmak mevcut `fotograf_url` değerlerini kırar. Göründüğü kadar ucuz değil. |
+| 1 | **Ek alan filtresine yeni bir yer bul** *(ayrıntılandırılacak)* | Evet/Hayır alanlarına göre filtreleme (ör. "yalnızca ekşi olanlar") arayüzden çıkarıldı: şeridi kalabalıklaştırıyordu. Ayrımın kendisi işe yarıyor, kaybolmaması gerek — ikincil bir kontrol ya da açılır menü. Mantık `lib/filtre.ts`'te duruyor, `FilterPanel`'in `stack` düzeni de hâlâ çiziyor; eksik olan yalnızca ona giden bir kapı. |
+| 2 | **İkili karşılaştırma ekranı** *(gerekli mi, karar verilmedi)* | "Hangisi daha iyi?" akışı — 42 kayıtta telefonda sürükleyerek sıralamak zahmetli. Tasarım kararının parçasıydı. Yeni bir sıralama algoritması demek; maliyeti yüksek, ihtiyaç netleşmeden başlanmayacak. |
+| 3 | **Fotoğraf kovasını yeniden adlandır** *(ayrıntılandırılacak)* | Kova hâlâ `ayran`; ayrandan kalan son ad, ama kullanıcıya görünmüyor. `lib/items.ts` içindeki `KOVA` sabiti tek değişiklik noktası, silme işlevi kova adını URL'den kendi çözüyor. **Dikkat:** Supabase kovaları yeniden adlandırılamıyor; yeni kova açmak mevcut `fotograf_url` değerlerini kırar. Göründüğü kadar ucuz değil. |
+
+### Kapananlar
+
+Yol haritasından çıkanlar, kaydı kalsın diye:
+
+- **Kategori sırasını sürüklenebilir yap** — yapılmadı, gereksiz kılındı: kategoriler listeler gibi kayıt sayısına göre sıralanıyor. Ayarlardaki göstermelik tutamak kaldırıldı.
+- **Depo ve Vercel projesi adını değiştir** — `siralama-defteri`. GitHub, Vercel, `git remote`, `package.json`, yeni alan adı ve Redirect URLs tamam.
+- **`ay_ayranlar` tablosunu DROP et** — `005_eski_tablo_dusur.sql` doğrulanıp çalıştırıldı.
+- **Apple girişi** — ücret gerektirdiği için kabul edilmiş sınırlara taşındı.
+- **Liste simgesi (emoji)** — iki tur denendi, tamamen kaldırıldı. Aşağıda.
 
 ### Kabul edilmiş sınırlar
 
@@ -52,7 +68,7 @@ Bunlar iş değil, bilinçli kararlar:
 - **`si_items.sira` benzersiz değil** — sürükle-bırak satırları tek tek UPDATE ettiği için ara durumlarda geçici çakışma olur.
 - **`si_lists.sira` arayüzde kullanılmıyor** — yukarıdaki kategori kuralının aynısı listeler için de geçerli.
 - **Bekleyenlerin kendi URL'i yok** — "Sırada" bir sekme; donanım geri tuşu sekmeler arasında gezmiyor, listeden çıkıyor.
-- **Filtre şeridi yalnızca kategori taşıyor** — "Tümü" + kategoriler. Ek alanların Evet/Hayır seçenekleri sıralamanın hemen üstünü kalabalıklaştırdığı için çıkarıldı. Ayrım tamamen kaybolmadı: sağ paneldeki kapsam sekmelerinde duruyor — ama orası yalnızca podyumu ve son eklenenleri daraltıyor, listeyi değil. Geri getirmek yol haritasında 3. sırada.
+- **Filtre şeridi yalnızca kategori taşıyor** — "Tümü" + kategoriler. Ek alanların Evet/Hayır seçenekleri sıralamanın hemen üstünü kalabalıklaştırdığı için çıkarıldı. Ayrım tamamen kaybolmadı: sağ paneldeki kapsam sekmelerinde duruyor — ama orası yalnızca podyumu ve son eklenenleri daraltıyor, listeyi değil. Geri getirmek yol haritasında 1. sırada.
 - **Liste adı değişince slug değişmez** — kayıtlı bağlantılar kırılmasın diye.
 - **Sunucu tarafı koruma yok** — uygulama tamamen istemci tarafında; `AuthGate` bir kapı, güvenlik RLS'te.
 
@@ -66,7 +82,7 @@ Neden bu: uygulama markette, gündüz, telefon parlarken kullanılıyor — aç�
 
 Diğer yönlerden alınmasına karar verilenler:
 - **Liste başına vurgu rengi** (Sıvı yönünden) — gradyan değil düz renk. Uygulandı: `si_lists.renk`.
-- **İkili karşılaştırma** (Deste yönünden) — sürükleyerek sıralamaya alternatif "hangisi daha iyi?" akışı. Henüz yapılmadı; yol haritasında 4. sırada ve gerçekten gerekli mi, karar verilmedi.
+- **İkili karşılaştırma** (Deste yönünden) — sürükleyerek sıralamaya alternatif "hangisi daha iyi?" akışı. Henüz yapılmadı; yol haritasında 2. sırada ve gerçekten gerekli mi, karar verilmedi.
 
 **Tasarım kanvasları** (claude.ai bağlantıları, kalıcı):
 
@@ -90,7 +106,7 @@ Uygulanacak değerler (tip ölçeği, renkler, kural kalınlıkları, kontrol an
 
 ```
 si_lists       id, user_id, ad, slug, emoji, renk, sira, alanlar(jsonb), created_at
-               └ emoji kullanılmıyor (bkz. kabul edilmiş sınırlar)
+               └ emoji ve sira kullanılmıyor (bkz. kabul edilmiş sınırlar)
 si_categories  id, list_id, ad, renk, sira, created_at
 si_items       id, list_id, category_id, ad, alt_ad, fotograf_url,
                sira, denendi, notlar, ozellikler(jsonb), created_at
@@ -108,7 +124,7 @@ Kritik ayrıntılar:
 
 ### Migration dosyaları
 
-`supabase/` altında, çalıştırıldıkları sırayla. **İlk dördü uygulanmış durumda.**
+`supabase/` altında, çalıştırıldıkları sırayla. **Beşi de uygulanmış durumda.**
 
 | Dosya | Ne yapar |
 |---|---|
@@ -116,9 +132,9 @@ Kritik ayrıntılar:
 | `002_veri_tasima.sql` | `ay_ayranlar` → `si_*` tek seferlik taşıma (Google girişi yapılmış olmalı) |
 | `003_liste_alanlari.sql` | `alanlar` kolonunu ekler, ayran listesinin alanlarını tanımlar |
 | `004_liste_rengi.sql` | `renk` kolonunu ekler (liste vurgu rengi) |
-| `005_eski_tablo_dusur.sql` | **Henüz çalıştırılmadı.** `ay_ayranlar`'ı düşürür; başındaki sayım sorgusu önce elle çalıştırılmalı |
+| `005_eski_tablo_dusur.sql` | `ay_ayranlar`'ı düşürür — sayım doğrulandıktan sonra çalıştırıldı |
 
-Taşınmayan tek kolon: `ay_ayranlar.sira_eksi` — kodda hiç kullanılmıyordu.
+Taşımada atlanan tek kolon: `ay_ayranlar.sira_eksi` — kodda hiç kullanılmıyordu. Tablo artık yok, kayıt olarak duruyor.
 
 ---
 
@@ -129,7 +145,8 @@ Google girişi, Supabase Auth üzerinden. Uygulama tamamen istemci tarafında ç
 Kurulum notları:
 - Google Cloud'da OAuth client → Authorized redirect URI: `https://<proje-ref>.supabase.co/auth/v1/callback`
 - Authorized domain olarak `supabase.co` kabul edilmiyor, **proje kodlu tam hâli** girilmeli
-- Supabase → Authentication → URL Configuration → Redirect URLs'e `http://localhost:3000/**` eklenmiş olmalı
+- Supabase → Authentication → URL Configuration → Redirect URLs'e hem `http://localhost:3000/**` hem üretim adresi eklenmiş olmalı
+- Site URL örtük olarak izinli yönlendirme sayılıyor: Redirect URLs'te olmayan bir adres yalnızca Site URL olduğu için çalışıyor olabilir — alan adı değiştirirken bu sıralamayı bozmamak gerek
 - Apple girişi yok ve planlanmıyor — Apple Developer hesabı ($99/yıl) gerektiriyor
 
 ---
@@ -171,6 +188,8 @@ src/
   types/item.ts                   Item, Kategori, Liste, AlanTanimi + yardımcılar
 supabase/                         migration dosyaları
 ```
+
+`public/` yok: `create-next-app`'ten kalan beş SVG ve `page.module.css` hiçbir yerden referans almadığı için silindi. Sekme simgesi `app/icon.svg` konvansiyonuyla geliyor, `favicon.ico` kaldırıldı.
 
 ---
 

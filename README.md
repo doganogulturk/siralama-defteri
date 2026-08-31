@@ -142,6 +142,7 @@ src/
     layout.tsx                    kök düzen, AuthGate sarmalayıcısı
     page.tsx                      liste indeksi (Listelerim)
     globals.css                   tüm stiller — Baskı tasarım sistemi
+    icon.svg                      sekme simgesi — azalan üç kural çizgisi
     l/[slug]/
       page.tsx                    sıralama ekranı — "Sıralamam" ve "Sırada" sekmeleri
       ayarlar/page.tsx            liste, kategori ve alan yönetimi

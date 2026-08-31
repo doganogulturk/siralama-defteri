@@ -2,7 +2,7 @@
 
 Kişisel sıralama uygulaması: denediğin şeyleri kendi listelerinde sürükleyerek sırala, kendi kategorilerini kur, henüz denemediklerini bekleme listesinde tut.
 
-Proje "Ayran Gurmesi" olarak başladı; ayran kısıtı kaldırılıp **çok listeli, kullanıcı bazlı** bir yapıya çevrildi. Ayran artık yalnızca listelerden biri (`/l/ayran`). Depo adı ve Vercel projesi hâlâ `ayran-gurmesi`.
+Proje "Ayran Gurmesi" olarak başladı; ayran kısıtı kaldırılıp **çok listeli, kullanıcı bazlı** bir yapıya çevrildi. Ayran artık yalnızca listelerden biri (`/l/ayran`). Depo ve Vercel projesi `siralama-defteri` adına taşınıyor (yol haritası 1).
 
 ---
 
@@ -16,7 +16,7 @@ Uygulama çalışır ve **canlıda**: giriş, çok listeli sıralama, kategori v
 
 **Kimlik** — Google girişi Supabase Auth üzerinden; tüm sayfalar `AuthGate` arkasında, asıl koruma RLS'te.
 
-**Arayüz** — Üç ekran: `/` liste indeksi, `/l/[slug]` sıralama, `/l/[slug]/ayarlar` yönetim. Bekleyenler ayrı bir route değil, sıralama ekranının ikinci sekmesi ("Sırada"); iki sekmenin kayıtları da aynı sağ panelde açılıyor. Masaüstünde sıralama ve ayarlar aynı sol rayı paylaşıyor: ray satırları kayıt sayısı + liste adı + ayar dişlisi taşıyor, listeler kayıt sayısına göre sıralı. Kodda ayrana özel hiçbir alan adı geçmiyor: kategoriler veritabanından, ek alanlar `si_lists.alanlar` tanımından üretiliyor.
+**Arayüz** — Üç ekran: `/` liste indeksi, `/l/[slug]` sıralama, `/l/[slug]/ayarlar` yönetim. Bekleyenler ayrı bir route değil, sıralama ekranının ikinci sekmesi ("Sırada"); iki sekmenin kayıtları da aynı sağ panelde açılıyor. Masaüstünde sıralama ve ayarlar aynı sol rayı paylaşıyor: ray satırları kayıt sayısı + liste adı + ayar dişlisi taşıyor, listeler kayıt sayısına göre sıralı. Kodda ayrana özel hiçbir alan adı geçmiyor: kategoriler veritabanından, ek alanlar `si_lists.alanlar` tanımından üretiliyor. Hem listeler hem kategoriler kayıt sayısına göre sıralı — elle sıralama diye bir iş yok.
 
 **Tasarım** — Baskı yönü uygulandı, sonra bir sadeleştirme turundan geçti. Liste vurgu rengi `si_lists.renk`'ten gelip `--accent` olarak uygulanıyor. Turda değişenler:
 
@@ -34,24 +34,25 @@ Uygulama çalışır ve **canlıda**: giriş, çok listeli sıralama, kategori v
 
 | # | İş | Neden / not |
 |---|---|---|
-| 1 | **Kategori sırasını sürüklenebilir yap** | Ayarlardaki tutamak şu an göstermelik. `si_categories.sira` şemada var ve bu sıra filtre şeridindeki sırayı belirliyor; dnd-kit zaten projede. |
-| 2 | **Ek alan filtresine yeni bir yer bul** | Evet/Hayır alanlarına göre filtreleme (ör. "yalnızca ekşi olanlar") arayüzden çıkarıldı: şeridi kalabalıklaştırıyordu. Ayrımın kendisi işe yarıyor, kaybolmaması gerek — ikincil bir kontrol ya da açılır menü. Mantık `lib/filtre.ts`'te duruyor, `FilterPanel`'in `stack` düzeni de hâlâ çiziyor; eksik olan yalnızca ona giden bir kapı. |
-| 3 | **İkili karşılaştırma ekranı** | "Hangisi daha iyi?" akışı — 42 kayıtta telefonda sürükleyerek sıralamak zahmetli. Tasarım kararının parçasıydı, Baskı diline uyarlanması gerekiyor. Yeni bir sıralama algoritması demek. |
-| 4 | **Depo ve Vercel projesi adını değiştir** | İkisi de hâlâ `ayran-gurmesi`; uygulama artık "Sıralama Defteri". Kod işi değil, panel işi — sırası: GitHub'da yeniden adlandır → Vercel'de Git bağlantısını doğrula → Vercel proje adını değiştir → `git remote set-url`. Vercel adı değişince `ayran-gurmesi.vercel.app` adresi serbest kalır, eski bağlantılar kırılır. `package.json`'daki `name` de güncellenmeli. |
-| 5 | **Apple girişi** | Supabase'de hazır provider; Apple Developer hesabı ($99/yıl) gerektiriyor. |
-| 6 | **`ay_ayranlar` tablosunu DROP et** | Taşımanın doğruluğundan emin olununca. |
-| 7 | **Fotoğraf kovasını yeniden adlandır** *(isteğe bağlı)* | Kova hâlâ `ayran`; kullanıcıya görünmüyor. `lib/items.ts` içindeki `KOVA` sabiti tek değişiklik noktası, silme işlevi kova adını URL'den kendi çözüyor. **Dikkat:** Supabase kovaları yeniden adlandırılamıyor; yeni kova açmak mevcut `fotograf_url` değerlerini kırar. Göründüğü kadar ucuz değil. |
+| 1 | **Depo ve Vercel projesi adını değiştir** | Yeni ad: `siralama-defteri`. Kod tarafı bitti (`package.json`). Kalanı panel işi, sırası önemli: GitHub'da yeniden adlandır → Vercel'de Git bağlantısını doğrula → Vercel proje adını değiştir → `git remote set-url` → Supabase Redirect URLs'e yeni `*.vercel.app` adresini ekle. Vercel adı değişince `ayran-gurmesi.vercel.app` serbest kalır, eski bağlantılar kırılır. |
+| 2 | **`ay_ayranlar` tablosunu DROP et** | `supabase/005_eski_tablo_dusur.sql` hazır: önce başındaki sayım sorgusunu tek başına çalıştır, sayılar tutuyorsa dosyayı çalıştır. Geri alınamaz. |
+| 3 | **Ek alan filtresine yeni bir yer bul** *(ayrıntılandırılacak)* | Evet/Hayır alanlarına göre filtreleme (ör. "yalnızca ekşi olanlar") arayüzden çıkarıldı: şeridi kalabalıklaştırıyordu. Ayrımın kendisi işe yarıyor, kaybolmaması gerek — ikincil bir kontrol ya da açılır menü. Mantık `lib/filtre.ts`'te duruyor, `FilterPanel`'in `stack` düzeni de hâlâ çiziyor; eksik olan yalnızca ona giden bir kapı. |
+| 4 | **İkili karşılaştırma ekranı** *(gerekli mi, karar verilmedi)* | "Hangisi daha iyi?" akışı — 42 kayıtta telefonda sürükleyerek sıralamak zahmetli. Tasarım kararının parçasıydı. Yeni bir sıralama algoritması demek; maliyeti yüksek, ihtiyaç netleşmeden başlanmayacak. |
+| 5 | **Fotoğraf kovasını yeniden adlandır** *(ayrıntılandırılacak)* | Kova hâlâ `ayran`; kullanıcıya görünmüyor. `lib/items.ts` içindeki `KOVA` sabiti tek değişiklik noktası, silme işlevi kova adını URL'den kendi çözüyor. **Dikkat:** Supabase kovaları yeniden adlandırılamıyor; yeni kova açmak mevcut `fotograf_url` değerlerini kırar. Göründüğü kadar ucuz değil. |
 
 ### Kabul edilmiş sınırlar
 
 Bunlar iş değil, bilinçli kararlar:
 
+- **Apple girişi yok** — Supabase'de hazır provider ama Apple Developer hesabı ($99/yıl) gerektiriyor; ücret ödenmeyecek. Google girişi tek yol.
+- **Liste simgesi yok** — emoji seçimi denendi (elle yazma, sonra küratörlü ızgara) ve kaldırıldı: kayıtların çoğunda zaten fotoğraf var, listenin ayrıca simge taşımasına gerek yok. `si_lists.emoji` kolonu şemada duruyor ama kod ne yazıyor ne okuyor. Ayarlardaki kimlik kutusu listenin monogramını gösteriyor.
+- **Kategori sırası elle ayarlanmaz** — kategoriler de listeler gibi kayıt sayısına göre sıralanıyor (eşitlikte `sira`, sonra `created_at`). `si_categories.sira` sütunu şemada duruyor ama yalnızca eşitlik bozucu.
 - **Alan tipini değiştirmek veriyi dönüştürmez** — Evet/Hayır'dan Metin'e çevrilen alanın eski `true/false` değerleri kayıtta kalır ama okunmaz olur. Nadir işlem; dönüştürme yazmaya değmedi.
 - **Kategori silmek kayıtları silmez** — `on delete set null` ile kayıtlar kategorisiz kalır.
 - **`si_items.sira` benzersiz değil** — sürükle-bırak satırları tek tek UPDATE ettiği için ara durumlarda geçici çakışma olur.
-- **`si_lists.sira` arayüzde kullanılmıyor** — listeler kayıt sayısına göre sıralanıyor (eşitlikte `sira`, sonra `created_at`). Sütun şemada duruyor ama elle liste sıralama diye bir iş kalmadı.
+- **`si_lists.sira` arayüzde kullanılmıyor** — yukarıdaki kategori kuralının aynısı listeler için de geçerli.
 - **Bekleyenlerin kendi URL'i yok** — "Sırada" bir sekme; donanım geri tuşu sekmeler arasında gezmiyor, listeden çıkıyor.
-- **Filtre şeridi yalnızca kategori taşıyor** — "Tümü" + kategoriler. Ek alanların Evet/Hayır seçenekleri sıralamanın hemen üstünü kalabalıklaştırdığı için çıkarıldı. Ayrım tamamen kaybolmadı: sağ paneldeki kapsam sekmelerinde duruyor — ama orası yalnızca podyumu ve son eklenenleri daraltıyor, listeyi değil. Geri getirmek yol haritasında 2. sırada.
+- **Filtre şeridi yalnızca kategori taşıyor** — "Tümü" + kategoriler. Ek alanların Evet/Hayır seçenekleri sıralamanın hemen üstünü kalabalıklaştırdığı için çıkarıldı. Ayrım tamamen kaybolmadı: sağ paneldeki kapsam sekmelerinde duruyor — ama orası yalnızca podyumu ve son eklenenleri daraltıyor, listeyi değil. Geri getirmek yol haritasında 3. sırada.
 - **Liste adı değişince slug değişmez** — kayıtlı bağlantılar kırılmasın diye.
 - **Sunucu tarafı koruma yok** — uygulama tamamen istemci tarafında; `AuthGate` bir kapı, güvenlik RLS'te.
 
@@ -65,7 +66,7 @@ Neden bu: uygulama markette, gündüz, telefon parlarken kullanılıyor — aç�
 
 Diğer yönlerden alınmasına karar verilenler:
 - **Liste başına vurgu rengi** (Sıvı yönünden) — gradyan değil düz renk. Uygulandı: `si_lists.renk`.
-- **İkili karşılaştırma** (Deste yönünden) — sürükleyerek sıralamaya alternatif "hangisi daha iyi?" akışı. Henüz yapılmadı, yol haritasında 3. sırada.
+- **İkili karşılaştırma** (Deste yönünden) — sürükleyerek sıralamaya alternatif "hangisi daha iyi?" akışı. Henüz yapılmadı; yol haritasında 4. sırada ve gerçekten gerekli mi, karar verilmedi.
 
 **Tasarım kanvasları** (claude.ai bağlantıları, kalıcı):
 
@@ -89,6 +90,7 @@ Uygulanacak değerler (tip ölçeği, renkler, kural kalınlıkları, kontrol an
 
 ```
 si_lists       id, user_id, ad, slug, emoji, renk, sira, alanlar(jsonb), created_at
+               └ emoji kullanılmıyor (bkz. kabul edilmiş sınırlar)
 si_categories  id, list_id, ad, renk, sira, created_at
 si_items       id, list_id, category_id, ad, alt_ad, fotograf_url,
                sira, denendi, notlar, ozellikler(jsonb), created_at
@@ -106,7 +108,7 @@ Kritik ayrıntılar:
 
 ### Migration dosyaları
 
-`supabase/` altında, çalıştırıldıkları sırayla. **Dördü de uygulanmış durumda.**
+`supabase/` altında, çalıştırıldıkları sırayla. **İlk dördü uygulanmış durumda.**
 
 | Dosya | Ne yapar |
 |---|---|
@@ -114,6 +116,7 @@ Kritik ayrıntılar:
 | `002_veri_tasima.sql` | `ay_ayranlar` → `si_*` tek seferlik taşıma (Google girişi yapılmış olmalı) |
 | `003_liste_alanlari.sql` | `alanlar` kolonunu ekler, ayran listesinin alanlarını tanımlar |
 | `004_liste_rengi.sql` | `renk` kolonunu ekler (liste vurgu rengi) |
+| `005_eski_tablo_dusur.sql` | **Henüz çalıştırılmadı.** `ay_ayranlar`'ı düşürür; başındaki sayım sorgusu önce elle çalıştırılmalı |
 
 Taşınmayan tek kolon: `ay_ayranlar.sira_eksi` — kodda hiç kullanılmıyordu.
 
@@ -127,7 +130,7 @@ Kurulum notları:
 - Google Cloud'da OAuth client → Authorized redirect URI: `https://<proje-ref>.supabase.co/auth/v1/callback`
 - Authorized domain olarak `supabase.co` kabul edilmiyor, **proje kodlu tam hâli** girilmeli
 - Supabase → Authentication → URL Configuration → Redirect URLs'e `http://localhost:3000/**` eklenmiş olmalı
-- Apple girişi henüz yok (Apple Developer hesabı gerektiriyor)
+- Apple girişi yok ve planlanmıyor — Apple Developer hesabı ($99/yıl) gerektiriyor
 
 ---
 

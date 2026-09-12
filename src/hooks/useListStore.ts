@@ -9,11 +9,17 @@ import {
 import { sortSirali, sortIstekListesi } from '../lib/sort';
 import { hataMetni } from '../lib/hata';
 
+/** Sıralamadaki kayıt: denenmiş ve "Bir daha asla" bölümünde değil. */
+const siralamada = (i: Item) => i.denendi && !i.asla;
+
 /**
  * Bir listenin tüm verisi: liste kaydı, kategorileri ve öğeleri.
- * Öğeler tek sorguyla gelip denenmişler / istek listesi olarak bellekte ayrılıyor —
- * formdaki "şunun altına ekle" seçicisi her iki tarafta da sıralı listeye ihtiyaç
- * duyduğu için ayrımı SQL'e taşımanın kazancı yok.
+ * Öğeler tek sorguyla gelip sıralama / "Bir daha asla" / istek listesi olarak
+ * bellekte ayrılıyor — formdaki "şunun altına ekle" seçicisi sıralı listeye
+ * ihtiyaç duyduğu için ayrımı SQL'e taşımanın kazancı yok.
+ *
+ * Sıralama ve "Bir daha asla" aynı `sira` kolonunu kendi içlerinde ayrı ayrı
+ * 0'dan numaralıyor; iki bölümü birbirinden ayıran `asla`.
  */
 export function useListStore(slug: string) {
   const [liste, setListe] = useState<Liste | null>(null);
@@ -65,13 +71,20 @@ export function useListStore(slug: string) {
     );
   }, [kategorilerHam, items]);
 
-  const denenenler = useMemo(() => sortSirali(items.filter(i => i.denendi)), [items]);
+  const denenenler = useMemo(() => sortSirali(items.filter(siralamada)), [items]);
+  /** Denenmiş ama sıralamada değil: kırmızı çizginin altındaki bölüm, kendi içinde sıralı. */
+  const aslaListesi = useMemo(() => sortSirali(items.filter(i => i.denendi && i.asla)), [items]);
   const istekListesi = useMemo(() => sortIstekListesi(items.filter(i => !i.denendi)), [items]);
 
-  const persistSira = useCallback(async (list: Item[]) => {
+  /** `aslaDahil`: bölüm değiştiren sürükle-bırak `asla`'yı da yazıyor; ekleme yolu yalnızca sırayı. */
+  const persistSira = useCallback(async (list: Item[], aslaDahil = false) => {
     setIsSaving(true);
     try {
-      await updateItemsSira(list.map(i => ({ id: i.id, sira: i.sira ?? 0 })));
+      await updateItemsSira(list.map(i => ({
+        id: i.id,
+        sira: i.sira ?? 0,
+        ...(aslaDahil ? { asla: !!i.asla } : {}),
+      })));
     } catch (e: unknown) {
       alert('Sıralama kaydedilemedi: ' + hataMetni(e));
     } finally {
@@ -79,20 +92,23 @@ export function useListStore(slug: string) {
     }
   }, []);
 
-  /** Kaydı sıralamaya `targetIndex` konumundan sokup tümünü yeniden numaralar. */
+  /**
+   * Kaydı sıralamaya `targetIndex` konumundan sokup sıralamayı yeniden numaralar.
+   * "Bir daha asla" bölümüne dokunmuyor: onun numaraları kendine ait.
+   */
   const spliceIntoRanking = useCallback((
     prev: Item[],
     item: Item,
     targetIndex?: number
   ) => {
-    const ranked = sortSirali(prev.filter(i => i.denendi && i.id !== item.id));
+    const ranked = sortSirali(prev.filter(i => siralamada(i) && i.id !== item.id));
     const at = targetIndex !== undefined && targetIndex >= 0
       ? Math.min(targetIndex, ranked.length)
       : 0;
     ranked.splice(at, 0, item);
     const numbered = ranked.map((it, idx) => ({ ...it, sira: idx }));
     void persistSira(numbered);
-    return [...prev.filter(i => !i.denendi && i.id !== item.id), ...numbered];
+    return [...prev.filter(i => !siralamada(i) && i.id !== item.id), ...numbered];
   }, [persistSira]);
 
   /**
@@ -105,7 +121,7 @@ export function useListStore(slug: string) {
     targetIndex?: number
   ): Promise<Item> => {
     if (!liste) throw new Error('Liste yüklenmedi.');
-    // `sira` bilerek dışarıda: konumu spliceIntoRanking / reorder belirliyor.
+    // `sira` ve `asla` bilerek dışarıda: konumu spliceIntoRanking / reorder belirliyor.
     const payload = {
       list_id: liste.id,
       category_id: entry.category_id ?? null,
@@ -145,16 +161,19 @@ export function useListStore(slug: string) {
     setItems(prev => prev.filter(i => i.id !== item.id));
   }, []);
 
-  /** Sürükle-bırak sonrası denenmişler listesinin yeni hâli. */
+  /**
+   * Sürükle-bırak sonrası denenmişlerin yeni hâli: sıralama ve "Bir daha asla"
+   * birlikte, her kaydın `sira`'sı ve `asla`'sı güncellenmiş olarak.
+   */
   const reorder = useCallback((next: Item[]) => {
     setItems(prev => {
-      void persistSira(next);
+      void persistSira(next, true);
       return [...prev.filter(i => !i.denendi), ...next];
     });
   }, [persistSira]);
 
   return {
-    liste, kategoriler, items, denenenler, istekListesi,
+    liste, kategoriler, items, denenenler, aslaListesi, istekListesi,
     loading, error, isSaving,
     load, saveEntry, removeEntry, reorder,
   };

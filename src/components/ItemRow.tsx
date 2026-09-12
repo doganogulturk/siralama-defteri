@@ -39,17 +39,29 @@ export function rozetler(item: Item, alanlar: AlanTanimi[]): string[] {
     .map(alanKisa);
 }
 
+/** Sıralama ile "Bir daha asla" bölümünü ayıran çizginin sıralanabilir listedeki kimliği. */
+export const ASLA_SINIRI = 'asla-siniri';
+
+const AslaIkon = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
+    <path d="M6 6l12 12M18 6L6 18" />
+  </svg>
+);
+
 interface RowProps {
   item: Item;
   alanlar: AlanTanimi[];
   rank: number;
+  /** "Bir daha asla" bölümündeki kart: numara yerine çarpı. */
+  asla?: boolean;
   isSelected: boolean;
   onSelect: (item: Item) => void;
   draggable?: boolean;
 }
 
 function RowShell({
-  item, alanlar, rank, isSelected, onSelect, draggable,
+  item, alanlar, rank, asla, isSelected, onSelect, draggable,
   handleProps, nodeRef, style, dragging,
 }: RowProps & {
   handleProps?: Record<string, unknown>;
@@ -57,7 +69,7 @@ function RowShell({
   style?: React.CSSProperties;
   dragging?: boolean;
 }) {
-  const isPodium = rank <= 3;
+  const isPodium = !asla && rank <= 3;
   const alt = altBilgi(item, alanlar);
   const tags = rozetler(item, alanlar);
 
@@ -68,7 +80,7 @@ function RowShell({
       role="button"
       tabIndex={0}
       aria-pressed={isSelected}
-      className={`row${isSelected ? ' is-selected' : ''}${dragging ? ' is-dragging' : ''}`}
+      className={`row${asla ? ' is-asla' : ''}${isSelected ? ' is-selected' : ''}${dragging ? ' is-dragging' : ''}`}
       onClick={() => onSelect(item)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -92,9 +104,13 @@ function RowShell({
         </span>
       )}
 
-      <span className={`row-rank${isPodium ? ' is-podium' : ''}`} data-rank={rank}>
-        {rank}
-      </span>
+      {asla ? (
+        <span className="row-rank is-asla" aria-label="Bir daha asla">{AslaIkon}</span>
+      ) : (
+        <span className={`row-rank${isPodium ? ' is-podium' : ''}`} data-rank={rank}>
+          {rank}
+        </span>
+      )}
 
       {item.fotograf_url
         ? <img src={item.fotograf_url} className="row-thumb" alt="" />
@@ -119,6 +135,46 @@ function RowShell({
       <span className="row-tags">
         {tags.map(t => <span key={t} className="row-tag">{t}</span>)}
       </span>
+    </div>
+  );
+}
+
+function AslaSiniriIcerik({ adet }: { adet: number }) {
+  return (
+    <>
+      <span className="asla-siniri-ad">Bir daha asla</span>
+      {adet > 0 && <span className="asla-siniri-sayi">{adet}</span>}
+    </>
+  );
+}
+
+/** Filtreli görünümdeki çizgi: sürükleme yok. */
+export function AslaSiniri({ adet }: { adet: number }) {
+  return (
+    <div className="asla-siniri" role="separator">
+      <AslaSiniriIcerik adet={adet} />
+    </div>
+  );
+}
+
+/**
+ * Filtresiz görünümdeki çizgi. Kendisi sürüklenmiyor ama sıralanabilir listenin bir
+ * öğesi: kartlar üstünden geçip yer değiştirebiliyor, bırakıldığında çizginin
+ * hangi yanında kaldıkları bölümlerini belirliyor.
+ */
+export function SuruklenebilirAslaSiniri({ adet }: { adet: number }) {
+  const { setNodeRef, transform, transition } = useSortable({
+    id: ASLA_SINIRI,
+    disabled: { draggable: true, droppable: false },
+  });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Translate.toString(transform), transition }}
+      className="asla-siniri"
+      role="separator"
+    >
+      <AslaSiniriIcerik adet={adet} />
     </div>
   );
 }

@@ -1,11 +1,19 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
   AlanTanimi, Item, Kategori, alanGorunur, alanKisa, bayrak, kategoriBul, metin,
 } from '../types/item';
-import { brandColor, brandInitials } from './ItemRow';
+import { hataMetni } from '../lib/hata';
+
+const KameraIkon = (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M3 8h3.5L8 5.5h8L17.5 8H21v12H3z" />
+    <circle cx="12" cy="13.5" r="3.6" />
+  </svg>
+);
 
 interface DetailPaneProps {
   item: Item;
@@ -15,18 +23,9 @@ interface DetailPaneProps {
   alanlar: AlanTanimi[];
   onEdit: (item: Item) => void;
   onDelete: (item: Item) => void;
+  /** Düzenle formunu açmadan fotoğraf ekler ya da değiştirir. */
+  onFotograf: (item: Item, file: File) => Promise<void>;
   onClose: () => void;
-}
-
-function Thumb({ item, className }: { item: Item; className: string }) {
-  return item.fotograf_url
-    ? <img src={item.fotograf_url} className={className} alt="" />
-    : (
-      // Renk değişkenle: büyük detay görseli onu vurgunun tonuyla eziyor.
-      <span className={`${className} thumb-fallback`} style={{ '--marka': brandColor(item.ad || '') } as React.CSSProperties}>
-        {brandInitials(item.ad)}
-      </span>
-    );
 }
 
 /**
@@ -34,18 +33,42 @@ function Thumb({ item, className }: { item: Item; className: string }) {
  * çizmiyor — sıralamanın özeti filtre şeridinin tekrarıydı.
  */
 export default function DetailPane({
-  item, rank, kategoriler, alanlar, onEdit, onDelete, onClose,
+  item, rank, kategoriler, alanlar, onEdit, onDelete, onFotograf, onClose,
 }: DetailPaneProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [yukleniyor, setYukleniyor] = useState(false);
+  const [surukleniyor, setSurukleniyor] = useState(false);
+
   const kat = kategoriBul(kategoriler, item.category_id);
   const metinAlanlari = alanlar.filter(a => a.tip === 'metin' && alanGorunur(a, item.category_id));
   const boolAlanlari = alanlar.filter(a => a.tip === 'bool' && alanGorunur(a, item.category_id));
+
+  const dosyaSec = async (file?: File) => {
+    if (!file || yukleniyor) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Lütfen bir resim dosyası seç.');
+      return;
+    }
+    setYukleniyor(true);
+    try {
+      await onFotograf(item, file);
+    } catch (e: unknown) {
+      alert('Fotoğraf yüklenemedi: ' + hataMetni(e));
+    } finally {
+      setYukleniyor(false);
+    }
+  };
+
+  const secimAc = () => inputRef.current?.click();
 
   return (
     <div className="detail">
       <div className="detail-bar">
         {rank !== null
           ? <span className="detail-rank">#{rank}</span>
-          : <span className="detail-rank detail-rank-bekleyen">Denenmemiş</span>}
+          : item.asla
+            ? <span className="detail-rank">Bir daha asla</span>
+            : <span className="detail-rank detail-rank-bekleyen">Denenmemiş</span>}
         <button type="button" className="detail-close" onClick={onClose} aria-label="Seçimi kaldır">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
@@ -54,8 +77,43 @@ export default function DetailPane({
         </button>
       </div>
 
-      <div className="detail-hero">
-        <Thumb item={item} className="detail-photo" />
+      {/* Fotoğraf alanı aynı zamanda yükleme yeri: tıkla ya da dosyayı bırak. */}
+      <div
+        className={`detail-hero${surukleniyor ? ' is-surukle' : ''}`}
+        onDragOver={(e) => { e.preventDefault(); setSurukleniyor(true); }}
+        onDragLeave={() => setSurukleniyor(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setSurukleniyor(false);
+          void dosyaSec(e.dataTransfer.files?.[0]);
+        }}
+      >
+        {item.fotograf_url ? (
+          <>
+            {/* Kırpılmadan sığdırılıyor: ürün fotoğrafları çoğunlukla dikey şişe. */}
+            <img src={item.fotograf_url} className="detail-photo" alt="" />
+            <button type="button" className="detail-photo-btn" onClick={secimAc} disabled={yukleniyor}>
+              {yukleniyor ? 'Yükleniyor…' : 'Fotoğrafı değiştir'}
+            </button>
+          </>
+        ) : (
+          <button type="button" className="detail-photo-bos" onClick={secimAc} disabled={yukleniyor}>
+            {KameraIkon}
+            <b>{yukleniyor ? 'Yükleniyor…' : 'Fotoğraf ekle'}</b>
+            {!yukleniyor && <em>Tıkla ya da dosyayı buraya bırak</em>}
+          </button>
+        )}
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => {
+            void dosyaSec(e.target.files?.[0]);
+            // Aynı dosya yeniden seçilebilsin.
+            e.target.value = '';
+          }}
+        />
       </div>
 
       <div className="detail-body">

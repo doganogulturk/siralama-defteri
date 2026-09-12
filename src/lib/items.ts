@@ -203,13 +203,19 @@ export async function deleteItem(id: string, fotografUrl?: string | null): Promi
   await deleteFotograf(fotografUrl);
 }
 
-export async function updateItemsSira(updates: { id: string; sira: number }[]): Promise<void> {
+/** `asla` verilirse o da yazılıyor — kayıt sıralama ile "Bir daha asla" arasında yer değiştirdiğinde. */
+export async function updateItemsSira(
+  updates: { id: string; sira: number; asla?: boolean }[]
+): Promise<void> {
   if (updates.length === 0) return;
   // Tek upsert değil: Postgres, ON CONFLICT bir UPDATE'e yönlense bile NOT NULL
   // kolonları INSERT değerlerine göre doğruluyor; çıplak {id, sira} yükü 23502
   // veriyor. Satır satır UPDATE diğer kolonlara hiç dokunmadığı için sorun çıkmıyor.
   const results = await Promise.all(
-    updates.map(u => supabase.from(T_ITEMS).update({ sira: u.sira }).eq('id', u.id))
+    updates.map(u => supabase
+      .from(T_ITEMS)
+      .update(u.asla === undefined ? { sira: u.sira } : { sira: u.sira, asla: u.asla })
+      .eq('id', u.id))
   );
   for (const r of results) {
     if (r.error) throw r.error;

@@ -11,7 +11,6 @@ import {
   SortableContext, verticalListSortingStrategy, arrayMove, sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { Item, alanKisa, bayrak, filtreAlanlari } from '../../../types/item';
-import { sortSirali } from '../../../lib/sort';
 import {
   bosFiltre, filtreBos, filtreUygula, kategoriSayilari, bayrakSayilari,
 } from '../../../lib/filtre';
@@ -19,9 +18,12 @@ import { useListStore } from '../../../hooks/useListStore';
 import { listeleriTazele } from '../../../hooks/useListeler';
 import { TopluBlok, topluKaydet } from '../../../lib/toplu';
 import { hataMetni } from '../../../lib/hata';
+import { uploadFotograf, deleteFotograf } from '../../../lib/items';
 import { useIsDesktop } from '../../../hooks/useIsDesktop';
 import FilterPanel from '../../../components/FilterPanel';
-import { StaticRow, DraggableRow } from '../../../components/ItemRow';
+import {
+  ASLA_SINIRI, AslaSiniri, DraggableRow, StaticRow, SuruklenebilirAslaSiniri,
+} from '../../../components/ItemRow';
 import DetailPane from '../../../components/DetailPane';
 import WishlistPanel from '../../../components/WishlistPanel';
 import ItemForm, { FormMode } from '../../../components/ItemForm';
@@ -33,7 +35,7 @@ export default function ListePage() {
   const SLUG = String(useParams().slug ?? '');
   const {
     liste, kategoriler, items,
-    denenenler: ranked, istekListesi,
+    denenenler: ranked, aslaListesi, istekListesi,
     loading, error, isSaving,
     load, saveEntry, removeEntry, reorder,
   } = useListStore(SLUG);
@@ -68,20 +70,23 @@ export default function ListePage() {
 
   /* ── Derived data ────────────────────────────────── */
   const visible = useMemo(() => filtreUygula(ranked, filtre), [ranked, filtre]);
+  const visibleAsla = useMemo(() => filtreUygula(aslaListesi, filtre), [aslaListesi, filtre]);
   const gorunenIstek = useMemo(() => filtreUygula(istekListesi, filtre), [istekListesi, filtre]);
   const canReorder = filtreBos(filtre);
 
-  const total = ranked.length;
-  const katSayilari = useMemo(() => kategoriSayilari(ranked), [ranked]);
-  const baySayilari = useMemo(() => bayrakSayilari(ranked, alanlar), [ranked, alanlar]);
+  /** Sayılar "Bir daha asla" bölümünü de sayıyor: onlar da denenmiş kayıtlar. */
+  const denenenTum = useMemo(() => [...ranked, ...aslaListesi], [ranked, aslaListesi]);
+  const total = denenenTum.length;
+  const katSayilari = useMemo(() => kategoriSayilari(denenenTum), [denenenTum]);
+  const baySayilari = useMemo(() => bayrakSayilari(denenenTum, alanlar), [denenenTum, alanlar]);
 
   // Mobil özet satırı ilk filtrelenebilir bool alanı üzerinden kuruluyor.
   const ozetAlan = filtreAlanlari(alanlar)[0];
-  const ozetEvet = ozetAlan ? ranked.filter(i => bayrak(i, ozetAlan.anahtar)).length : 0;
+  const ozetEvet = ozetAlan ? denenenTum.filter(i => bayrak(i, ozetAlan.anahtar)).length : 0;
 
   const selectedItem = useMemo(
-    () => [...ranked, ...istekListesi].find(i => i.id === selectedId) ?? null,
-    [ranked, istekListesi, selectedId]
+    () => [...denenenTum, ...istekListesi].find(i => i.id === selectedId) ?? null,
+    [denenenTum, istekListesi, selectedId]
   );
   // Bekleyen kaydın sırası yok; panel #numarayı o zaman göstermiyor.
   const selectedRank = useMemo(() => {
@@ -100,14 +105,27 @@ export default function ListePage() {
     setSelectedId(null);
   };
 
+  /**
+   * Sıralama ve "Bir daha asla" tek sürüklenebilir liste; aradaki kırmızı çizgi de
+   * listenin bir öğesi. Bırakınca çizginin üstü sıralama, altı bölüm oluyor ve
+   * iki taraf kendi içinde 0'dan numaralanıyor.
+   */
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const sorted = sortSirali(ranked);
-    const from = sorted.findIndex(i => i.id === active.id);
-    const to = sorted.findIndex(i => i.id === over.id);
+    const dizi: (Item | typeof ASLA_SINIRI)[] = [...ranked, ASLA_SINIRI, ...aslaListesi];
+    const kimlik = (x: Item | typeof ASLA_SINIRI) => (x === ASLA_SINIRI ? x : x.id);
+    const from = dizi.findIndex(x => kimlik(x) === active.id);
+    const to = dizi.findIndex(x => kimlik(x) === over.id);
     if (from === -1 || to === -1) return;
-    reorder(arrayMove(sorted, from, to).map((item, idx) => ({ ...item, sira: idx })));
+    const yeni = arrayMove(dizi, from, to);
+    const sinir = yeni.indexOf(ASLA_SINIRI);
+    const ust = yeni.slice(0, sinir) as Item[];
+    const alt = yeni.slice(sinir + 1) as Item[];
+    reorder([
+      ...ust.map((item, idx) => ({ ...item, sira: idx, asla: false })),
+      ...alt.map((item, idx) => ({ ...item, sira: idx, asla: true })),
+    ]);
   };
 
   /* ── Form ────────────────────────────────────────── */
@@ -138,6 +156,21 @@ export default function ListePage() {
     await topluKaydet({ liste, kategoriler, bloklar, baslangicSira: sonSira + 1, denendi });
     await load();
     listeleriTazele();
+  };
+
+  /**
+   * Detay panelinden doğrudan fotoğraf: yükle, kaydı güncelle. Düzenleme yolundan
+   * geçtiği için eski fotoğrafı saveEntry depodan siliyor; kayıt güncellenemezse
+   * yeni yüklenen dosya yetim kalmasın diye geri siliniyor.
+   */
+  const handleFotograf = async (item: Item, file: File) => {
+    const url = await uploadFotograf(file);
+    try {
+      await saveEntry({ ...item, fotograf_url: url }, item);
+    } catch (e: unknown) {
+      void deleteFotograf(url);
+      throw e;
+    }
   };
 
   const handleDelete = async (item: Item) => {
@@ -212,7 +245,7 @@ export default function ListePage() {
         </div>
       );
     }
-    if (visible.length === 0) {
+    if (visible.length === 0 && visibleAsla.length === 0) {
       return (
         <div className="state-empty">
           <p className="state-empty-title">Eşleşen kayıt yok</p>
@@ -234,20 +267,55 @@ export default function ListePage() {
               onSelect={handleRowSelect}
             />
           ))}
+          {visibleAsla.length > 0 && (
+            <>
+              <AslaSiniri adet={aslaListesi.length} />
+              {visibleAsla.map((item) => (
+                <StaticRow
+                  key={item.id}
+                  item={item}
+                  alanlar={alanlar}
+                  rank={0}
+                  asla
+                  isSelected={selectedId === item.id}
+                  onSelect={handleRowSelect}
+                />
+              ))}
+            </>
+          )}
         </div>
       );
     }
 
     return (
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={visible.map(i => i.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext
+          items={[...ranked.map(i => i.id), ASLA_SINIRI, ...aslaListesi.map(i => i.id)]}
+          strategy={verticalListSortingStrategy}
+        >
           <div className="rows">
-            {visible.map((item, i) => (
+            {ranked.map((item, i) => (
               <DraggableRow
                 key={item.id}
                 item={item}
                 alanlar={alanlar}
                 rank={i + 1}
+                isSelected={selectedId === item.id}
+                onSelect={handleRowSelect}
+              />
+            ))}
+            <SuruklenebilirAslaSiniri adet={aslaListesi.length} />
+            {/* Bölüm boşken çizgi yine duruyor ki kartlar altına bırakılabilsin. */}
+            {aslaListesi.length === 0 && (
+              <p className="asla-bos">Bir daha asla dediklerini bu çizginin altına sürükle.</p>
+            )}
+            {aslaListesi.map((item) => (
+              <DraggableRow
+                key={item.id}
+                item={item}
+                alanlar={alanlar}
+                rank={0}
+                asla
                 isSelected={selectedId === item.id}
                 onSelect={handleRowSelect}
               />
@@ -367,6 +435,7 @@ export default function ListePage() {
               alanlar={alanlar}
               onEdit={(item) => openForm(item.denendi ? 'siralama' : 'istek', item)}
               onDelete={handleDelete}
+              onFotograf={handleFotograf}
               onClose={() => setSelectedId(null)}
             />
           </div>

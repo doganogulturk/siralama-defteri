@@ -50,6 +50,8 @@ export interface Item {
   sira?: number;
   /** false ise kayıt istek listesinde: henüz denenmemiş, sıralamaya girmemiş. */
   denendi: boolean;
+  /** true ise denenmiş ama sıralamada değil: kırmızı çizginin altındaki "Bir daha asla" bölümünde. */
+  asla?: boolean;
   notlar?: string | null;
   /** Listenin `alanlar` tanımına karşılık gelen değerler. */
   ozellikler: Record<string, OzellikDeger>;

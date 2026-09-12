@@ -16,11 +16,11 @@ Uygulama çalışır ve **canlıda**: giriş, çok listeli sıralama, kategori v
 
 **Arayüz** — İki ekran: `/` liste indeksi ve `/l/[slug]` sıralama. Liste ayarları ayrı bir sayfa değil, sıralama ekranının üstünde açılan bir popup; eski `/l/[slug]/ayarlar` adresi listeye yönlendirip popup'ı açıyor. Bekleyenler de ayrı bir route değil, sıralama ekranının ikinci sekmesi ("Denenmemiş"). Masaüstünde bir kayda tıklayınca sağda detay paneli açılıyor, seçim kalkınca kapanıyor. Sol ray satırları sıralanmış kayıt sayısı + liste adı + ayar simgesi taşıyor.
 
-Listeler ve kategoriler kayıt sayısına göre sıralı — elle sıralama diye bir iş yok. Listelerde ölçü "kaç şeyi sıraladım": bekleyenler sayılmıyor, bir kayıt "Denedim" ile sıralamaya geçtiğinde rakam artıyor. Ray ve indeks sayıları sayfadan ayrı bir sorgudan geldiği için `useListeler`'de küçük bir haber kanalı var: sayfa bir mutasyondan sonra `listeleriTazele()` çağırıyor.
+Listeler ve kategoriler kayıt sayısına göre sıralı — elle sıralama diye bir iş yok. Listelerde ölçü "kaç şeyi denedim": bekleyenler sayılmıyor, "Bir daha asla" bölümündekiler sayılıyor; bir kayıt "Denedim" ile sıralamaya geçtiğinde rakam artıyor. Ray ve indeks sayıları sayfadan ayrı bir sorgudan geldiği için `useListeler`'de küçük bir haber kanalı var: sayfa bir mutasyondan sonra `listeleriTazele()` çağırıyor.
 
 Kodda listeye özel hiçbir alan adı geçmiyor: kategoriler veritabanından, ek alanlar `si_lists.alanlar` tanımından üretiliyor.
 
-Masaüstündeki sağ panel kaydın tamamını gösteriyor (not dahil, satır sonları korunuyor); Düzenle düğmesi yalnızca değiştirmek için. Sırası olmayan kayıtta sıra rozeti yerine "Denenmemiş" yazıyor.
+Masaüstündeki sağ panel kaydın tamamını gösteriyor (not dahil, satır sonları korunuyor); Düzenle düğmesi yalnızca değiştirmek için. Sırası olmayan kayıtta sıra rozeti yerine "Denenmemiş" ya da "Bir daha asla" yazıyor. Fotoğraf alanı aynı zamanda yükleme yeri: tıklayarak ya da dosyayı üstüne bırakarak Düzenle'yi açmadan fotoğraf eklenip değiştirilebiliyor. Fotoğraf kırpılmadan sığdırılıyor (ürün fotoğrafları çoğunlukla dikey).
 
 **Toplu ekleme** — Kayıt formunun ikinci sekmesi ("Toplu"). Alt alta yazılan her satır bir kayıt; sonu iki nokta ile biten satır (`Patates:`) listenin içinde bir kategori açar, altındaki satırlar oraya yazılır. Satır içi biçim de geçerli: `Cips: Doritos` satırında iki noktadan önceki kısım kategori, sonrası kayıt. İlk virgülden sonrası kaydın "Çeşit / Alt ad" değeri olur (`Doritos, Nacho`); sonraki virgüller alt adın içinde kalır, bu yüzden bir satıra birden çok kayıt yazılamıyor. Ayrıştırma `lib/toplu.ts`'te; form kaydetmeden önce sonucu önizleme olarak gösteriyor — virgül ya da iki nokta kayıt adının içinde geçtiğinde bölünme yanlış olur, kullanıcı bunu kaydetmeden görmeli. Sekme formun kipini miras alıyor: sıralamadayken kayıtlar yazıldıkları sırayla sıralamanın altına, "Denenmemiş" sekmesindeyken bekleyenlere düşüyor. Aynı kutu Yeni Liste formunda da var (kapalı doğar): listeyi ve kategorilerini tek hamlede kurmak için. Tekrar kontrolü bilerek yok.
 
@@ -63,14 +63,14 @@ Karar bu kanvastan çıktı: [Görünüm yönleri](https://claude.ai/code/artifa
 
 - **Giriş** — Yelpaze biçiminde örnek sıralama kartları, büyük başlık, hap biçimli Google düğmesi. Deste altı örnek listeden (her biri başka bir şey: uygulamanın tek bir şeye bağlı olmadığını söylüyor) 2,8 saniyede bir dönüyor: öndeki kart sola yukarı savrulup kayboluyor, kanatlar birer sıra öne geçiyor, arkadan yenisi giriyor. Masaüstünde deste solda, metin sağda.
 - **Listelerin** — Selamlama ve toplam sayılar; her liste aynı boyda beyaz bir kart. Sıralanan kayıt sayısı kartın üstünden altına uzanan silik bir rakam; ad ve denenmemiş sayısı onun üstünde. "x denenmemiş" yalnızca bekleyen kayıt varsa yazıyor. Mobilde iki sütun, masaüstünde dört sütun.
-- **Sıralama** — Yuvarlak geri ve ayar düğmeleri, ortada liste adı; segment sekmeler, hap filtre şeridi. Her kayıt aynı kompakt kart: sürükleme tutamağı, fotoğraf, ad ve alt bilgi, rozetler, sağda soluk ve iri sıra numarası (ilk üçte vurgu renginde). Ekleme düğmesi yüzen hap.
+- **Sıralama** — Yuvarlak geri ve ayar düğmeleri, ortada liste adı; segment sekmeler, hap filtre şeridi. Her kayıt aynı kompakt kart: sürükleme tutamağı, fotoğraf, ad ve alt bilgi, rozetler, sağda soluk ve iri sıra numarası (ilk üçte vurgu renginde). Sıralamanın altında kırmızı çizgiyle ayrılan **Bir daha asla** bölümü: kart çizginin altına sürüklenince oraya geçiyor, üstüne sürüklenince sıralamaya dönüyor; bölüm kendi içinde de sürüklenerek sıralanıyor. Bu kartlarda numara yerine çarpı var, fotoğrafları soluk. Bölüm boşken çizginin altında kısa bir ipucu duruyor. Ekleme düğmesi yüzen hap.
 - **Masaüstü** — Krem ray (açık liste beyaz kart ve vurgu renkli sayı, ayar simgesi üstüne gelince beliriyor), yanında liste adı başlık olarak + sıralama. Kayıt seçilince sağda detay kartı açılıyor ve sıralama sütunu daralıyor; seçim yokken sıralama ortalanmış 760px'lik bir sütun.
 - **Formlar** — Mobilde alttan açılan panel (tutamaklı), masaüstünde ortalanmış yuvarlak kutu. Kaydet çubuğu gövdenin dibine yapışık. Kimlik bandı: fotoğraf kutusu solda, ad ve çeşit sağında.
 - **Liste ayarları** — Kayıt formuyla aynı kabukta popup (mobilde alttan panel, masaüstünde 600px kutu). Başlık düzenlenebilir liste adı; altında kategoriler ve ek alanlar kartları, en altta yalnızca "Listeyi sil" düğmesi (neyin silineceğini onay penceresi söylüyor). Açıklama satırı yok; değişiklikler anında kaydediliyor. Mobil ayar düğmesi ve açık listenin ray simgesi popup'ı yerinde açıyor; başka bir listenin ray simgesi ve yeni liste açılışı `?ayarlar=1` ile gidiyor, sayfa parametreyi okuyup adresten siliyor.
 
 ### Uygulama ayrıntıları
 
-- **Sürükle-bırak** — dnd-kit `verticalListSortingStrategy`; satır dönüşümü `CSS.Translate`, çünkü alt bilgisi olan satır daha uzun ve ölçekleme onu ezerdi.
+- **Sürükle-bırak** — dnd-kit `verticalListSortingStrategy`; satır dönüşümü `CSS.Translate`, çünkü alt bilgisi olan satır daha uzun ve ölçekleme onu ezerdi. Sıralama ve "Bir daha asla" tek sıralanabilir liste; kırmızı çizgi de listenin sürüklenemeyen bir öğesi (`ASLA_SINIRI`). Bırakınca çizginin üstü `asla = false`, altı `asla = true` oluyor ve iki taraf `sira`'yı kendi içinde 0'dan numaralıyor. Kayıt ekleme (tek ve toplu) yalnızca sıralamayı hedefliyor.
 - **Fotoğrafsız kayıt** — Satır yedek görseline marka rengi `background` olarak değil `--marka` değişkeniyle veriliyor; böylece CSS detay panelinde onu vurgunun tonuna çevirebiliyor. Kompakt satırlarda marka rengi kalıyor.
 - **Liste kartındaki rakam** — Kart sabit boylu bir boyut kabı (`container-type: size`); rakamın puntosu kart yüksekliğine göre (`cqh`) veriliyor. Üç ve dört haneli sayılar taşmasın diye `data-hane` ile küçülüyor.
 - **Giriş destesi** — `AuthGate` içindeki `GirisDestesi` her adımda kartların `data-yuva` değerini kaydırıyor (`1`, `2`, `3`, `cikis`, `bekle`); konumları CSS çiziyor. Tüm kartlar aynı boyda ve aynı noktada, arkadakiler ölçekle küçülüyor — geçiş yalnızca transform, opaklık ve renk.
@@ -102,7 +102,7 @@ Bunlar iş değil, bilinçli kararlar:
 - **`si_items.sira` benzersiz değil** — sürükle-bırak satırları tek tek UPDATE ettiği için ara durumlarda geçici çakışma olur.
 - **Bekleyenlerin kendi URL'i yok** — "Denenmemiş" bir sekme; donanım geri tuşu sekmeler arasında gezmiyor, listeden çıkıyor.
 - **Filtre şeridi yalnızca kategori taşıyor** — "Tümü" + kategoriler, tek seçim: bir kategori seçmek öncekini bırakıyor, seçimi "Tümü" temizliyor. Evet/Hayır alanlarına göre ayrım şu an arayüzün hiçbir yerinde yok; yol haritasında 1. sırada.
-- **Sıralama yalnızca filtresiz görünümde değiştirilebilir** — filtreli görünümde kartlar sürüklenemiyor.
+- **Sıralama yalnızca filtresiz görünümde değiştirilebilir** — filtreli görünümde kartlar sürüklenemiyor; "Bir daha asla"ya taşımak da yalnızca filtresizken.
 - **Liste adı değişince slug değişmez** — kayıtlı bağlantılar kırılmasın diye.
 - **Fotoğraf kovasının adı değişmeyecek** — `lib/items.ts` içindeki `KOVA` sabiti genel bir ad değil ama kullanıcıya görünmüyor. Supabase kovaları yeniden adlandırılamıyor; "adı değiştirmek" yeni kovaya kopyalamak ve tüm `fotograf_url` değerlerini güncellemek demek. Kazancı yalnızca kozmetik, riski fotoğraf kaybı. Silme işlevi kova adını URL'den okuduğu için ileride taşınırsa eski ve yeni kova bir süre yan yana çalışabilir.
 - **Sunucu tarafı koruma yok** — uygulama tamamen istemci tarafında; `AuthGate` bir kapı, güvenlik RLS'te.
@@ -118,7 +118,7 @@ si_lists       id, user_id, ad, slug, emoji, renk, sira, alanlar(jsonb), created
                └ emoji, renk ve sira kullanılmıyor (bkz. kabul edilmiş sınırlar)
 si_categories  id, list_id, ad, renk, sira, created_at
 si_items       id, list_id, category_id, ad, alt_ad, fotograf_url,
-               sira, denendi, notlar, ozellikler(jsonb), created_at
+               sira, denendi, asla, notlar, ozellikler(jsonb), created_at
 ```
 
 Kritik ayrıntılar:
@@ -126,19 +126,21 @@ Kritik ayrıntılar:
 - **`si_lists.alanlar`** — listeye özel ek alan tanımları. Biçim:
   `[{anahtar, tip: 'bool'|'metin', etiket, kisa?, ipucu?, filtre?, kategori_id?}]`
   Örneğin bir içecek listesinde "Ekşi mi?" (Evet/Hayır) ya da "Satılan market" (Metin). Filtre şeridi, form ve detay paneli bu tanımdan üretiliyor.
+- **`si_items.asla`** — denenmiş ama sıralamada değil: "Bir daha asla" bölümünde. Sıralama ve bölüm `sira`'yı kendi içlerinde ayrı ayrı numaralıyor; ayrımı bu kolon yapıyor.
 - **`si_items.ozellikler`** — yukarıdaki alanların değerleri (`{"eksi": true, "market": "Migros"}`).
 - **`category_id` nullable, `on delete set null`** — kategori silinince kayıtlar kategorisiz kalır.
 - **RLS** — üç tabloda da açık; `si_lists` doğrudan `user_id` ile, diğer ikisi liste üzerinden.
 
 ### Migration dosyaları
 
-`supabase/` altında, çalıştırıldıkları sırayla. **Hepsi uygulanmış durumda**; boş bir projede sırayla çalıştırılınca şemayı eksiksiz kurarlar. Numaralardaki boşluk (`002`) bilinçli: o numara tek seferlik bir veri işine aitti, şemaya katkısı yoktu.
+`supabase/` altında, çalıştırıldıkları sırayla. **Hepsi uygulanmış durumda**; boş bir projede sırayla çalıştırılınca şemayı eksiksiz kurarlar. Numaralardaki boşluklar (`002`, `005`) bilinçli: o numaralar tek seferlik veri işlerine aitti, şemaya katkıları yoktu.
 
 | Dosya | Ne yapar |
 |---|---|
 | `001_sema.sql` | Üç tabloyu ve RLS politikalarını kurar |
 | `003_liste_alanlari.sql` | `alanlar` kolonunu ekler |
 | `004_liste_rengi.sql` | `renk` kolonunu ekler (şu an kullanılmıyor) |
+| `006_bir_daha_asla.sql` | `asla` kolonunu ekler ("Bir daha asla" bölümü) |
 
 ---
 

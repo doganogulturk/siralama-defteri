@@ -12,49 +12,36 @@ export default function ListelerPage() {
 
   const [formAcik, setFormAcik] = useState(false);
 
-  // Künye sayıları tüm listelerin toplamı.
+  // Özet sayılar tüm listelerin toplamı.
   const toplamKayit = Object.values(sayilar).reduce((a, s) => a + s.toplam, 0);
   const bekleyen = Object.values(sayilar).reduce((a, s) => a + s.bekleyen, 0);
   const siralananToplam = toplamKayit - bekleyen;
-  const kullanici = user?.email?.split('@')[0] ?? '';
+
+  // Selamlamada yalnızca ilk ad: Google adı yoksa e-postanın kullanıcı adı kısmı.
+  const meta = user?.user_metadata as { full_name?: string; name?: string } | undefined;
+  const adTam = meta?.full_name ?? meta?.name ?? user?.email?.split('@')[0] ?? '';
+  const ilkAd = adTam.trim().split(/\s+/)[0] ?? '';
 
   return (
     <div className="app app-solo">
       <main className="list">
-        <header className="masthead">
-          <h1 className="masthead-title">Sıralama<br />Defteri</h1>
+        <header className="home-head">
+          <div className="home-head-text">
+            {ilkAd && <p className="home-hello">Merhaba {ilkAd}</p>}
+            <h1 className="home-title">Listelerin</h1>
+            {listeler.length > 0 && (
+              <p className="home-summary">
+                <strong>{siralananToplam}</strong> sıralandı · <strong>{bekleyen}</strong> denenmemiş
+              </p>
+            )}
+          </div>
+          {/* Masaüstünde yüzen düğme gizli; ekleme başlığın yanına geçiyor. */}
+          <div className="list-head-actions">
+            <button type="button" className="btn-primary" onClick={() => setFormAcik(true)}>
+              + Yeni liste
+            </button>
+          </div>
         </header>
-        <p className="masthead-byline">
-          <span>{kullanici}</span>
-          <span>{listeler.length} liste · {toplamKayit} kayıt</span>
-        </p>
-
-        {/* İki hücreli künye kutusu — vurgu hücresi bekleyenleri taşıyor. */}
-        <div className="tally">
-          <div className="tally-cell">
-            <strong>{siralananToplam}</strong>
-            <em>Sıralandı</em>
-          </div>
-          <div className="tally-cell is-accent">
-            <strong>{bekleyen}</strong>
-            <em>Denenmemiş</em>
-          </div>
-        </div>
-
-        <div className="sticky-top">
-          <header className="list-head">
-            <div className="list-head-top">
-              <h1 className="list-title">Listeler</h1>
-              <span className="list-count">{listeler.length}</span>
-              {/* Masaüstünde alt bant gizli; ekleme düğmesi başlığın yanına geçiyor. */}
-              <div className="list-head-actions">
-                <button type="button" className="btn-primary" onClick={() => setFormAcik(true)}>
-                  Yeni liste
-                </button>
-              </div>
-            </div>
-          </header>
-        </div>
 
         {error && (
           <div className="alert">
@@ -70,21 +57,30 @@ export default function ListelerPage() {
             <p className="state-empty-title">Henüz listen yok</p>
             <p>Sıralamak istediğin şeyle başla: kola, döner, Türk kahvesi…</p>
             <button type="button" className="btn-primary" onClick={() => setFormAcik(true)}>
-              İlk Listeyi Oluştur
+              İlk listeyi oluştur
             </button>
           </div>
         ) : (
           <div className="liste-grid">
-            {listeler.map((l) => (
-              <Link key={l.id} href={`/l/${l.slug}`} className="liste-card">
-                <span className="liste-card-no">{siralanan(sayilar[l.id])}</span>
-                <span className="liste-card-text">
-                  <strong>{l.ad}</strong>
-                  <em>{sayilar[l.id]?.bekleyen ?? 0} denenmemiş</em>
-                </span>
-                <span className="liste-card-arrow" aria-hidden="true">→</span>
-              </Link>
-            ))}
+            {listeler.map((l, i) => {
+              const adet = siralanan(sayilar[l.id]);
+              // Listeler sıralanan sayıya göre dizili; ilki kendi rengine boyalı geniş kart.
+              const oneCikan = i === 0 && adet > 0;
+              return (
+                <Link
+                  key={l.id}
+                  href={`/l/${l.slug}`}
+                  className={`liste-card${oneCikan ? ' is-featured' : ''}`}
+                  style={{ '--satir': l.renk } as React.CSSProperties}
+                >
+                  <span className="liste-card-no">{adet}</span>
+                  <span className="liste-card-text">
+                    <strong>{l.ad}</strong>
+                    <em>{sayilar[l.id]?.bekleyen ?? 0} denenmemiş</em>
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         )}
       </main>
@@ -98,7 +94,6 @@ export default function ListelerPage() {
         onClose={() => setFormAcik(false)}
         onCreated={load}
       />
-
     </div>
   );
 }

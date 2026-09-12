@@ -37,7 +37,8 @@ function Thumb({ item, className }: { item: Item; className: string }) {
   return item.fotograf_url
     ? <img src={item.fotograf_url} className={className} alt="" />
     : (
-      <span className={`${className} thumb-fallback`} style={{ background: brandColor(item.ad || '') }}>
+      // Renk değişkenle: büyük detay görseli onu listenin tonuyla eziyor.
+      <span className={`${className} thumb-fallback`} style={{ '--marka': brandColor(item.ad || '') } as React.CSSProperties}>
         {brandInitials(item.ad)}
       </span>
     );
@@ -90,7 +91,12 @@ export default function DetailPane({
           {rank !== null
             ? <span className="detail-rank">#{rank}</span>
             : <span className="detail-rank detail-rank-bekleyen">Denenmemiş</span>}
-          <button type="button" className="detail-close" onClick={onClose} aria-label="Seçimi kaldır">✕</button>
+          <button type="button" className="detail-close" onClick={onClose} aria-label="Seçimi kaldır">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
         </div>
 
         <div className="detail-hero">

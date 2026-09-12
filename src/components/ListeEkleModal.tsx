@@ -64,8 +64,10 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
       <section className="form-screen form-screen-short">
         <header className="form-screen-header">
           <button type="button" className="form-screen-back" onClick={onClose} aria-label="Kapat">
-            <span className="form-screen-back-desktop">✕</span>
-            <span className="form-screen-back-mobile">←</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
           </button>
           <h2 className="form-screen-title">Yeni Liste</h2>
           <span className="form-screen-header-spacer" />

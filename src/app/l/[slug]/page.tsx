@@ -8,7 +8,7 @@ import {
   useSensor, useSensors, DragEndEvent,
 } from '@dnd-kit/core';
 import {
-  SortableContext, verticalListSortingStrategy, arrayMove, sortableKeyboardCoordinates,
+  SortableContext, rectSortingStrategy, arrayMove, sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { Item, alanKisa, bayrak, filtreAlanlari } from '../../../types/item';
 import { sortSirali } from '../../../lib/sort';
@@ -227,9 +227,11 @@ export default function ListePage() {
 
     return (
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={visible.map(i => i.id)} strategy={verticalListSortingStrategy}>
-          {/* has-zirve: filtresiz görünümde birinci sıra tam vurgu bandı olur.
-              Satır listeden çıkarılmıyor ki sürüklenebilirliğini korusun. */}
+        {/* Izgara stratejisi: podyumda 2. ve 3. yan yana duruyor, dikey strateji
+            onların yerini yanlış hesaplardı. */}
+        <SortableContext items={visible.map(i => i.id)} strategy={rectSortingStrategy}>
+          {/* has-zirve: filtresiz görünümde ilk üç fotoğraflı podyum kartı olur.
+              Satırlar listeden çıkarılmıyor ki sürüklenebilirliklerini korusunlar. */}
           <div className="rows has-zirve">
             {visible.map((item, i) => (
               <DraggableRow
@@ -256,12 +258,23 @@ export default function ListePage() {
       <main className="list">
         {/* Masaüstünde marka rayda; mobilde bu ince başlık üstleniyor */}
         <div className="mobile-brand">
-          <Link href="/" className="mobile-brand-back" aria-label="Listelerim">←</Link>
+          <Link href="/" className="mobile-brand-back" aria-label="Listelerim">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M15 5l-7 7 7 7" />
+            </svg>
+          </Link>
           <span className="mobile-brand-text">
             <strong>{listeAdi}</strong>
             <em>kişisel sıralaman</em>
           </span>
-          <Link href={`/l/${SLUG}/ayarlar`} className="mobile-brand-settings" aria-label="Liste ayarları">⚙</Link>
+          <Link href={`/l/${SLUG}/ayarlar`} className="mobile-brand-settings" aria-label="Liste ayarları">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 strokeWidth="1.9" strokeLinecap="round" aria-hidden="true">
+              <path d="M3 6h7M16 6h5M3 12h3M12 12h9M3 18h9M18 18h3" />
+              <circle cx="13" cy="6" r="2.1" /><circle cx="9" cy="12" r="2.1" /><circle cx="15" cy="18" r="2.1" />
+            </svg>
+          </Link>
         </div>
 
         {total > 0 && (

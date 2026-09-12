@@ -99,7 +99,9 @@ function RowShell({
       {item.fotograf_url
         ? <img src={item.fotograf_url} className="row-thumb" alt="" />
         : (
-          <span className="row-thumb row-thumb-fallback" style={{ background: brandColor(item.ad || '') }}>
+          // Renk değişkenle veriliyor: podyum kartları yedek görseli liste renginin
+          // tonuna çeviriyor, satır içi `background` olsaydı CSS ezemezdi.
+          <span className="row-thumb row-thumb-fallback" style={{ '--marka': brandColor(item.ad || '') } as React.CSSProperties}>
             {brandInitials(item.ad)}
           </span>
         )
@@ -113,7 +115,10 @@ function RowShell({
         {alt && <span className="row-sub">{alt}</span>}
       </span>
 
-      {tags.map(t => <span key={t} className="row-tag">{t}</span>)}
+      {/* Rozetler tek sarmalayıcıda: podyum kartında ızgaranın tek hücresine oturuyor. */}
+      <span className="row-tags">
+        {tags.map(t => <span key={t} className="row-tag">{t}</span>)}
+      </span>
     </div>
   );
 }
@@ -133,7 +138,8 @@ export function DraggableRow(props: RowProps) {
       nodeRef={setNodeRef}
       dragging={isDragging}
       style={{
-        transform: CSS.Transform.toString(transform),
+        // Yalnızca öteleme: podyum kartları farklı boyda, ölçekleme onları eziyordu.
+        transform: CSS.Translate.toString(transform),
         transition,
         zIndex: isDragging ? 20 : undefined,
       }}

@@ -54,7 +54,7 @@ export default function WishlistPanel({
                 : (
                   <span
                     className="wish-thumb thumb-fallback"
-                    style={{ background: brandColor(item.ad || '') }}
+                    style={{ '--marka': brandColor(item.ad || '') } as React.CSSProperties}
                   >
                     {brandInitials(item.ad)}
                   </span>

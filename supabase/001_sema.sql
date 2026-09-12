@@ -1,7 +1,7 @@
 -- Sıralama uygulaması — temel şema
 -- Tablolar tek Supabase projesinde paylaşıldığı için si_ öneki kullanılıyor.
 
--- 1) Listeler: her satır bir sıralama (Ayran, Kola, Döner ...)
+-- 1) Listeler: her satır bir sıralama (Kola, Döner, Türk kahvesi ...)
 create table si_lists (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references auth.users on delete cascade,

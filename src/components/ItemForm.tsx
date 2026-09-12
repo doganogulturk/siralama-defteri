@@ -22,7 +22,7 @@ interface ItemFormProps {
   isOpen: boolean;
   editingItem: Item | null;
   mode?: FormMode;
-  /** Başlıklarda kullanılıyor: "Yeni Ayran", "Yeni Kola"… */
+  /** Başlıkta kullanılıyor: "Kayıt Ekle · Kola"… */
   listeAdi: string;
   kategoriler: Kategori[];
   alanlar: AlanTanimi[];

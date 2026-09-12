@@ -53,16 +53,16 @@ Karar bu kanvastan çıktı: [Görünüm yönleri](https://claude.ai/code/artifa
 ### Kurallar
 
 - **Yüzey kartla, derinlik gölgeyle kuruluyor** — çizgi ayraç yok denecek kadar az; bölümler kart, satırlar kart.
-- **Renk listeden geliyor** — öne çıkan liste kartı, zirve kartı, sıra rozeti ve "Denedim" düğmesi `--accent`; diğer liste kartları kendi renklerinin açık tonunda (`--satir`).
+- **Renk listeden geliyor** — zirve kartı, sıra rozeti ve "Denedim" düğmesi `--accent`; ana ekrandaki liste kartları kendi renklerinin açık tonunda (`--satir`).
 - **Seçili durum mürekkep halka** — `0 0 0 2.5px var(--ink)`; vurgu renginde halka, vurgu renkli kartın üstünde kaybolurdu.
 - **Eylemler hap** — birincil düğme mürekkep, ikincil kart zemini + ince çerçeve, tehlikeli işlem vurgunun açık tonu.
 - **Seçenek grupları segment kontrolü** — sekmeler, Evet/Hayır, sıraya ekleme yeri: `--tint` zeminde, seçili parça kart gibi yükseliyor.
-- **Hareket az ve anlamlı** — giriş destesinin açılışı, formun alttan kayması; `prefers-reduced-motion` bunları kapatıyor.
+- **Hareket az ve anlamlı** — giriş destesinin dönüşü, formun alttan kayması; `prefers-reduced-motion` bunları kapatıyor (deste durağan kalıyor).
 
 ### Ekranlar
 
-- **Giriş** — Yelpaze biçiminde üç örnek sıralama kartı (her biri başka bir listeden: uygulamanın tek bir şeye bağlı olmadığını söylüyor), büyük başlık, hap biçimli Google düğmesi. Masaüstünde deste solda, metin sağda.
-- **Listelerin** — Selamlama ve toplam sayılar; en çok sıralanan liste kendi rengine boyalı geniş kart, diğerleri renk tonunda kartlar. Mobilde iki sütun, masaüstünde dört sütun (öne çıkan kart 2×2).
+- **Giriş** — Yelpaze biçiminde örnek sıralama kartları, büyük başlık, hap biçimli Google düğmesi. Deste altı örnek listeden (her biri başka bir şey: uygulamanın tek bir şeye bağlı olmadığını söylüyor) 2,8 saniyede bir dönüyor: öndeki kart sola yukarı savrulup kayboluyor, kanatlar birer sıra öne geçiyor, arkadan yenisi giriyor. Masaüstünde deste solda, metin sağda.
+- **Listelerin** — Selamlama ve toplam sayılar; her liste kendi renk tonunda, aynı boyda bir kart. Sıralanan kayıt sayısı kartın üstünden altına uzanan silik bir rakam; ad ve denenmemiş sayısı onun üstünde. "x denenmemiş" yalnızca bekleyen kayıt varsa yazıyor. Mobilde iki sütun, masaüstünde dört sütun.
 - **Sıralama** — Yuvarlak geri ve ayar düğmeleri, ortada liste adı; segment sekmeler, hap filtre şeridi. Filtresiz görünümde ilk üç kayıt fotoğraflı **podyum**: 1. tam genişlikte vurgu renginde, 2 ve 3 yan yana. Kalan kayıtlar kompakt kart; sıra numarası sağda, soluk ve iri. Filtreli görünümde podyum yok, hepsi kompakt. Ekleme düğmesi yüzen hap.
 - **Masaüstü** — Üç sütun: krem ray (seçili liste beyaz kart, ayar simgesi üstüne gelince beliriyor), orta sütunda liste adı başlık olarak + sıralama, sağda detay kartı.
 - **Formlar** — Mobilde alttan açılan panel (tutamaklı), masaüstünde ortalanmış yuvarlak kutu. Kaydet çubuğu gövdenin dibine yapışık. Kimlik bandı: fotoğraf kutusu solda, ad ve çeşit sağında.
@@ -72,20 +72,21 @@ Karar bu kanvastan çıktı: [Görünüm yönleri](https://claude.ai/code/artifa
 
 - **Podyum yalnızca CSS** — `.rows.has-zirve` bir ızgara; satırlar listeden çıkarılmıyor ki sürüklenebilir kalsınlar. Sıralanabilir bağlam `rectSortingStrategy` kullanıyor (2 ve 3 yan yana), satır dönüşümü `CSS.Translate` — ölçekleme farklı boydaki kartları eziyordu.
 - **Fotoğrafsız kayıt** — Satır yedek görseline marka rengi `background` olarak değil `--marka` değişkeniyle veriliyor; böylece CSS podyumda ve detay panelinde onu listenin tonuna çevirebiliyor. Kompakt satırlarda marka rengi kalıyor.
-- **Hesap bloğu** — `AuthGate` onu sayfanın kardeşi olarak çiziyor. Ana ekranda (`.app-solo ~ .account-btn`) sağ üstte hap, masaüstü sıralama ve ayarlarda rayın dibinde; mobilde diğer ekranlarda gizli.
+- **Liste kartındaki rakam** — Kart sabit boylu bir boyut kabı (`container-type: size`); rakamın puntosu kart yüksekliğine göre (`cqh`) veriliyor. Üç ve dört haneli sayılar taşmasın diye `data-hane` ile küçülüyor.
+- **Giriş destesi** — `AuthGate` içindeki `GirisDestesi` her adımda kartların `data-yuva` değerini kaydırıyor (`1`, `2`, `3`, `cikis`, `bekle`); konumları CSS çiziyor. Tüm kartlar aynı boyda ve aynı noktada, arkadakiler ölçekle küçülüyor — geçiş yalnızca transform, opaklık ve renk.
+- **Hesap bloğu** — Google profil fotoğrafı (`avatar_url` / `picture`) ve ad; e-posta gösterilmiyor. Fotoğraf `referrerPolicy="no-referrer"` ile yükleniyor (Google aksi hâlde 403 verebiliyor), yüklenemezse baş harfe dönüyor. `AuthGate` bloğu sayfanın kardeşi olarak çiziyor; her ekranda sol altta. Masaüstünde sıralama ve ayarlarda rayın dibinde, ana ekranda aynı yerde kart olarak. Mobilde yalnızca ana ekranda (avatar + çıkış): sıralama ekranlarının altı ekleme düğmesiyle dolu.
 - **Sekme simgesi** — `src/app/icon.svg`: mürekkep zeminde azalan uzunlukta üç çizgi. Ayar simgesi de aynı sözlükten (üç çizgi ve tutamakları). Vurgu rengi bilerek kullanılmadı — `--accent` liste başına değişiyor, simge sabit olmalı.
 
 ---
 
 ## Yol haritası
 
-Öncelik sırasıyla; maddeler birbirinden bağımsız. Hepsi "ne zaman yapılacağı belli değil" kategorisinde — uygulama bunlarsız da tam çalışıyor.
+Öncelik sırasıyla; maddeler birbirinden bağımsız. İkisi de "ne zaman yapılacağı belli değil" kategorisinde — uygulama bunlarsız da tam çalışıyor.
 
 | # | İş | Neden / not |
 |---|---|---|
 | 1 | **Ek alan filtresine bir yer bul** *(ayrıntılandırılacak)* | Evet/Hayır alanlarına göre filtreleme şeritte yok: sıralamanın hemen üstünü kalabalıklaştırıyordu. Ayrımın kendisi işe yarıyor — ikincil bir kontrol ya da açılır menü. Mantık `lib/filtre.ts`'te duruyor, `FilterPanel`'in `stack` düzeni de hâlâ çiziyor; eksik olan yalnızca ona giden bir kapı. |
 | 2 | **İkili karşılaştırma ekranı** *(gerekli mi, karar verilmedi)* | "Hangisi daha iyi?" akışı — uzun listelerde telefonda sürükleyerek sıralamak zahmetli. Yeni bir sıralama algoritması demek; maliyeti yüksek, ihtiyaç netleşmeden başlanmayacak. |
-| 3 | **Fotoğraf kovasını yeniden adlandır** *(ayrıntılandırılacak)* | Kova adı genel bir ad değil. `lib/items.ts` içindeki `KOVA` sabiti tek değişiklik noktası, silme işlevi kova adını URL'den kendi çözüyor. **Dikkat:** Supabase kovaları yeniden adlandırılamıyor; yeni kova açmak mevcut `fotograf_url` değerlerini kırar. Göründüğü kadar ucuz değil. |
 
 ### Kabul edilmiş sınırlar
 
@@ -102,6 +103,7 @@ Bunlar iş değil, bilinçli kararlar:
 - **Filtre şeridi yalnızca kategori taşıyor** — "Tümü" + kategoriler. Ek alan ayrımı sağ paneldeki kapsam sekmelerinde duruyor, ama orası yalnızca podyumu ve son eklenenleri daraltıyor, listeyi değil.
 - **Podyum yalnızca filtresiz görünümde** — sıralama da yalnızca orada değiştirilebiliyor; filtreli görünüm kompakt ve sürüklenemez.
 - **Liste adı değişince slug değişmez** — kayıtlı bağlantılar kırılmasın diye.
+- **Fotoğraf kovasının adı değişmeyecek** — `lib/items.ts` içindeki `KOVA` sabiti genel bir ad değil ama kullanıcıya görünmüyor. Supabase kovaları yeniden adlandırılamıyor; "adı değiştirmek" yeni kovaya kopyalamak ve tüm `fotograf_url` değerlerini güncellemek demek. Kazancı yalnızca kozmetik, riski fotoğraf kaybı. Silme işlevi kova adını URL'den okuduğu için ileride taşınırsa eski ve yeni kova bir süre yan yana çalışabilir.
 - **Sunucu tarafı koruma yok** — uygulama tamamen istemci tarafında; `AuthGate` bir kapı, güvenlik RLS'te.
 
 ---
@@ -129,15 +131,13 @@ Kritik ayrıntılar:
 
 ### Migration dosyaları
 
-`supabase/` altında, çalıştırıldıkları sırayla. **Hepsi uygulanmış durumda**; yeni bir kurulum için `001`, `003` ve `004` şemayı kurar, `002` ve `005` tek seferlik veri işleriydi.
+`supabase/` altında, çalıştırıldıkları sırayla. **Hepsi uygulanmış durumda**; boş bir projede sırayla çalıştırılınca şemayı eksiksiz kurarlar. Numaralardaki boşluk (`002`) bilinçli: o numara tek seferlik bir veri işine aitti, şemaya katkısı yoktu.
 
 | Dosya | Ne yapar |
 |---|---|
 | `001_sema.sql` | Üç tabloyu ve RLS politikalarını kurar |
-| `002_veri_tasima.sql` | Önceki şemadan tek seferlik veri taşıma |
 | `003_liste_alanlari.sql` | `alanlar` kolonunu ekler |
 | `004_liste_rengi.sql` | `renk` kolonunu ekler (liste vurgu rengi) |
-| `005_eski_tablo_dusur.sql` | Önceki şemanın tablosunu düşürür |
 
 ---
 

@@ -62,21 +62,23 @@ export default function ListelerPage() {
           </div>
         ) : (
           <div className="liste-grid">
-            {listeler.map((l, i) => {
+            {listeler.map((l) => {
               const adet = siralanan(sayilar[l.id]);
-              // Listeler sıralanan sayıya göre dizili; ilki kendi rengine boyalı geniş kart.
-              const oneCikan = i === 0 && adet > 0;
+              const bekleyenAdet = sayilar[l.id]?.bekleyen ?? 0;
               return (
                 <Link
                   key={l.id}
                   href={`/l/${l.slug}`}
-                  className={`liste-card${oneCikan ? ' is-featured' : ''}`}
+                  className="liste-card"
                   style={{ '--satir': l.renk } as React.CSSProperties}
                 >
-                  <span className="liste-card-no">{adet}</span>
+                  {/* Hane sayısı punto için: sayı kartın boyunu dolduruyor, uzun sayı küçülmeli. */}
+                  <span className="liste-card-no" data-hane={Math.min(String(adet).length, 4)}>
+                    {adet}
+                  </span>
                   <span className="liste-card-text">
                     <strong>{l.ad}</strong>
-                    <em>{sayilar[l.id]?.bekleyen ?? 0} denenmemiş</em>
+                    {bekleyenAdet > 0 && <em>{bekleyenAdet} denenmemiş</em>}
                   </span>
                 </Link>
               );

@@ -430,13 +430,16 @@ a { color: var(--accent); }
 .home-summary strong { color: var(--ink); font-weight: 700; }
 
 .liste-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+/* Kart boyu sabit ve boyut kabı: silik sayı punto olarak kartın yüksekliğini (cqh) kullanıyor. */
 .liste-card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 26px;
-  min-height: 150px;
+  justify-content: flex-end;
+  height: 150px;
   padding: 16px;
+  overflow: hidden;
+  container-type: size;
   border-radius: 22px;
   background: color-mix(in oklab, var(--satir, var(--accent)) 16%, var(--card));
   box-shadow: var(--shadow);
@@ -446,48 +449,28 @@ a { color: var(--accent); }
 }
 .liste-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
 .liste-card:active { transform: scale(0.98); }
+/* Sıralanan kayıt sayısı: kartın üstünden altına uzanan silik rakam. Ad ve
+   denenmemiş bilgisi onun üstünde okunuyor. */
 .liste-card-no {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
   font-family: var(--display);
-  font-size: 2.6rem;
+  font-size: 138cqh;
   font-weight: 800;
-  line-height: 0.9;
-  letter-spacing: -0.045em;
-  color: color-mix(in oklab, var(--satir, var(--accent)) 88%, black);
+  line-height: 1;
+  letter-spacing: -0.07em;
+  color: color-mix(in oklab, var(--satir, var(--accent)) 20%, transparent);
   font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  user-select: none;
 }
-.liste-card-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.liste-card-no[data-hane="3"] { font-size: 100cqh; }
+.liste-card-no[data-hane="4"] { font-size: 78cqh; }
+.liste-card-text { position: relative; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .liste-card-text strong { font-size: 1.02rem; font-weight: 600; overflow-wrap: anywhere; line-height: 1.2; }
 .liste-card-text em { font-style: normal; font-size: 0.82rem; color: var(--mute); }
-
-/* Öne çıkan: en çok sıralanan liste, kendi rengine boyalı geniş kart. */
-.liste-card.is-featured {
-  grid-column: span 2;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "name pill" "no no";
-  align-items: start;
-  min-height: 176px;
-  padding: 20px;
-  background: var(--satir, var(--accent));
-  color: #fff;
-}
-.liste-card.is-featured .liste-card-text { display: contents; }
-.liste-card.is-featured .liste-card-text strong {
-  grid-area: name;
-  font-family: var(--display);
-  font-size: 1.6rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-}
-.liste-card.is-featured .liste-card-text em {
-  grid-area: pill;
-  padding: 6px 12px;
-  border-radius: var(--pill);
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
-  font-weight: 600;
-}
-.liste-card.is-featured .liste-card-no { grid-area: no; align-self: end; font-size: 4.6rem; color: #fff; }
 
 /* ═══════════════════════════════════════════════════════
    DURUMLAR
@@ -1251,54 +1234,61 @@ a { color: var(--accent); }
 }
 .gate-card { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 16px; }
 
-/* Yelpaze deste — örnek sıralama kartları, süs */
-.gate-deste { position: relative; width: 300px; height: 280px; margin: 0 auto 10px; }
+/* Deste — örnek sıralama kartları, süs. Kartlar sırayla öne geçiyor: bileşen
+   her adımda kartların `data-yuva`sını kaydırıyor, kart transform geçişiyle yeni
+   yerine süzülüyor. Bütün kartlar aynı boyda ve aynı noktada; arkadakiler
+   ölçekle küçülüyor, böylece geçiş yalnızca transform ve renk. */
+.gate-deste { position: relative; width: 300px; height: 280px; margin: 0 auto 10px; animation: fade 0.6s var(--ease) both; }
 .gate-kart {
-  --rot: 0deg;
   position: absolute;
+  left: 66px;
+  top: 0;
   display: flex;
   flex-direction: column;
-  gap: 9px;
-  width: 144px;
-  height: 196px;
-  padding: 9px;
-  border-radius: 22px;
+  gap: 10px;
+  width: 168px;
+  height: 232px;
+  padding: 10px;
+  border-radius: 24px;
   background: var(--card);
+  color: var(--ink);
   box-shadow: 0 1px 0 rgba(29, 26, 22, 0.05), 0 18px 34px -18px rgba(29, 26, 22, 0.45);
-  transform: rotate(var(--rot));
-  animation: kart-ac 0.7s var(--ease) both;
+  transition:
+    transform 0.85s var(--ease),
+    opacity 0.6s var(--ease),
+    background-color 0.6s var(--ease),
+    color 0.6s var(--ease);
+  will-change: transform, opacity;
 }
 .gate-kart i {
   flex: 1;
   display: grid;
   place-items: center;
-  border-radius: 15px;
+  border-radius: 16px;
   background: color-mix(in oklab, var(--k) 20%, var(--card));
   color: var(--k);
   font-family: var(--display);
   font-style: normal;
-  font-size: 3.4rem;
+  font-size: 4.2rem;
   font-weight: 800;
   letter-spacing: -0.05em;
+  transition: background-color 0.6s var(--ease), color 0.6s var(--ease);
 }
-.gate-kart b { padding: 0 5px 3px; font-size: 0.98rem; font-weight: 600; }
-.gate-kart-2 { --rot: 9deg; right: 0; top: 46px; animation-delay: 0.08s; }
-.gate-kart-3 { --rot: -9deg; left: 0; top: 60px; animation-delay: 0.16s; }
-.gate-kart-1 {
-  left: 66px;
-  top: 0;
-  z-index: 2;
-  width: 168px;
-  height: 232px;
-  background: var(--k);
-  color: #fff;
-  animation-delay: 0.24s;
-}
-.gate-kart-1 i { background: rgba(255, 255, 255, 0.18); color: #fff; font-size: 4.2rem; }
-@keyframes kart-ac {
-  from { opacity: 0; transform: translateY(24px) rotate(0deg); }
-  to   { opacity: 1; transform: rotate(var(--rot)); }
-}
+.gate-kart b { padding: 0 6px 3px; font-size: 1.05rem; font-weight: 600; white-space: nowrap; }
+
+/* Ön: listenin rengine boyalı */
+.gate-kart[data-yuva="1"],
+.gate-kart[data-yuva="cikis"] { background: var(--k); color: #fff; }
+.gate-kart[data-yuva="1"] i,
+.gate-kart[data-yuva="cikis"] i { background: rgba(255, 255, 255, 0.18); color: #fff; }
+.gate-kart[data-yuva="1"] { z-index: 3; }
+/* Sağ ve sol: yelpazenin kanatları */
+.gate-kart[data-yuva="2"] { z-index: 2; transform: translate(78px, 30px) rotate(9deg) scale(0.86); }
+.gate-kart[data-yuva="3"] { z-index: 1; transform: translate(-78px, 44px) rotate(-9deg) scale(0.86); }
+/* Öne çıkıp savrulan: en üstte, sola yukarı uçarak kayboluyor */
+.gate-kart[data-yuva="cikis"] { z-index: 4; opacity: 0; transform: translate(-60px, -80px) rotate(-18deg) scale(1.04); }
+/* Sırasını bekleyen: destenin arkasında, görünmez; sol kanada oradan giriyor */
+.gate-kart[data-yuva="bekle"] { z-index: 0; opacity: 0; transform: translate(-40px, 70px) rotate(-14deg) scale(0.7); }
 
 .gate-mark { display: none; }
 .gate-title {
@@ -1339,17 +1329,20 @@ a { color: var(--accent); }
 .gate-error { padding: 10px 14px; border-radius: var(--r-sm); background: var(--accent-soft); color: var(--accent-deep); font-size: 0.88rem; }
 
 @media (prefers-reduced-motion: reduce) {
-  .gate-kart, .form-screen, .form-screen-backdrop, .toast { animation: none; }
+  .gate-deste, .form-screen, .form-screen-backdrop, .toast { animation: none; }
+  .gate-kart { transition: none; }
 }
 
 /* ═══════════════════════════════════════════════════════
    HESAP — ana ekranda sağ üstte, masaüstü rayında dipte
 ═══════════════════════════════════════════════════════ */
+/* Mobilde yalnızca ana ekranda, sol altta ekleme düğmesiyle aynı hizada.
+   Sıralama ekranlarının altı ekleme düğmesiyle dolu; orada gizli. */
 .account-btn { display: none; }
 .app-solo ~ .account-btn {
-  position: absolute;
-  top: 18px;
-  right: 16px;
+  position: fixed;
+  left: 16px;
+  bottom: calc(30px + env(safe-area-inset-bottom));
   z-index: 30;
   display: flex;
   align-items: center;
@@ -1365,15 +1358,16 @@ a { color: var(--accent); }
   width: 32px;
   height: 32px;
   flex-shrink: 0;
+  overflow: hidden;
   border-radius: var(--pill);
   background: var(--ink);
   color: var(--paper);
   font-size: 0.86rem;
   font-weight: 700;
 }
+.account-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .account-text { display: none; flex-direction: column; min-width: 0; line-height: 1.2; }
-.account-text strong { font-size: 0.9rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.account-text em { font-style: normal; font-size: 0.76rem; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-text strong { font-size: 0.92rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .account-out {
   display: grid;
   place-items: center;
@@ -1407,24 +1401,19 @@ a { color: var(--accent); }
   .home-title { font-size: 3.2rem; }
   .list-head-actions { display: flex; flex-shrink: 0; }
   .liste-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-  .liste-card { min-height: 180px; padding: 20px; }
-  .liste-card.is-featured { grid-row: span 2; min-height: 376px; padding: 26px; }
-  .liste-card.is-featured .liste-card-text strong { font-size: 2.1rem; }
-  .liste-card.is-featured .liste-card-no { font-size: 7rem; }
-  /* Aşağıdaki genel masaüstü kuralı left/bottom/width veriyor; ana ekranda
-     sıfırlanmazsa blok dört kenara birden tutunup esniyor. */
+  .liste-card { height: 180px; padding: 20px; }
+  /* Ana ekranda ray yok ama hesap bloğu yine sol altta, raydakiyle aynı ölçüde.
+     Mobil kuralı daha özgül olduğu için konum ve ölçü burada açıkça geri alınıyor. */
   .app-solo ~ .account-btn {
-    position: fixed;
-    top: 20px;
-    right: 24px;
-    left: auto;
-    bottom: auto;
-    width: auto;
-    padding: 4px;
-    border-radius: var(--pill);
+    left: 14px;
+    bottom: 14px;
+    width: 244px;
+    gap: 10px;
+    padding: 8px 6px 8px 8px;
+    border-radius: 18px;
     background: var(--card);
+    box-shadow: var(--shadow);
   }
-  .app-solo ~ .account-btn .account-text { display: flex; padding-right: 4px; }
 
   /* Sol ray */
   .rail {
@@ -1645,5 +1634,6 @@ a { color: var(--accent); }
   .app-iki { grid-template-columns: 300px minmax(0, 1fr); }
   .app-solo { display: block; }
   .detail { max-width: 560px; }
-  .account-btn { width: 272px; }
+  .account-btn,
+  .app-solo ~ .account-btn { width: 272px; }
 }

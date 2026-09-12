@@ -1,6 +1,7 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { signInWithGoogle, signOut } from '../lib/auth';
 import { hataMetni } from '../lib/hata';
@@ -21,6 +22,63 @@ const GoogleIkon = (
   </svg>
 );
 
+/** Giriş destesinde sırayla öne geçen örnek listeler — her biri başka bir şey. */
+const DESTE = [
+  { ad: 'Kola', renk: '#e03c10' },
+  { ad: 'Türk kahvesi', renk: '#6b4fbb' },
+  { ad: 'Döner', renk: '#127a5b' },
+  { ad: 'Baklava', renk: '#b45309' },
+  { ad: 'Çay', renk: '#1f6feb' },
+  { ad: 'Lahmacun', renk: '#c2436f' },
+];
+const DESTE_ARALIK_MS = 2800;
+
+/**
+ * Kartın destedeki yeri. Görünen üç yuva ön, sağ ve sol; `cikis` az önce öne
+ * çıkıp savrulan kart, `bekle` sırasını bekleyenler. Konumları CSS çiziyor,
+ * yuva değişince kart transform geçişiyle yeni yerine kayıyor.
+ */
+type Yuva = '1' | '2' | '3' | 'cikis' | 'bekle';
+
+const yuvaBul = (i: number, adim: number): Yuva => {
+  const n = DESTE.length;
+  const fark = (((i - adim) % n) + n) % n;
+  if (fark < 3) return String(fark + 1) as Yuva;
+  return fark === n - 1 ? 'cikis' : 'bekle';
+};
+
+/** Kartın üstündeki sıra: savrulan kart 1 olarak gider, bekleyen 3 olarak gelir. */
+const YUVA_SIRASI: Record<Yuva, string> = { '1': '1', '2': '2', '3': '3', cikis: '1', bekle: '3' };
+
+function GirisDestesi() {
+  const [adim, setAdim] = useState(0);
+
+  useEffect(() => {
+    // Hareketi azaltmak isteyen cihazda deste durağan kalıyor.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const id = window.setInterval(() => setAdim(a => a + 1), DESTE_ARALIK_MS);
+    return () => window.clearInterval(id);
+  }, []);
+
+  return (
+    <div className="gate-deste" aria-hidden="true">
+      {DESTE.map((kart, i) => {
+        const yuva = yuvaBul(i, adim);
+        return (
+          <span
+            key={kart.ad}
+            className="gate-kart"
+            data-yuva={yuva}
+            style={{ '--k': kart.renk } as React.CSSProperties}
+          >
+            <i>{YUVA_SIRASI[yuva]}</i><b>{kart.ad}</b>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 /**
  * Oturumsuz kullanıcıya giriş ekranını, oturumlu kullanıcıya uygulamayı gösterir.
  * Sunucu tarafı koruma yok — koruma Supabase'deki RLS politikalarında.
@@ -29,6 +87,8 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Google fotoğrafı yüklenemezse baş harfe dönülüyor. */
+  const [fotoBozuk, setFotoBozuk] = useState(false);
 
   if (loading) {
     return <p className="state-msg">Yükleniyor…</p>;
@@ -49,23 +109,11 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     return (
       <div className="gate">
         <div className="gate-card">
-          {/* Süs: örnek bir sıralamanın ilk üç kartı. Her kart başka bir listeden —
-              uygulamanın tek bir şeye bağlı olmadığını söylüyor. */}
-          <div className="gate-deste" aria-hidden="true">
-            <span className="gate-kart gate-kart-3" style={{ '--k': '#127a5b' } as React.CSSProperties}>
-              <i>3</i><b>Döner</b>
-            </span>
-            <span className="gate-kart gate-kart-2" style={{ '--k': '#6b4fbb' } as React.CSSProperties}>
-              <i>2</i><b>Türk kahvesi</b>
-            </span>
-            <span className="gate-kart gate-kart-1" style={{ '--k': '#e03c10' } as React.CSSProperties}>
-              <i>1</i><b>Ayran</b>
-            </span>
-          </div>
+          <GirisDestesi />
 
           <h1 className="gate-title">Neyi seviyorsan, sırala.</h1>
           <p className="gate-sub">
-            Ayrandan kahveye kendi listelerini kur. Denediklerini sürükleyerek diz,
+            Koladan kahveye kendi listelerini kur. Denediklerini sürükleyerek diz,
             denemediklerini kenara yaz.
           </p>
 
@@ -81,8 +129,10 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   }
 
   // Google hesabının adı varsa onu, yoksa e-postanın kullanıcı adı kısmını göster.
-  const meta = user.user_metadata as { full_name?: string; name?: string } | undefined;
+  const meta = user.user_metadata as
+    { full_name?: string; name?: string; avatar_url?: string; picture?: string } | undefined;
   const ad = meta?.full_name ?? meta?.name ?? (user.email ?? '').split('@')[0] ?? 'Hesabım';
+  const foto = meta?.avatar_url ?? meta?.picture;
 
   return (
     <>
@@ -90,11 +140,13 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       {/* Kimlik bir metin, çıkış ayrı bir düğme: bloğa dokunmak oturumu kapatmasın. */}
       <div className="account-btn">
         <span className="account-avatar" aria-hidden="true">
-          {ad.charAt(0).toLocaleUpperCase('tr')}
+          {foto && !fotoBozuk
+            // Google fotoğrafları yönlendiren sayfa bilgisi gidince 403 verebiliyor.
+            ? <img src={foto} alt="" referrerPolicy="no-referrer" onError={() => setFotoBozuk(true)} />
+            : ad.charAt(0).toLocaleUpperCase('tr')}
         </span>
         <span className="account-text">
           <strong>{ad}</strong>
-          {user.email && <em>{user.email}</em>}
         </span>
         <button
           type="button"

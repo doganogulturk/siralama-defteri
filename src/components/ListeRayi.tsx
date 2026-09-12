@@ -13,9 +13,8 @@ const ArtiIkon = (
 );
 
 /**
- * Ayar simgesi: üç kural çizgisi ve tutamakları. Dişli yerine sürgü, çünkü sekme
- * simgesi de (`app/icon.svg`) üç kural çizgisinden kurulu — aynı sözlük.
- * Öncesinde ışınlı bir daire vardı, 15 pikselde güneşe benziyordu.
+ * Ayar simgesi: üç çizgi ve tutamakları. Dişli yerine sürgü, çünkü sekme
+ * simgesi de (`app/icon.svg`) üç çizgiden kurulu — aynı sözlük.
  */
 const AyarIkon = (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -28,17 +27,19 @@ const AyarIkon = (
 interface ListeRayiProps {
   /** Rayda vurgulanacak liste. */
   aktifSlug?: string;
+  /** Açık listenin ayar simgesi: sayfa kendi ayarlar popup'ını açar. */
+  onAyarlar?: () => void;
 }
 
 /**
  * Masaüstü sol rayı: künye, liste indeksi ve yeni liste düğmesi.
- * Sıralama ve ayarlar sayfalarının ikisinde de aynı ray duruyor — liste
- * değiştirmek için ana ekrana dönmek gerekmiyor.
  *
- * Her satır iki hedef taşıyor: sayı + ad listeyi açar, sağdaki dişli o
- * listenin ayarlarına gider. İç içe bağlantı olmaması için satır bir sarmalayıcı.
+ * Her satır iki hedef taşıyor: sayı + ad listeyi açar, sağdaki simge o listenin
+ * ayarlarını. Açık listede simge popup'ı yerinde açıyor; başka bir listede o
+ * listeye `?ayarlar=1` ile gidiyor, popup orada açık doğuyor. İç içe bağlantı
+ * olmaması için satır bir sarmalayıcı.
  */
-export default function ListeRayi({ aktifSlug }: ListeRayiProps) {
+export default function ListeRayi({ aktifSlug, onAyarlar }: ListeRayiProps) {
   const { listeler, sayilar, load } = useListeler();
   const [formAcik, setFormAcik] = useState(false);
 
@@ -53,31 +54,31 @@ export default function ListeRayi({ aktifSlug }: ListeRayiProps) {
         </Link>
 
         <nav className="rail-index" aria-label="Listeler">
-          {listeler.map(l => (
-            <div
-              key={l.id}
-              className={`rail-index-item${l.slug === aktifSlug ? ' is-on' : ''}`}
-              // Satır kendi listesinin vurgu rengini taşıyor: sayı bloğu ve ayar
-              // hücresinin üstüne gelme rengi buradan geliyor.
-              style={{ '--satir': l.renk } as React.CSSProperties}
-            >
-              <Link
-                href={`/l/${l.slug}`}
-                className="rail-index-link"
-                aria-current={l.slug === aktifSlug ? 'page' : undefined}
-              >
-                <span className="rail-index-sayi">{siralanan(sayilar[l.id])}</span>
-                <span className="rail-index-ad">{l.ad}</span>
-              </Link>
-              <Link
-                href={`/l/${l.slug}/ayarlar`}
-                className="rail-index-ayar"
-                aria-label={`${l.ad} listesinin ayarları`}
-              >
-                {AyarIkon}
-              </Link>
-            </div>
-          ))}
+          {listeler.map(l => {
+            const aktif = l.slug === aktifSlug;
+            const ayarEtiketi = `${l.ad} listesinin ayarları`;
+            return (
+              <div key={l.id} className={`rail-index-item${aktif ? ' is-on' : ''}`}>
+                <Link
+                  href={`/l/${l.slug}`}
+                  className="rail-index-link"
+                  aria-current={aktif ? 'page' : undefined}
+                >
+                  <span className="rail-index-sayi">{siralanan(sayilar[l.id])}</span>
+                  <span className="rail-index-ad">{l.ad}</span>
+                </Link>
+                {aktif && onAyarlar ? (
+                  <button type="button" className="rail-index-ayar" onClick={onAyarlar} aria-label={ayarEtiketi}>
+                    {AyarIkon}
+                  </button>
+                ) : (
+                  <Link href={`/l/${l.slug}?ayarlar=1`} className="rail-index-ayar" aria-label={ayarEtiketi}>
+                    {AyarIkon}
+                  </Link>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         <button type="button" className="rail-add" onClick={() => setFormAcik(true)}>

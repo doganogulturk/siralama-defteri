@@ -86,7 +86,8 @@ export default function FilterPanel({
       ))}
 
       {kategoriler.length > 0 && (
-        /* Çoklu seçim — checkbox */
+        /* Şeritte tek seçim (radio): bir kategori seçmek diğerini bırakır, "Tümü"
+           filtreyi temizler. Dikey düzen çoklu seçim (checkbox) olarak kalıyor. */
         <fieldset className="filter-group">
           <legend className="filter-legend">
             Kategoriler
@@ -120,7 +121,14 @@ export default function FilterPanel({
                   className={`opt opt-check${checked ? ' is-on' : ''}`}
                   style={{ '--kat': kat.renk } as React.CSSProperties}
                 >
-                  <input type="checkbox" checked={checked} onChange={() => toggleKategori(kat.id)} />
+                  <input
+                    type={inline ? 'radio' : 'checkbox'}
+                    name={inline ? `kategori-${instanceId}` : undefined}
+                    checked={checked}
+                    onChange={() => (inline
+                      ? onChange({ ...filtre, kategoriler: new Set([kat.id]) })
+                      : toggleKategori(kat.id))}
+                  />
                   <span className="opt-mark" aria-hidden="true" />
                   <span className="opt-label">{kat.ad}</span>
                   {!inline && <span className="opt-count">{kategoriSayilari[kat.id] ?? 0}</span>}

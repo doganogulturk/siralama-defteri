@@ -1,6 +1,6 @@
 # Sıralama Defteri
 
-Kişisel sıralama uygulaması: denediğin şeyleri kendi listelerinde sürükleyerek sırala, kendi kategorilerini kur, henüz denemediklerini ayrı bir sekmede tut. Çok listeli ve kullanıcı bazlı; her liste kendi kategorilerini, ek alanlarını ve vurgu rengini taşıyor.
+Kişisel sıralama uygulaması: denediğin şeyleri kendi listelerinde sürükleyerek sırala, kendi kategorilerini kur, henüz denemediklerini ayrı bir sekmede tut. Çok listeli ve kullanıcı bazlı; her liste kendi kategorilerini ve ek alanlarını taşıyor.
 
 ---
 
@@ -14,7 +14,7 @@ Uygulama çalışır ve **canlıda**: giriş, çok listeli sıralama, kategori v
 
 **Kimlik** — Google girişi Supabase Auth üzerinden; tüm sayfalar `AuthGate` arkasında, asıl koruma RLS'te.
 
-**Arayüz** — Üç ekran: `/` liste indeksi, `/l/[slug]` sıralama, `/l/[slug]/ayarlar` yönetim. Bekleyenler ayrı bir route değil, sıralama ekranının ikinci sekmesi ("Denenmemiş"); iki sekmenin kayıtları da masaüstünde aynı sağ panelde açılıyor. Masaüstünde sıralama ve ayarlar aynı sol rayı paylaşıyor: ray satırları sıralanmış kayıt sayısı + liste adı + ayar simgesi taşıyor.
+**Arayüz** — İki ekran: `/` liste indeksi ve `/l/[slug]` sıralama. Liste ayarları ayrı bir sayfa değil, sıralama ekranının üstünde açılan bir popup; eski `/l/[slug]/ayarlar` adresi listeye yönlendirip popup'ı açıyor. Bekleyenler de ayrı bir route değil, sıralama ekranının ikinci sekmesi ("Denenmemiş"). Masaüstünde bir kayda tıklayınca sağda detay paneli açılıyor, seçim kalkınca kapanıyor. Sol ray satırları sıralanmış kayıt sayısı + liste adı + ayar simgesi taşıyor.
 
 Listeler ve kategoriler kayıt sayısına göre sıralı — elle sıralama diye bir iş yok. Listelerde ölçü "kaç şeyi sıraladım": bekleyenler sayılmıyor, bir kayıt "Denedim" ile sıralamaya geçtiğinde rakam artıyor. Ray ve indeks sayıları sayfadan ayrı bir sorgudan geldiği için `useListeler`'de küçük bir haber kanalı var: sayfa bir mutasyondan sonra `listeleriTazele()` çağırıyor.
 
@@ -28,7 +28,7 @@ Masaüstündeki sağ panel kaydın tamamını gösteriyor (not dahil, satır son
 
 ## Tasarım — Koleksiyon
 
-Sıralamayı bir koleksiyon gibi sunan, sıcak ve dokunsal bir arayüz: krem zemin, yumuşak gölgeli kart yüzeyler, liste rengiyle boyanan alanlar, hap biçimli eylemler. Tüm stiller `src/app/globals.css`'te; sınıf adları bileşenlerle birebir.
+Sıralamayı bir koleksiyon gibi sunan, sıcak ve dokunsal bir arayüz: krem zemin, yumuşak gölgeli kart yüzeyler, tek bir sıcak vurgu rengi, hap biçimli eylemler. Tüm stiller `src/app/globals.css`'te; sınıf adları bileşenlerle birebir.
 
 Karar bu kanvastan çıktı: [Görünüm yönleri](https://claude.ai/code/artifact/6a56ee8e-2e9c-426e-bf8c-003156655c97). Kanvas yön seçiminin kaydı; uyuşmazlıkta doğru kaynak koddur.
 
@@ -42,18 +42,18 @@ Karar bu kanvastan çıktı: [Görünüm yönleri](https://claude.ai/code/artifa
 | `--ink` | `#1d1a16` | metin, birincil düğme, seçili hap |
 | `--soft` / `--mute` / `--faint` | mürekkebin %70 / %52 / %28'i | ikincil metin kademeleri |
 | `--rule` / `--tint` | mürekkebin %10 / %6'sı | ince çerçeve, segment zemini |
-| `--accent` | `si_lists.renk` | listenin vurgu rengi |
+| `--accent` | `#e03c10` | uygulamanın tek vurgu rengi |
 | `--r-lg` / `--r-md` / `--r-sm` | `24px` / `18px` / `12px` | köşe yarıçapları |
 | `--shadow` / `--shadow-lift` | yumuşak iki katman | kart / yüzen öğe gölgesi |
 
 **Yazı** — Bricolage Grotesque (Google Fonts, `400–800`), tek aile. Başlıklar ve sayılar `800`, sıkı harf aralığıyla; gövde `400–600`. Versal kullanılmıyor: kullanıcının yazdığı adlar ve düğme metinleri olduğu gibi duruyor.
 
-**Vurgu tonları** — `--accent-soft` (%15), `--accent-wash` (%8) ve `--accent-deep` (koyulaştırılmış) `color-mix` ile vurgudan türüyor. Bunlar hem `:root` hem `.app` üzerinde tanımlı: özel özellikler tanımlandıkları öğede çözüldüğü için yalnızca `:root`'ta olsalar `.app`'in ezdiği liste rengini değil hep varsayılanı yansıtırlardı.
+**Vurgu tonları** — `--accent-soft` (%15), `--accent-wash` (%8) ve `--accent-deep` (koyulaştırılmış) `color-mix` ile vurgudan türüyor.
 
 ### Kurallar
 
 - **Yüzey kartla, derinlik gölgeyle kuruluyor** — çizgi ayraç yok denecek kadar az; bölümler kart, satırlar kart.
-- **Renk listeden geliyor** — zirve kartı, sıra rozeti ve "Denedim" düğmesi `--accent`; ana ekrandaki liste kartları kendi renklerinin açık tonunda (`--satir`).
+- **Tek vurgu rengi** — ilk üç sıranın numarası, detaydaki sıra rozeti, raydaki açık listenin sayısı ve "Denedim" düğmesi `--accent`. Listelerin kendi rengi yok; onları ad ve sayı ayırıyor.
 - **Seçili durum mürekkep halka** — `0 0 0 2.5px var(--ink)`; vurgu renginde halka, vurgu renkli kartın üstünde kaybolurdu.
 - **Eylemler hap** — birincil düğme mürekkep, ikincil kart zemini + ince çerçeve, tehlikeli işlem vurgunun açık tonu.
 - **Seçenek grupları segment kontrolü** — sekmeler, Evet/Hayır, sıraya ekleme yeri: `--tint` zeminde, seçili parça kart gibi yükseliyor.
@@ -62,20 +62,20 @@ Karar bu kanvastan çıktı: [Görünüm yönleri](https://claude.ai/code/artifa
 ### Ekranlar
 
 - **Giriş** — Yelpaze biçiminde örnek sıralama kartları, büyük başlık, hap biçimli Google düğmesi. Deste altı örnek listeden (her biri başka bir şey: uygulamanın tek bir şeye bağlı olmadığını söylüyor) 2,8 saniyede bir dönüyor: öndeki kart sola yukarı savrulup kayboluyor, kanatlar birer sıra öne geçiyor, arkadan yenisi giriyor. Masaüstünde deste solda, metin sağda.
-- **Listelerin** — Selamlama ve toplam sayılar; her liste kendi renk tonunda, aynı boyda bir kart. Sıralanan kayıt sayısı kartın üstünden altına uzanan silik bir rakam; ad ve denenmemiş sayısı onun üstünde. "x denenmemiş" yalnızca bekleyen kayıt varsa yazıyor. Mobilde iki sütun, masaüstünde dört sütun.
-- **Sıralama** — Yuvarlak geri ve ayar düğmeleri, ortada liste adı; segment sekmeler, hap filtre şeridi. Filtresiz görünümde ilk üç kayıt fotoğraflı **podyum**: 1. tam genişlikte vurgu renginde, 2 ve 3 yan yana. Kalan kayıtlar kompakt kart; sıra numarası sağda, soluk ve iri. Filtreli görünümde podyum yok, hepsi kompakt. Ekleme düğmesi yüzen hap.
-- **Masaüstü** — Üç sütun: krem ray (seçili liste beyaz kart, ayar simgesi üstüne gelince beliriyor), orta sütunda liste adı başlık olarak + sıralama, sağda detay kartı.
+- **Listelerin** — Selamlama ve toplam sayılar; her liste aynı boyda beyaz bir kart. Sıralanan kayıt sayısı kartın üstünden altına uzanan silik bir rakam; ad ve denenmemiş sayısı onun üstünde. "x denenmemiş" yalnızca bekleyen kayıt varsa yazıyor. Mobilde iki sütun, masaüstünde dört sütun.
+- **Sıralama** — Yuvarlak geri ve ayar düğmeleri, ortada liste adı; segment sekmeler, hap filtre şeridi. Her kayıt aynı kompakt kart: sürükleme tutamağı, fotoğraf, ad ve alt bilgi, rozetler, sağda soluk ve iri sıra numarası (ilk üçte vurgu renginde). Ekleme düğmesi yüzen hap.
+- **Masaüstü** — Krem ray (açık liste beyaz kart ve vurgu renkli sayı, ayar simgesi üstüne gelince beliriyor), yanında liste adı başlık olarak + sıralama. Kayıt seçilince sağda detay kartı açılıyor ve sıralama sütunu daralıyor; seçim yokken sıralama ortalanmış 760px'lik bir sütun.
 - **Formlar** — Mobilde alttan açılan panel (tutamaklı), masaüstünde ortalanmış yuvarlak kutu. Kaydet çubuğu gövdenin dibine yapışık. Kimlik bandı: fotoğraf kutusu solda, ad ve çeşit sağında.
-- **Ayarlar** — Her bölüm ayrı kart. Masaüstünde solda kimlik / renk / silme, sağda kategoriler ve ek alanlar; mobilde tek akış, silme en sonda.
+- **Liste ayarları** — Kayıt formuyla aynı kabukta popup (mobilde alttan panel, masaüstünde 600px kutu). Başlık düzenlenebilir liste adı; altında kategoriler ve ek alanlar kartları, en altta yalnızca "Listeyi sil" düğmesi (neyin silineceğini onay penceresi söylüyor). Açıklama satırı yok; değişiklikler anında kaydediliyor. Mobil ayar düğmesi ve açık listenin ray simgesi popup'ı yerinde açıyor; başka bir listenin ray simgesi ve yeni liste açılışı `?ayarlar=1` ile gidiyor, sayfa parametreyi okuyup adresten siliyor.
 
 ### Uygulama ayrıntıları
 
-- **Podyum yalnızca CSS** — `.rows.has-zirve` bir ızgara; satırlar listeden çıkarılmıyor ki sürüklenebilir kalsınlar. Sıralanabilir bağlam `rectSortingStrategy` kullanıyor (2 ve 3 yan yana), satır dönüşümü `CSS.Translate` — ölçekleme farklı boydaki kartları eziyordu.
-- **Fotoğrafsız kayıt** — Satır yedek görseline marka rengi `background` olarak değil `--marka` değişkeniyle veriliyor; böylece CSS podyumda ve detay panelinde onu listenin tonuna çevirebiliyor. Kompakt satırlarda marka rengi kalıyor.
+- **Sürükle-bırak** — dnd-kit `verticalListSortingStrategy`; satır dönüşümü `CSS.Translate`, çünkü alt bilgisi olan satır daha uzun ve ölçekleme onu ezerdi.
+- **Fotoğrafsız kayıt** — Satır yedek görseline marka rengi `background` olarak değil `--marka` değişkeniyle veriliyor; böylece CSS detay panelinde onu vurgunun tonuna çevirebiliyor. Kompakt satırlarda marka rengi kalıyor.
 - **Liste kartındaki rakam** — Kart sabit boylu bir boyut kabı (`container-type: size`); rakamın puntosu kart yüksekliğine göre (`cqh`) veriliyor. Üç ve dört haneli sayılar taşmasın diye `data-hane` ile küçülüyor.
 - **Giriş destesi** — `AuthGate` içindeki `GirisDestesi` her adımda kartların `data-yuva` değerini kaydırıyor (`1`, `2`, `3`, `cikis`, `bekle`); konumları CSS çiziyor. Tüm kartlar aynı boyda ve aynı noktada, arkadakiler ölçekle küçülüyor — geçiş yalnızca transform, opaklık ve renk.
-- **Hesap bloğu** — Google profil fotoğrafı (`avatar_url` / `picture`) ve ad; e-posta gösterilmiyor. Fotoğraf `referrerPolicy="no-referrer"` ile yükleniyor (Google aksi hâlde 403 verebiliyor), yüklenemezse baş harfe dönüyor. `AuthGate` bloğu sayfanın kardeşi olarak çiziyor; her ekranda sol altta. Masaüstünde sıralama ve ayarlarda rayın dibinde, ana ekranda aynı yerde kart olarak. Mobilde yalnızca ana ekranda (avatar + çıkış): sıralama ekranlarının altı ekleme düğmesiyle dolu.
-- **Sekme simgesi** — `src/app/icon.svg`: mürekkep zeminde azalan uzunlukta üç çizgi. Ayar simgesi de aynı sözlükten (üç çizgi ve tutamakları). Vurgu rengi bilerek kullanılmadı — `--accent` liste başına değişiyor, simge sabit olmalı.
+- **Hesap bloğu** — Google profil fotoğrafı (`avatar_url` / `picture`) ve ad; e-posta gösterilmiyor. Fotoğraf `referrerPolicy="no-referrer"` ile yükleniyor (Google aksi hâlde 403 verebiliyor), yüklenemezse baş harfe dönüyor. `AuthGate` bloğu sayfanın kardeşi olarak çiziyor; her ekranda sol altta. Masaüstünde sıralama ekranında rayın dibinde, ana ekranda aynı yerde kart olarak. Mobilde yalnızca ana ekranda (avatar + çıkış): sıralama ekranlarının altı ekleme düğmesiyle dolu.
+- **Sekme simgesi** — `src/app/icon.svg`: mürekkep zeminde azalan uzunlukta üç çizgi. Ayar simgesi de aynı sözlükten (üç çizgi ve tutamakları). Vurgu rengi bilerek kullanılmadı: simge mürekkep ve kağıtla sade kalıyor.
 
 ---
 
@@ -93,15 +93,16 @@ Karar bu kanvastan çıktı: [Görünüm yönleri](https://claude.ai/code/artifa
 Bunlar iş değil, bilinçli kararlar:
 
 - **Apple girişi yok** — Supabase'de hazır provider ama Apple Developer hesabı ($99/yıl) gerektiriyor. Google girişi tek yol.
-- **Liste simgesi yok** — kayıtların çoğunda zaten fotoğraf var, listenin ayrıca simge taşımasına gerek yok. `si_lists.emoji` kolonu şemada duruyor ama kod ne yazıyor ne okuyor. Ayarlardaki kimlik kutusu listenin monogramını gösteriyor.
+- **Liste simgesi yok** — kayıtların çoğunda zaten fotoğraf var, listenin ayrıca simge taşımasına gerek yok. `si_lists.emoji` kolonu şemada duruyor ama kod ne yazıyor ne okuyor.
+- **Liste rengi yok** — listeler renkle ayrışmıyor, uygulamanın tek vurgu rengi var. `si_lists.renk` kolonu şemada duruyor ama kod okumuyor; yeni listeler varsayılanla doğuyor.
 - **Kategori sırası elle ayarlanmaz** — kategoriler kayıt sayısına göre sıralanıyor (eşitlikte `sira`, sonra `created_at`). `si_categories.sira` yalnızca eşitlik bozucu.
 - **`si_lists.sira` arayüzde kullanılmıyor** — listeler de sıralanmış kayıt sayısına göre diziliyor.
 - **Alan tipini değiştirmek veriyi dönüştürmez** — Evet/Hayır'dan Metin'e çevrilen alanın eski `true/false` değerleri kayıtta kalır ama okunmaz olur.
 - **Kategori silmek kayıtları silmez** — `on delete set null` ile kayıtlar kategorisiz kalır.
 - **`si_items.sira` benzersiz değil** — sürükle-bırak satırları tek tek UPDATE ettiği için ara durumlarda geçici çakışma olur.
 - **Bekleyenlerin kendi URL'i yok** — "Denenmemiş" bir sekme; donanım geri tuşu sekmeler arasında gezmiyor, listeden çıkıyor.
-- **Filtre şeridi yalnızca kategori taşıyor** — "Tümü" + kategoriler. Ek alan ayrımı sağ paneldeki kapsam sekmelerinde duruyor, ama orası yalnızca podyumu ve son eklenenleri daraltıyor, listeyi değil.
-- **Podyum yalnızca filtresiz görünümde** — sıralama da yalnızca orada değiştirilebiliyor; filtreli görünüm kompakt ve sürüklenemez.
+- **Filtre şeridi yalnızca kategori taşıyor** — "Tümü" + kategoriler, tek seçim: bir kategori seçmek öncekini bırakıyor, seçimi "Tümü" temizliyor. Evet/Hayır alanlarına göre ayrım şu an arayüzün hiçbir yerinde yok; yol haritasında 1. sırada.
+- **Sıralama yalnızca filtresiz görünümde değiştirilebilir** — filtreli görünümde kartlar sürüklenemiyor.
 - **Liste adı değişince slug değişmez** — kayıtlı bağlantılar kırılmasın diye.
 - **Fotoğraf kovasının adı değişmeyecek** — `lib/items.ts` içindeki `KOVA` sabiti genel bir ad değil ama kullanıcıya görünmüyor. Supabase kovaları yeniden adlandırılamıyor; "adı değiştirmek" yeni kovaya kopyalamak ve tüm `fotograf_url` değerlerini güncellemek demek. Kazancı yalnızca kozmetik, riski fotoğraf kaybı. Silme işlevi kova adını URL'den okuduğu için ileride taşınırsa eski ve yeni kova bir süre yan yana çalışabilir.
 - **Sunucu tarafı koruma yok** — uygulama tamamen istemci tarafında; `AuthGate` bir kapı, güvenlik RLS'te.
@@ -114,7 +115,7 @@ Bunlar iş değil, bilinçli kararlar:
 
 ```
 si_lists       id, user_id, ad, slug, emoji, renk, sira, alanlar(jsonb), created_at
-               └ emoji ve sira kullanılmıyor (bkz. kabul edilmiş sınırlar)
+               └ emoji, renk ve sira kullanılmıyor (bkz. kabul edilmiş sınırlar)
 si_categories  id, list_id, ad, renk, sira, created_at
 si_items       id, list_id, category_id, ad, alt_ad, fotograf_url,
                sira, denendi, notlar, ozellikler(jsonb), created_at
@@ -137,7 +138,7 @@ Kritik ayrıntılar:
 |---|---|
 | `001_sema.sql` | Üç tabloyu ve RLS politikalarını kurar |
 | `003_liste_alanlari.sql` | `alanlar` kolonunu ekler |
-| `004_liste_rengi.sql` | `renk` kolonunu ekler (liste vurgu rengi) |
+| `004_liste_rengi.sql` | `renk` kolonunu ekler (şu an kullanılmıyor) |
 
 ---
 
@@ -163,9 +164,8 @@ src/
     globals.css                   tüm stiller — Koleksiyon tasarım sistemi
     icon.svg                      sekme simgesi — azalan üç çizgi
     l/[slug]/
-      page.tsx                    sıralama ekranı — "Sıralamam" ve "Denenmemiş" sekmeleri
-      ayarlar/layout.tsx          ayarlar sayfasının başlığı (metadata)
-      ayarlar/page.tsx            liste, kategori ve alan yönetimi
+      page.tsx                    sıralama ekranı — sekmeler, detay paneli, ayarlar popup'ı
+      ayarlar/page.tsx            eski adres: listeye yönlendirip ayarlar popup'ını açar
   components/
     AuthGate.tsx                  giriş ekranı + hesap bloğu (kimlik + çıkış)
     ItemRow.tsx                   sıralama kartı (statik + sürüklenebilir)
@@ -174,7 +174,8 @@ src/
     ListeRayi.tsx                 masaüstü sol ray (künye + liste indeksi + ayar simgesi)
     ListeEkleModal.tsx            yeni liste formu (ana ekran ve raydan açılır)
     FilterPanel.tsx               veri güdümlü filtre şeridi
-    DetailPane.tsx                masaüstü detay paneli — iki sekmenin kayıtlarını da açar
+    DetailPane.tsx                masaüstü detay paneli — yalnızca bir kayıt seçiliyken
+    ListeAyarlariModal.tsx        liste ayarları popup'ı (ad, kategoriler, ek alanlar, silme)
     WishlistPanel.tsx             "Denenmemiş" sekmesinin kartları
   hooks/
     useAuth.ts                    oturum durumu

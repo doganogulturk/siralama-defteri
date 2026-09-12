@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
@@ -8,7 +8,7 @@ import {
   useSensor, useSensors, DragEndEvent,
 } from '@dnd-kit/core';
 import {
-  SortableContext, rectSortingStrategy, arrayMove, sortableKeyboardCoordinates,
+  SortableContext, verticalListSortingStrategy, arrayMove, sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { Item, alanKisa, bayrak, filtreAlanlari } from '../../../types/item';
 import { sortSirali } from '../../../lib/sort';
@@ -26,6 +26,7 @@ import DetailPane from '../../../components/DetailPane';
 import WishlistPanel from '../../../components/WishlistPanel';
 import ItemForm, { FormMode } from '../../../components/ItemForm';
 import ListeRayi from '../../../components/ListeRayi';
+import ListeAyarlariModal from '../../../components/ListeAyarlariModal';
 
 export default function ListePage() {
   const isDesktop = useIsDesktop();
@@ -47,6 +48,18 @@ export default function ListePage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<FormMode>('siralama');
   const [editingItem, setEditingItem] = useState<Item | null>(null);
+
+  /** Liste ayarları popup'ı. Başka bir listenin ayar simgesinden ya da yeni liste
+   *  açılışından `?ayarlar=1` ile gelinirse açık doğuyor. */
+  const [ayarlarAcik, setAyarlarAcik] = useState(false);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('ayarlar')) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAyarlarAcik(true);
+    // Parametre adreste kalırsa yenilemede popup yeniden açılırdı.
+    window.history.replaceState(null, '', window.location.pathname);
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -227,12 +240,8 @@ export default function ListePage() {
 
     return (
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        {/* Izgara stratejisi: podyumda 2. ve 3. yan yana duruyor, dikey strateji
-            onların yerini yanlış hesaplardı. */}
-        <SortableContext items={visible.map(i => i.id)} strategy={rectSortingStrategy}>
-          {/* has-zirve: filtresiz görünümde ilk üç fotoğraflı podyum kartı olur.
-              Satırlar listeden çıkarılmıyor ki sürüklenebilirliklerini korusunlar. */}
-          <div className="rows has-zirve">
+        <SortableContext items={visible.map(i => i.id)} strategy={verticalListSortingStrategy}>
+          <div className="rows">
             {visible.map((item, i) => (
               <DraggableRow
                 key={item.id}
@@ -250,9 +259,10 @@ export default function ListePage() {
   })();
 
   return (
-    <div className="app" style={{ '--accent': liste?.renk } as React.CSSProperties}>
+    // Seçili kayıt yokken detay sütunu kapanıyor (pane-kapali), sıralama genişliyor.
+    <div className={`app${selectedItem ? '' : ' pane-kapali'}`}>
       {/* ── Sol ray: künye + liste indeksi (masaüstü) ── */}
-      <ListeRayi aktifSlug={SLUG} />
+      <ListeRayi aktifSlug={SLUG} onAyarlar={() => setAyarlarAcik(true)} />
 
       {/* ── Center: ranked list ──────────────────────── */}
       <main className="list">
@@ -268,13 +278,19 @@ export default function ListePage() {
             <strong>{listeAdi}</strong>
             <em>kişisel sıralaman</em>
           </span>
-          <Link href={`/l/${SLUG}/ayarlar`} className="mobile-brand-settings" aria-label="Liste ayarları">
+          <button
+            type="button"
+            className="mobile-brand-settings"
+            aria-label="Liste ayarları"
+            onClick={() => setAyarlarAcik(true)}
+            disabled={!liste}
+          >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  strokeWidth="1.9" strokeLinecap="round" aria-hidden="true">
               <path d="M3 6h7M16 6h5M3 12h3M12 12h9M3 18h9M18 18h3" />
               <circle cx="13" cy="6" r="2.1" /><circle cx="9" cy="12" r="2.1" /><circle cx="15" cy="18" r="2.1" />
             </svg>
-          </Link>
+          </button>
         </div>
 
         {total > 0 && (
@@ -340,24 +356,32 @@ export default function ListePage() {
         </button>
       </main>
 
-      {/* ── Right: detail + wishlist drawer (desktop) ── */}
-      <section className="pane">
-        <div className="pane-main">
-          <DetailPane
-            item={selectedItem}
-            rank={selectedRank}
-            total={total}
-            ranked={ranked}
-            kategoriler={kategoriler}
-            alanlar={alanlar}
-            kategoriSayilari={katSayilari}
-            onEdit={(item) => openForm(item.denendi ? 'siralama' : 'istek', item)}
-            onDelete={handleDelete}
-            onSelect={(item) => setSelectedId(item.id)}
-            onClose={() => setSelectedId(null)}
-          />
-        </div>
-      </section>
+      {/* ── Sağ: seçili kaydın detayı (masaüstü) ── */}
+      {selectedItem && (
+        <section className="pane">
+          <div className="pane-main">
+            <DetailPane
+              item={selectedItem}
+              rank={selectedRank}
+              kategoriler={kategoriler}
+              alanlar={alanlar}
+              onEdit={(item) => openForm(item.denendi ? 'siralama' : 'istek', item)}
+              onDelete={handleDelete}
+              onClose={() => setSelectedId(null)}
+            />
+          </div>
+        </section>
+      )}
+
+      {ayarlarAcik && liste && (
+        <ListeAyarlariModal
+          liste={liste}
+          kategoriler={kategoriler}
+          items={items}
+          onChanged={load}
+          onClose={() => setAyarlarAcik(false)}
+        />
+      )}
 
       {isSaving && <div className="toast">Sıralama kaydediliyor…</div>}
 

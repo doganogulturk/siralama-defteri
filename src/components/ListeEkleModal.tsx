@@ -49,7 +49,7 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
       onCreated?.();
       // Kategorisiz doğan listede yapılacak ilk iş ayarlar; toplu giriş bunu zaten
       // hallettiyse kullanıcı doğrudan sıralamasına düşsün.
-      router.push(topluAdet > 0 ? `/l/${olusan.slug}` : `/l/${olusan.slug}/ayarlar`);
+      router.push(topluAdet > 0 ? `/l/${olusan.slug}` : `/l/${olusan.slug}?ayarlar=1`);
     } catch (err: unknown) {
       alert('Liste oluşturulamadı: ' + hataMetni(err));
       setKaydediliyor(false);

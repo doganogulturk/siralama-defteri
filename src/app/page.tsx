@@ -66,12 +66,7 @@ export default function ListelerPage() {
               const adet = siralanan(sayilar[l.id]);
               const bekleyenAdet = sayilar[l.id]?.bekleyen ?? 0;
               return (
-                <Link
-                  key={l.id}
-                  href={`/l/${l.slug}`}
-                  className="liste-card"
-                  style={{ '--satir': l.renk } as React.CSSProperties}
-                >
+                <Link key={l.id} href={`/l/${l.slug}`} className="liste-card">
                   {/* Hane sayısı punto için: sayı kartın boyunu dolduruyor, uzun sayı küçülmeli. */}
                   <span className="liste-card-no" data-hane={Math.min(String(adet).length, 4)}>
                     {adet}

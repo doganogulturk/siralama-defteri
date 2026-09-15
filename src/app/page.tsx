@@ -1,6 +1,8 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 
 import React, { useState } from 'react';
+import Hesap from '../components/Hesap';
 import Link from 'next/link';
 import { useListeler, siralanan } from '../hooks/useListeler';
 import ListeEkleModal from '../components/ListeEkleModal';
@@ -31,15 +33,19 @@ export default function ListelerPage() {
             <h1 className="home-title">Listelerin</h1>
             {listeler.length > 0 && (
               <p className="home-summary">
-                <strong>{siralananToplam}</strong> sıralandı · <strong>{bekleyen}</strong> denenmemiş
+                <strong>{listeler.length}</strong> liste · <strong>{siralananToplam}</strong> sıralandı ·{' '}
+                <strong>{bekleyen}</strong> denenmemiş
               </p>
             )}
           </div>
-          {/* Masaüstünde yüzen düğme gizli; ekleme başlığın yanına geçiyor. */}
-          <div className="list-head-actions">
-            <button type="button" className="btn-primary" onClick={() => setFormAcik(true)}>
-              + Yeni liste
-            </button>
+          <div className="home-head-yan">
+            {/* Masaüstünde yüzen düğme gizli; ekleme başlığın yanına geçiyor. */}
+            <div className="list-head-actions">
+              <button type="button" className="btn-primary" onClick={() => setFormAcik(true)}>
+                + Yeni liste
+              </button>
+            </div>
+            {user && <Hesap user={user} className="home-hesap" />}
           </div>
         </header>
 
@@ -65,16 +71,43 @@ export default function ListelerPage() {
             {listeler.map((l) => {
               const adet = siralanan(sayilar[l.id]);
               const bekleyenAdet = sayilar[l.id]?.bekleyen ?? 0;
+              const ilkUc = sayilar[l.id]?.ilkUc ?? [];
+              const sampiyon = ilkUc[0];
               return (
-                <Link key={l.id} href={`/l/${l.slug}`} className="liste-card">
-                  {/* Hane sayısı punto için: sayı kartın boyunu dolduruyor, uzun sayı küçülmeli. */}
-                  <span className="liste-card-no" data-hane={Math.min(String(adet).length, 4)}>
-                    {adet}
+                <Link
+                  key={l.id}
+                  href={`/l/${l.slug}`}
+                  className={`liste-card${sampiyon ? '' : ' is-bos'}`}
+                >
+                  {/* Şampiyonun fotoğrafı kartın arkasında soluk bir zemin; yoksa kart sade kalıyor. */}
+                  {sampiyon?.fotograf_url && (
+                    <span className="liste-card-kapak" aria-hidden="true">
+                      <img src={sampiyon.fotograf_url} alt="" />
+                    </span>
+                  )}
+
+                  <span className="liste-card-bas">
+                    <strong className="liste-card-ad">{l.ad}</strong>
+                    <b className="liste-card-sayi" aria-label={`${adet} sıralandı`}>{adet}</b>
                   </span>
-                  <span className="liste-card-text">
-                    <strong>{l.ad}</strong>
-                    {bekleyenAdet > 0 && <em>{bekleyenAdet} denenmemiş</em>}
-                  </span>
+
+                  {sampiyon ? (
+                    <ol className="liste-card-podyum">
+                      {ilkUc.map((k, n) => (
+                        <li key={k.id}>
+                          <i>{n + 1}</i>
+                          <span>
+                            {k.ad}
+                            {k.alt_ad && <small> {k.alt_ad}</small>}
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <span className="liste-card-bos">Henüz sıralama yok</span>
+                  )}
+
+                  {bekleyenAdet > 0 && <em className="liste-card-bekleyen">{bekleyenAdet} denenmemiş</em>}
                 </Link>
               );
             })}

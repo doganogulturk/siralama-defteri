@@ -30,7 +30,8 @@ interface ItemFormProps {
   /** Sıralamadaki mevcut kayıtlar (sıralı) — "şunun altına" seçimi için. */
   existingItems?: Item[];
   onClose: () => void;
-  onSave: (entry: Item, targetIndex?: number) => void;
+  /** Beklenir: kayıt bitene kadar Kaydet kilitli kalıyor, çift basış ikinci kayıt açmasın. */
+  onSave: (entry: Item, targetIndex?: number) => Promise<void> | void;
   /** Verilirse formda "Toplu" sekmesi açılır. `denendi` formun kipinden geliyor. */
   onTopluSave?: (bloklar: TopluBlok[], denendi: boolean) => Promise<void>;
   onDelete?: () => void;
@@ -76,6 +77,7 @@ export default function ItemForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const adRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [kaydediliyor, setKaydediliyor] = useState(false);
 
   const [ad, setAd] = useState(editingItem?.ad ?? '');
   const [altAd, setAltAd] = useState(editingItem?.alt_ad ?? '');
@@ -145,9 +147,9 @@ export default function ItemForm({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ad.trim()) return;
+    if (!ad.trim() || kaydediliyor) return;
 
     let targetIndex: number | undefined;
     if (showPosition) {
@@ -173,21 +175,27 @@ export default function ItemForm({
       }
     }
 
-    onSave(
-      {
-        id: editingItem?.id || '',
-        list_id: editingItem?.list_id || '',
-        created_at: editingItem?.created_at,
-        category_id: categoryId,
-        ad: ad.trim(),
-        alt_ad: altAd.trim() || null,
-        fotograf_url: fotografUrl.trim() || null,
-        notlar: notlar.trim() || null,
-        ozellikler: temizOzellikler,
-        denendi: !isIstek,
-      },
-      targetIndex
-    );
+    setKaydediliyor(true);
+    try {
+      await onSave(
+        {
+          id: editingItem?.id || '',
+          list_id: editingItem?.list_id || '',
+          created_at: editingItem?.created_at,
+          category_id: categoryId,
+          ad: ad.trim(),
+          alt_ad: altAd.trim() || null,
+          fotograf_url: fotografUrl.trim() || null,
+          notlar: notlar.trim() || null,
+          ozellikler: temizOzellikler,
+          denendi: !isIstek,
+        },
+        targetIndex
+      );
+    } finally {
+      // Başarıda form zaten kapanıyor; hata olursa sayfa uyarıyı gösterdi, yeniden denenebilsin.
+      setKaydediliyor(false);
+    }
   };
 
   const handleTopluSubmit = async (e: React.FormEvent) => {
@@ -492,9 +500,10 @@ export default function ItemForm({
 
             <div className="form-screen-actions">
               <button type="button" className="btn-quiet" onClick={handleClose}>Vazgeç</button>
-              <button type="submit" className="btn-primary" disabled={uploading}>
+              <button type="submit" className="btn-primary" disabled={uploading || kaydediliyor}>
                 {uploading
                   ? 'Yükleniyor…'
+                  : kaydediliyor ? 'Kaydediliyor…'
                   : isDonusum ? 'Sıralamaya Ekle'
                   : editingItem ? 'Güncelle'
                   : isIstek ? 'Listeme Ekle'

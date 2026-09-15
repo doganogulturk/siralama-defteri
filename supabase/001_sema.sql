@@ -9,8 +9,7 @@ create table si_lists (
   slug        text not null,
   emoji       text,
   sira        int  not null default 0,          -- listelerin kendi arasındaki sırası
-  -- Listeye özel ek alan tanımları; ayrıntı için 003_liste_alanlari.sql
-  alanlar     jsonb not null default '[]',
+  -- Listeye özel ek alan tanımları (alanlar) 003_liste_alanlari.sql ile ekleniyor.
   created_at  timestamptz not null default now(),
   unique (user_id, slug)
 );

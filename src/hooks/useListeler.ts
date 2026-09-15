@@ -40,7 +40,11 @@ export function useListeler() {
       // Sayımlar listelerin yanında ikincil: hata verirse indeks yine de çalışsın.
       const [gelen, adet] = await Promise.all([
         getListeler(),
-        getListeSayilari().catch(() => ({} as Record<string, ListeSayisi>)),
+        getListeSayilari().catch((e: unknown) => {
+          // Sessiz kalırsa 007 migration'ı çalıştırılmamış bir ortamda sayılar sıfır görünür ve sebebi anlaşılmaz.
+          console.warn('Liste özetleri okunamadı:', hataMetni(e));
+          return {} as Record<string, ListeSayisi>;
+        }),
       ]);
       setSayilar(adet);
       setListeler(

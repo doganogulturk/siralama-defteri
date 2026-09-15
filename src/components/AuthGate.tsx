@@ -1,17 +1,10 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { signInWithGoogle, signOut } from '../lib/auth';
+import { signInWithGoogle } from '../lib/auth';
 import { hataMetni } from '../lib/hata';
-
-const CikisIkon = (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
-  </svg>
-);
+import Hesap from './Hesap';
 
 const GoogleIkon = (
   <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true">
@@ -22,14 +15,46 @@ const GoogleIkon = (
   </svg>
 );
 
-/** Giriş destesinde sırayla öne geçen örnek listeler — her biri başka bir şey. */
-const DESTE = [
-  { ad: 'Kola', renk: '#e03c10' },
-  { ad: 'Türk kahvesi', renk: '#6b4fbb' },
-  { ad: 'Döner', renk: '#127a5b' },
-  { ad: 'Baklava', renk: '#b45309' },
-  { ad: 'Çay', renk: '#1f6feb' },
-  { ad: 'Lahmacun', renk: '#c2436f' },
+interface OrnekKayit { ad: string; foto: string }
+
+/**
+ * Giriş destesinde sırayla öne geçen örnek listeler — her biri başka bir şey.
+ * Her kart küçük bir sıralama ekranı: kategoriler, fotoğraflı ilk üç ve çizginin
+ * altında bir "Bir daha asla". `foto` fotoğraf yerine duran kutucuğun rengi.
+ */
+const DESTE: {
+  ad: string; renk: string; kategoriler: [string, string]; sira: OrnekKayit[]; asla: OrnekKayit;
+}[] = [
+  {
+    ad: 'Kola', renk: '#e03c10', kategoriler: ['Şekerli', 'Şekersiz'],
+    sira: [{ ad: 'Cam şişe', foto: '#5a2d1a' }, { ad: 'Kutu', foto: '#b8321a' }, { ad: 'Pet şişe', foto: '#8c1f12' }],
+    asla: { ad: 'Vişneli kola', foto: '#7a1f3d' },
+  },
+  {
+    ad: 'Türk kahvesi', renk: '#6b4fbb', kategoriler: ['Sade', 'Orta'],
+    sira: [{ ad: 'Közde', foto: '#6f4a2f' }, { ad: 'Bakır cezve', foto: '#b07a4a' }, { ad: 'Makinede', foto: '#3d2a1f' }],
+    asla: { ad: 'Mikrodalgada', foto: '#8a8577' },
+  },
+  {
+    ad: 'Döner', renk: '#127a5b', kategoriler: ['Et', 'Tavuk'],
+    sira: [{ ad: 'Yaprak', foto: '#b8742f' }, { ad: 'İskender', foto: '#8a4b22' }, { ad: 'Dürüm', foto: '#d9a55a' }],
+    asla: { ad: 'Dünden kalma', foto: '#c9b79c' },
+  },
+  {
+    ad: 'Baklava', renk: '#b45309', kategoriler: ['Fıstıklı', 'Cevizli'],
+    sira: [{ ad: 'Havuç dilimi', foto: '#7c9a3a' }, { ad: 'Şöbiyet', foto: '#c8932f' }, { ad: 'Burma', foto: '#a86b2a' }],
+    asla: { ad: 'Kuru baklava', foto: '#b5a58a' },
+  },
+  {
+    ad: 'Çay', renk: '#1f6feb', kategoriler: ['Siyah', 'Bitki'],
+    sira: [{ ad: 'Tavşan kanı', foto: '#9b2d1f' }, { ad: 'Semaver', foto: '#c5501f' }, { ad: 'Ihlamur', foto: '#5e7d3a' }],
+    asla: { ad: 'Poşet çay', foto: '#b58a4a' },
+  },
+  {
+    ad: 'Lahmacun', renk: '#c2436f', kategoriler: ['Acılı', 'Acısız'],
+    sira: [{ ad: 'Urfa usulü', foto: '#b3421f' }, { ad: 'Antep usulü', foto: '#d0662e' }, { ad: 'Kıbrıs usulü', foto: '#8f3a1c' }],
+    asla: { ad: 'Donmuş', foto: '#a39a8c' },
+  },
 ];
 const DESTE_ARALIK_MS = 2800;
 
@@ -47,8 +72,13 @@ const yuvaBul = (i: number, adim: number): Yuva => {
   return fark === n - 1 ? 'cikis' : 'bekle';
 };
 
-/** Kartın üstündeki sıra: savrulan kart 1 olarak gider, bekleyen 3 olarak gelir. */
-const YUVA_SIRASI: Record<Yuva, string> = { '1': '1', '2': '2', '3': '3', cikis: '1', bekle: '3' };
+const OrnekSatir = ({ kayit, no }: { kayit: OrnekKayit; no: string }) => (
+  <span className="gk-row">
+    <i>{no}</i>
+    <span className="gk-foto" style={{ '--f': kayit.foto } as React.CSSProperties} />
+    <span className="gk-ad">{kayit.ad}</span>
+  </span>
+);
 
 function GirisDestesi() {
   const [adim, setAdim] = useState(0);
@@ -71,13 +101,116 @@ function GirisDestesi() {
             data-yuva={yuva}
             style={{ '--k': kart.renk } as React.CSSProperties}
           >
-            <i>{YUVA_SIRASI[yuva]}</i><b>{kart.ad}</b>
+            <b className="gk-bas">{kart.ad}</b>
+            <span className="gk-kat">
+              <em className="is-on">{kart.kategoriler[0]}</em><em>{kart.kategoriler[1]}</em>
+            </span>
+            <span className="gk-sira">
+              {kart.sira.map((k, n) => <OrnekSatir key={k.ad} kayit={k} no={String(n + 1)} />)}
+            </span>
+            <span className="gk-cizgi">Bir daha asla</span>
+            <span className="gk-asla"><OrnekSatir kayit={kart.asla} no="✕" /></span>
           </span>
         );
       })}
     </div>
   );
 }
+
+const SahneSatiri = ({ no, ad, foto, className = '' }: { no: string; ad: string; foto: string; className?: string }) => (
+  <span className={`oz-row ${className}`}>
+    <span className="oz-tutamak" />
+    <i>{no}</i>
+    <span className="oz-foto" style={{ '--f': foto } as React.CSSProperties} />
+    <span className="oz-ad">{ad}</span>
+  </span>
+);
+
+/**
+ * Giriş ekranındaki özellikler. Sahneler genel ikon değil, uygulamanın kendi
+ * arayüzünden küçük parçalar: kullanıcı içeri girince aynı şeyleri tanısın.
+ */
+const OZELLIKLER: { baslik: string; metin: string; sahne: React.ReactNode }[] = [
+  {
+    baslik: 'Her şey için ayrı liste',
+    metin: 'Kola, döner, kahve — ne denersen onun listesini aç.',
+    sahne: (
+      <span className="oz-listeler">
+        {[['Kola', 12], ['Döner', 7], ['Çay', 5]].map(([ad, adet]) => (
+          <span className="oz-liste" key={ad}><b>{adet}</b><em>{ad}</em></span>
+        ))}
+      </span>
+    ),
+  },
+  {
+    baslik: 'Sürükle, diz',
+    metin: 'En sevdiğin en üstte; fikrin değişince yerini değiştir.',
+    sahne: (
+      <>
+        <SahneSatiri no="1" ad="Cam şişe" foto="#5a2d1a" className="is-kalkik" />
+        <SahneSatiri no="2" ad="Kutu" foto="#b8321a" />
+      </>
+    ),
+  },
+  {
+    baslik: 'Kendi kategorilerin',
+    metin: 'Şekerli–şekersiz, yaprak–kıyma; ayrımı sen koy.',
+    sahne: (
+      <span className="oz-chipler">
+        <em className="oz-chip is-on">Tümü</em>
+        <em className="oz-chip">Şekerli</em>
+        <em className="oz-chip">Şekersiz</em>
+        <em className="oz-chip is-yeni">+ Kategori</em>
+      </span>
+    ),
+  },
+  {
+    baslik: 'Denemediklerini kenara yaz',
+    metin: 'Duyduğun, gördüğün her şey dursun; denedikçe sıralamaya al.',
+    sahne: (
+      <>
+        <span className="oz-segment"><em>Sıralamam</em><em className="is-on">Denenmemiş · 4</em></span>
+        <span className="oz-row">
+          <span className="oz-foto" style={{ '--f': '#c5501f' } as React.CSSProperties} />
+          <span className="oz-ad">Rize turpu</span>
+          <em className="oz-denedim">Denedim</em>
+        </span>
+      </>
+    ),
+  },
+  {
+    baslik: 'Bir daha asla',
+    metin: 'Beğenmediklerin sıralamayı kirletmesin, çizginin altında dursun.',
+    sahne: (
+      <>
+        <SahneSatiri no="3" ad="Pet şişe" foto="#8c1f12" />
+        <span className="oz-cizgi">Bir daha asla</span>
+        <SahneSatiri no="✕" ad="Vişneli kola" foto="#7a1f3d" className="is-asla" />
+      </>
+    ),
+  },
+  {
+    baslik: 'Fotoğrafla hatırla',
+    metin: 'Şişesini, paketini çek; hangisi olduğunu karıştırma.',
+    sahne: (
+      <span className="oz-fotolar">
+        <span className="oz-foto-kutu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 8h3.5L8 5.5h8L17.5 8H21v12H3z" />
+            <circle cx="12" cy="13.5" r="3.6" />
+          </svg>
+        </span>
+        <span className="oz-ok">→</span>
+        <span className="oz-foto-dolu">
+          <svg width="30" height="46" viewBox="0 0 30 46" fill="rgba(255,255,255,0.75)">
+            <path d="M11 1h8v8c0 3 5 6 5 12v21a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V21c0-6 5-9 5-12z" />
+          </svg>
+        </span>
+      </span>
+    ),
+  },
+];
 
 /**
  * Oturumsuz kullanıcıya giriş ekranını, oturumlu kullanıcıya uygulamayı gösterir.
@@ -87,8 +220,6 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  /** Google fotoğrafı yüklenemezse baş harfe dönülüyor. */
-  const [fotoBozuk, setFotoBozuk] = useState(false);
 
   if (loading) {
     return <p className="state-msg">Yükleniyor…</p>;
@@ -106,58 +237,61 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       }
     };
 
+    // Aşağıya kadar okuyan yukarı dönmek zorunda kalmasın: düğme sayfanın dibinde tekrar ediyor.
+    const girisDugmesi = (
+      <>
+        <button type="button" className="gate-btn" onClick={handleSignIn} disabled={busy}>
+          <span className="gate-g" aria-hidden="true">{GoogleIkon}</span>
+          {busy ? 'Yönlendiriliyor…' : 'Google ile devam et'}
+        </button>
+        {error && <p className="gate-error">{error}</p>}
+      </>
+    );
+
     return (
       <div className="gate">
-        <div className="gate-card">
-          <GirisDestesi />
+        <section className="gate-hero">
+          <div className="gate-card">
+            <GirisDestesi />
 
-          <h1 className="gate-title">Neyi seviyorsan, sırala.</h1>
-          <p className="gate-sub">
-            Koladan kahveye kendi listelerini kur. Denediklerini sürükleyerek diz,
-            denemediklerini kenara yaz.
-          </p>
+            <h1 className="gate-title">Neyi seviyorsan, sırala.</h1>
+            <p className="gate-sub">
+              Koladan kahveye kendi listelerini kur. Denediklerini sürükleyerek diz,
+              denemediklerini kenara yaz.
+            </p>
 
-          <button type="button" className="gate-btn" onClick={handleSignIn} disabled={busy}>
-            <span className="gate-g" aria-hidden="true">{GoogleIkon}</span>
-            {busy ? 'Yönlendiriliyor…' : 'Google ile devam et'}
-          </button>
+            {girisDugmesi}
 
-          {error && <p className="gate-error">{error}</p>}
-        </div>
+            <a href="#ozellikler" className="gate-ipucu">Neler yapabileceğine bak ↓</a>
+          </div>
+        </section>
+
+        <section id="ozellikler" className="gate-ozellikler" aria-labelledby="ozellikler-baslik">
+          <h2 id="ozellikler-baslik" className="gate-bolum-baslik">Neler yapabilirsin?</h2>
+          <div className="oz-grid">
+            {OZELLIKLER.map(oz => (
+              <article className="oz-kart" key={oz.baslik}>
+                <div className="oz-sahne" aria-hidden="true">{oz.sahne}</div>
+                <h3>{oz.baslik}</h3>
+                <p>{oz.metin}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="gate-son">
+          <h2 className="gate-bolum-baslik">İlk listeni şimdi aç.</h2>
+          {girisDugmesi}
+        </section>
       </div>
     );
   }
 
-  // Google hesabının adı varsa onu, yoksa e-postanın kullanıcı adı kısmını göster.
-  const meta = user.user_metadata as
-    { full_name?: string; name?: string; avatar_url?: string; picture?: string } | undefined;
-  const ad = meta?.full_name ?? meta?.name ?? (user.email ?? '').split('@')[0] ?? 'Hesabım';
-  const foto = meta?.avatar_url ?? meta?.picture;
-
   return (
     <>
       {children}
-      {/* Kimlik bir metin, çıkış ayrı bir düğme: bloğa dokunmak oturumu kapatmasın. */}
-      <div className="account-btn">
-        <span className="account-avatar" aria-hidden="true">
-          {foto && !fotoBozuk
-            // Google fotoğrafları yönlendiren sayfa bilgisi gidince 403 verebiliyor.
-            ? <img src={foto} alt="" referrerPolicy="no-referrer" onError={() => setFotoBozuk(true)} />
-            : ad.charAt(0).toLocaleUpperCase('tr')}
-        </span>
-        <span className="account-text">
-          <strong>{ad}</strong>
-        </span>
-        <button
-          type="button"
-          className="account-out"
-          onClick={() => { void signOut(); }}
-          aria-label="Çıkış yap"
-          title="Çıkış yap"
-        >
-          {CikisIkon}
-        </button>
-      </div>
+      {/* Ana ekran hesabı kendi başlığında çiziyor; CSS bu bloğu orada gizliyor. */}
+      <Hesap user={user} className="account-btn" />
     </>
   );
 }

@@ -10,7 +10,7 @@ Uygulama çalışır ve **canlıda**: giriş, çok listeli sıralama, kategori v
 
 **Dağıtım** — Vercel, `main` dalından otomatik: <https://siralama-defteri.vercel.app>. Push üretimi günceller. Vercel'de `NEXT_PUBLIC_SUPABASE_URL` ve `NEXT_PUBLIC_SUPABASE_ANON_KEY` tanımlı olmalı; Supabase'in Redirect URLs listesinde üretim alan adı da bulunmalı, yoksa build geçer ama Google girişi canlıda **sessizce** başarısız olur — giriş `redirectTo` olarak `window.location.origin` kullandığı için tek kapı o liste.
 
-**Veri** — `si_lists` / `si_categories` / `si_items` şeması RLS ile kurulu. Şemada yalnızca bu üç tablo var.
+**Veri** — `si_lists` / `si_categories` / `si_items` şeması RLS ile kurulu. Şemada yalnızca bu üç tablo ve ana ekranın özetlerini hazırlayan bir fonksiyon (`si_liste_ozetleri`) var.
 
 **Kimlik** — Google girişi Supabase Auth üzerinden; tüm sayfalar `AuthGate` arkasında, asıl koruma RLS'te.
 
@@ -61,8 +61,8 @@ Karar bu kanvastan çıktı: [Görünüm yönleri](https://claude.ai/code/artifa
 
 ### Ekranlar
 
-- **Giriş** — Yelpaze biçiminde örnek sıralama kartları, büyük başlık, hap biçimli Google düğmesi. Deste altı örnek listeden (her biri başka bir şey: uygulamanın tek bir şeye bağlı olmadığını söylüyor) 2,8 saniyede bir dönüyor: öndeki kart sola yukarı savrulup kayboluyor, kanatlar birer sıra öne geçiyor, arkadan yenisi giriyor. Masaüstünde deste solda, metin sağda.
-- **Listelerin** — Selamlama ve toplam sayılar; her liste aynı boyda beyaz bir kart. Sıralanan kayıt sayısı kartın üstünden altına uzanan silik bir rakam; ad ve denenmemiş sayısı onun üstünde. "x denenmemiş" yalnızca bekleyen kayıt varsa yazıyor. Mobilde iki sütun, masaüstünde dört sütun.
+- **Giriş** — İki katman: üst kısım hissettiriyor, alt kısım açıklıyor. Üstte yelpaze biçiminde örnek sıralama kartları, büyük başlık, hap biçimli Google düğmesi ve özelliklere inen bir bağlantı. Deste altı örnek listeden (her biri başka bir şey: uygulamanın tek bir şeye bağlı olmadığını söylüyor) 2,8 saniyede bir dönüyor: öndeki kart sola yukarı savrulup kayboluyor, kanatlar birer sıra öne geçiyor, arkadan yenisi giriyor. Her kart küçük bir sıralama ekranı: kategori hapları, fotoğraflı ilk üç ve kırmızı çizginin altında bir "Bir daha asla". Masaüstünde deste solda, metin sağda. Üst kısım ekranın %92'si; altındaki "Neler yapabilirsin?" bölümünün tepesi görünüyor ki aşağısı olduğu anlaşılsın. Bölümde altı özellik kartı var (listeler, sıralama, kategoriler, denenmemiş, bir daha asla, fotoğraf). Her birinin görseli genel bir ikon değil, uygulamanın arayüzünden küçük bir parça. Kartlar mobilde tek, tablette iki, masaüstünde üç sütun. Sayfanın dibinde Google düğmesi tekrar ediyor.
+- **Listelerin** — Sayfanın tamamını kullanıyor. Başlıkta selamlama, liste / sıralanan / denenmemiş toplamları; sağında "Yeni liste" (masaüstü) ve hesap hapı. Her liste aynı boyda bir podyum kartı: üstte solda liste adı, sağda vurgu renginde sıralanan kayıt sayısı (etiketsiz; ekran okuyucu için `aria-label`), dipte ilk üç ve varsa "x denenmemiş". Şampiyonun (sıralamanın 1.'si) fotoğrafı kartın ortasında soluk bir zemin — maskeyle iki ucundan kart rengine eriyor, üstüne gelince biraz belirginleşiyor; fotoğrafı yoksa kart sade. Sıralaması olmayan liste gölgesiz ve kesik çizgili, ilk üç yerine "Henüz sıralama yok". Kategoriler bilerek gösterilmiyor: ana ekranın işi hangi listeye girileceğini hızla söylemek. Mobilde tek sütun (fotoğraf kartın ortasından sağına uzanıp yanlardan eriyor), tablette iki sütun, masaüstünde sütun sayısı genişliğe göre (en az 270px'lik kartlar; fotoğraf başlığın altından ilk üçün arkasına uzanıp alt ve üst uçlarından eriyor).
 - **Sıralama** — Yuvarlak geri ve ayar düğmeleri, ortada liste adı; segment sekmeler, hap filtre şeridi. Her kayıt aynı kompakt kart: sürükleme tutamağı, fotoğraf, ad ve alt bilgi, rozetler, sağda soluk ve iri sıra numarası (ilk üçte vurgu renginde). Sıralamanın altında kırmızı çizgiyle ayrılan **Bir daha asla** bölümü: kart çizginin altına sürüklenince oraya geçiyor, üstüne sürüklenince sıralamaya dönüyor; bölüm kendi içinde de sürüklenerek sıralanıyor. Bu kartlarda numara yerine çarpı var, fotoğrafları soluk. Bölüm boşken çizginin altında kısa bir ipucu duruyor. Ekleme düğmesi yüzen hap.
 - **Masaüstü** — Krem ray (açık liste beyaz kart ve vurgu renkli sayı, ayar simgesi üstüne gelince beliriyor), yanında liste adı başlık olarak + sıralama. Kayıt seçilince sağda detay kartı açılıyor ve sıralama sütunu daralıyor; seçim yokken sıralama ortalanmış 760px'lik bir sütun.
 - **Formlar** — Mobilde alttan açılan panel (tutamaklı), masaüstünde ortalanmış yuvarlak kutu. Kaydet çubuğu gövdenin dibine yapışık. Kimlik bandı: fotoğraf kutusu solda, ad ve çeşit sağında.
@@ -72,9 +72,9 @@ Karar bu kanvastan çıktı: [Görünüm yönleri](https://claude.ai/code/artifa
 
 - **Sürükle-bırak** — dnd-kit `verticalListSortingStrategy`; satır dönüşümü `CSS.Translate`, çünkü alt bilgisi olan satır daha uzun ve ölçekleme onu ezerdi. Sıralama ve "Bir daha asla" tek sıralanabilir liste; kırmızı çizgi de listenin sürüklenemeyen bir öğesi (`ASLA_SINIRI`). Bırakınca çizginin üstü `asla = false`, altı `asla = true` oluyor ve iki taraf `sira`'yı kendi içinde 0'dan numaralıyor. Kayıt ekleme (tek ve toplu) yalnızca sıralamayı hedefliyor.
 - **Fotoğrafsız kayıt** — Satır yedek görseline marka rengi `background` olarak değil `--marka` değişkeniyle veriliyor; böylece CSS detay panelinde onu vurgunun tonuna çevirebiliyor. Kompakt satırlarda marka rengi kalıyor.
-- **Liste kartındaki rakam** — Kart sabit boylu bir boyut kabı (`container-type: size`); rakamın puntosu kart yüksekliğine göre (`cqh`) veriliyor. Üç ve dört haneli sayılar taşmasın diye `data-hane` ile küçülüyor.
-- **Giriş destesi** — `AuthGate` içindeki `GirisDestesi` her adımda kartların `data-yuva` değerini kaydırıyor (`1`, `2`, `3`, `cikis`, `bekle`); konumları CSS çiziyor. Tüm kartlar aynı boyda ve aynı noktada, arkadakiler ölçekle küçülüyor — geçiş yalnızca transform, opaklık ve renk.
-- **Hesap bloğu** — Google profil fotoğrafı (`avatar_url` / `picture`) ve ad; e-posta gösterilmiyor. Fotoğraf `referrerPolicy="no-referrer"` ile yükleniyor (Google aksi hâlde 403 verebiliyor), yüklenemezse baş harfe dönüyor. `AuthGate` bloğu sayfanın kardeşi olarak çiziyor; her ekranda sol altta. Masaüstünde sıralama ekranında rayın dibinde, ana ekranda aynı yerde kart olarak. Mobilde yalnızca ana ekranda (avatar + çıkış): sıralama ekranlarının altı ekleme düğmesiyle dolu.
+- **Liste özetleri** — Ana ekranın sayıları ve ilk üçü tek bir RPC'den geliyor (`si_liste_ozetleri`, `supabase/007_liste_ozetleri.sql`): liste başına bir satır, sayım veritabanında. Önceden istemci bütün kayıtları çekip sayıyordu ve PostgREST'in 1000 satır sınırında sayılar sessizce yanlışlaşıyordu. Fonksiyon `security invoker`, yani RLS geçerli. İlk üçün seçimi `lib/sort.ts` ile aynı kural: denenmiş, `asla` değil, `sira` artan, eşitlikte en yeni önce. RPC hata verirse indeks yine açılıyor, sayılar sıfır görünüyor ve konsola uyarı düşüyor.
+- **Giriş destesi** — `AuthGate` içindeki `GirisDestesi` her adımda kartların `data-yuva` değerini kaydırıyor (`1`, `2`, `3`, `cikis`, `bekle`); konumları CSS çiziyor. Tüm kartlar aynı boyda ve aynı noktada, arkadakiler ölçekle küçülüyor — geçiş yalnızca transform, opaklık ve renk. Kartın içindeki renkler `currentColor`dan türüyor, böylece kart öne geçip beyaz metne döndüğünde içerik de onunla birlikte geçiyor. Fotoğraflar gerçek görsel değil, renkli kutucuklar (`--f`).
+- **Hesap bloğu** — Google profil fotoğrafı (`avatar_url` / `picture`) ve ad; e-posta gösterilmiyor. Fotoğraf `referrerPolicy="no-referrer"` ile yükleniyor (Google aksi hâlde 403 verebiliyor), yüklenemezse baş harfe dönüyor. Blok tek bileşen (`Hesap`), yeri ekrana göre değişiyor. Masaüstü sıralama ekranında `AuthGate` onu sayfanın kardeşi olarak rayın dibine çiziyor. Ana ekranda sayfa kendisi başlığın sağ üstüne hap olarak çiziyor (mobilde avatar + çıkış, masaüstünde ad da); `AuthGate`'in bloğu orada CSS ile gizli. Mobil sıralama ekranlarında hesap yok: altları ekleme düğmesiyle dolu.
 - **Sekme simgesi** — `src/app/icon.svg`: mürekkep zeminde azalan uzunlukta üç çizgi. Ayar simgesi de aynı sözlükten (üç çizgi ve tutamakları). Vurgu rengi bilerek kullanılmadı: simge mürekkep ve kağıtla sade kalıyor.
 
 ---
@@ -133,7 +133,7 @@ Kritik ayrıntılar:
 
 ### Migration dosyaları
 
-`supabase/` altında, çalıştırıldıkları sırayla. **Hepsi uygulanmış durumda**; boş bir projede sırayla çalıştırılınca şemayı eksiksiz kurarlar. Numaralardaki boşluklar (`002`, `005`) bilinçli: o numaralar tek seferlik veri işlerine aitti, şemaya katkıları yoktu.
+`supabase/` altında, çalıştırıldıkları sırayla. **006'ya kadar hepsi uygulanmış durumda; `007` Supabase SQL Editor'da elle çalıştırılmalı** (çalıştırılmadan ana ekranın sayıları sıfır görünür); boş bir projede sırayla çalıştırılınca şemayı eksiksiz kurarlar. Numaralardaki boşluklar (`002`, `005`) bilinçli: o numaralar tek seferlik veri işlerine aitti, şemaya katkıları yoktu.
 
 | Dosya | Ne yapar |
 |---|---|
@@ -141,6 +141,7 @@ Kritik ayrıntılar:
 | `003_liste_alanlari.sql` | `alanlar` kolonunu ekler |
 | `004_liste_rengi.sql` | `renk` kolonunu ekler (şu an kullanılmıyor) |
 | `006_bir_daha_asla.sql` | `asla` kolonunu ekler ("Bir daha asla" bölümü) |
+| `007_liste_ozetleri.sql` | `si_liste_ozetleri()` fonksiyonu: ana ekranın sayıları ve ilk üçü |
 
 ---
 

@@ -80,30 +80,34 @@ export async function deleteListe(id: string): Promise<void> {
   if (error) throw error;
 }
 
+/** Ana ekran kartındaki sıralama satırı — kaydın yalnızca gösterilen kısmı. */
+export interface OzetKayit {
+  id: string;
+  ad: string;
+  alt_ad: string | null;
+  fotograf_url: string | null;
+}
+
 export interface ListeSayisi {
   toplam: number;
   /** Henüz denenmemiş, sıralamaya girmemiş kayıtlar. */
   bekleyen: number;
+  /** Sıralamanın ilk üçü, sırasıyla; ilki şampiyon. */
+  ilkUc: OzetKayit[];
 }
 
 /**
- * Liste başına kayıt sayıları. RLS zaten kullanıcının satırlarıyla sınırladığı için
- * tek sorguda iki kolonu çekip bellekte saymak yeterli — kişisel ölçekte liste
- * başına ayrı count sorgusu açmaya değmiyor.
+ * Liste başına kayıt sayıları ve ilk üç. Sayım veritabanında
+ * (`supabase/007_liste_ozetleri.sql`): kayıtları istemciye çekip saymak
+ * PostgREST'in 1000 satır sınırında sessizce yanlış sonuç veriyordu.
  */
 export async function getListeSayilari(): Promise<Record<string, ListeSayisi>> {
-  const { data, error } = await supabase.from(T_ITEMS).select('list_id, denendi');
+  const { data, error } = await supabase.rpc('si_liste_ozetleri');
   if (error) throw error;
 
-  return (data as { list_id: string; denendi: boolean }[]).reduce<Record<string, ListeSayisi>>(
-    (acc, r) => {
-      const kayit = acc[r.list_id] ?? { toplam: 0, bekleyen: 0 };
-      kayit.toplam += 1;
-      if (!r.denendi) kayit.bekleyen += 1;
-      acc[r.list_id] = kayit;
-      return acc;
-    },
-    {}
+  return Object.fromEntries(
+    (data as { list_id: string; toplam: number; bekleyen: number; ilk_uc: OzetKayit[] }[])
+      .map(r => [r.list_id, { toplam: r.toplam, bekleyen: r.bekleyen, ilkUc: r.ilk_uc ?? [] }])
   );
 }
 

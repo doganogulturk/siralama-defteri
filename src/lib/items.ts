@@ -207,9 +207,29 @@ export async function deleteItem(id: string, fotografUrl?: string | null): Promi
   await deleteFotograf(fotografUrl);
 }
 
-/** `asla` verilirse o da yazılıyor — kayıt sıralama ile "Bir daha asla" arasında yer değiştirdiğinde. */
+/** Toplu silme: kayıtlar tek DELETE ile, fotoğrafları kova başına tek istekte. */
+export async function deleteItems(items: { id: string; fotograf_url?: string | null }[]): Promise<void> {
+  if (items.length === 0) return;
+  const { error } = await supabase.from(T_ITEMS).delete().in('id', items.map(i => i.id));
+  if (error) throw error;
+
+  const kovalar = new Map<string, string[]>();
+  for (const i of items) {
+    const parsed = i.fotograf_url ? kovaYolu(i.fotograf_url) : null;
+    if (parsed) kovalar.set(parsed.kova, [...(kovalar.get(parsed.kova) ?? []), parsed.yol]);
+  }
+  for (const [kova, yollar] of kovalar) {
+    const { error: e } = await supabase.storage.from(kova).remove(yollar);
+    if (e) console.warn('Fotoğraflar silinemedi:', e.message);
+  }
+}
+
+/**
+ * `asla` verilirse o da yazılıyor — kayıt sıralama ile "Bir daha asla" arasında yer
+ * değiştirdiğinde. `denendi` toplu "Denedim"de: bekleyen kayıt sıralamaya girerken.
+ */
 export async function updateItemsSira(
-  updates: { id: string; sira: number; asla?: boolean }[]
+  updates: { id: string; sira: number; asla?: boolean; denendi?: boolean }[]
 ): Promise<void> {
   if (updates.length === 0) return;
   // Tek upsert değil: Postgres, ON CONFLICT bir UPDATE'e yönlense bile NOT NULL
@@ -218,12 +238,23 @@ export async function updateItemsSira(
   const results = await Promise.all(
     updates.map(u => supabase
       .from(T_ITEMS)
-      .update(u.asla === undefined ? { sira: u.sira } : { sira: u.sira, asla: u.asla })
+      .update({
+        sira: u.sira,
+        ...(u.asla === undefined ? {} : { asla: u.asla }),
+        ...(u.denendi === undefined ? {} : { denendi: u.denendi }),
+      })
       .eq('id', u.id))
   );
   for (const r of results) {
     if (r.error) throw r.error;
   }
+}
+
+/** Toplu kategori atama: seçili kayıtlar tek UPDATE ile aynı kategoriye (null: kategorisiz). */
+export async function updateItemsKategori(ids: string[], categoryId: string | null): Promise<void> {
+  if (ids.length === 0) return;
+  const { error } = await supabase.from(T_ITEMS).update({ category_id: categoryId }).in('id', ids);
+  if (error) throw error;
 }
 
 /* ── Fotoğraf ───────────────────────────────────────── */

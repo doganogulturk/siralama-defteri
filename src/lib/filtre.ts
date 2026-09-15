@@ -11,6 +11,12 @@ export interface Filtre {
 
 export const bosFiltre = (): Filtre => ({ kategoriler: new Set(), bayraklar: {} });
 
+/**
+ * Kategori filtresinde "kategorisi olmayan kayıtlar" seçeneği. Kategori id'leri
+ * uuid olduğu için bu işaretle çakışmıyor; `kategoriler` kümesine id gibi giriyor.
+ */
+export const KATEGORISIZ = 'kategorisiz';
+
 export const bayrakDurumu = (f: Filtre, anahtar: string): BayrakDurumu =>
   f.bayraklar[anahtar] ?? 'hepsi';
 
@@ -25,8 +31,11 @@ const bayrakUyar = (item: Item, anahtar: string, durum: BayrakDurumu): boolean =
 
 export function filtreUygula(items: Item[], f: Filtre): Item[] {
   return items.filter(item => {
-    if (f.kategoriler.size > 0 && !(item.category_id && f.kategoriler.has(item.category_id))) {
-      return false;
+    if (f.kategoriler.size > 0) {
+      const uyar = item.category_id
+        ? f.kategoriler.has(item.category_id)
+        : f.kategoriler.has(KATEGORISIZ);
+      if (!uyar) return false;
     }
     return Object.entries(f.bayraklar).every(([anahtar, durum]) =>
       bayrakUyar(item, anahtar, durum)

@@ -25,6 +25,10 @@ interface DetailPaneProps {
   onDelete: (item: Item) => void;
   /** Düzenle formunu açmadan fotoğraf ekler ya da değiştirir. */
   onFotograf: (item: Item, file: File) => Promise<void>;
+  /** Sıralamadaki bir üstü ve bir altı; sıralamada olmayan kayıtta null. */
+  komsular: { ust: Item | null; alt: Item | null } | null;
+  /** Komşuya tıklayınca panel o kayda geçiyor. */
+  onSelect: (item: Item) => void;
   onClose: () => void;
 }
 
@@ -33,7 +37,7 @@ interface DetailPaneProps {
  * çizmiyor — sıralamanın özeti filtre şeridinin tekrarıydı.
  */
 export default function DetailPane({
-  item, rank, kategoriler, alanlar, onEdit, onDelete, onFotograf, onClose,
+  item, rank, kategoriler, alanlar, onEdit, onDelete, onFotograf, komsular, onSelect, onClose,
 }: DetailPaneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [yukleniyor, setYukleniyor] = useState(false);
@@ -132,6 +136,28 @@ export default function DetailPane({
               : <span className="chip chip-plain" key={a.anahtar}>{alanKisa(a)} değil</span>
           ))}
         </div>
+
+        {/* "#3" tek başına bağlamsız: bir üstü ve bir altıyla birlikte gösteriliyor. */}
+        {rank !== null && komsular && (komsular.ust || komsular.alt) && (
+          <section className="pane-section detail-yer">
+            <h3 className="pane-section-title">Sıralamadaki yeri</h3>
+            <div className="detail-komsular">
+              {komsular.ust && (
+                <button type="button" className="detail-komsu" onClick={() => onSelect(komsular.ust!)}>
+                  <i>{rank - 1}</i><span>{komsular.ust.ad}</span>
+                </button>
+              )}
+              <span className="detail-komsu is-on" aria-current="true">
+                <i>{rank}</i><span>{item.ad}</span>
+              </span>
+              {komsular.alt && (
+                <button type="button" className="detail-komsu" onClick={() => onSelect(komsular.alt!)}>
+                  <i>{rank + 1}</i><span>{komsular.alt.ad}</span>
+                </button>
+              )}
+            </div>
+          </section>
+        )}
 
         <dl className="detail-facts">
           {metinAlanlari.map(a => {

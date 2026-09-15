@@ -3,7 +3,8 @@
 
 import React from 'react';
 import { AlanTanimi, Item, Kategori, kategoriBul } from '../types/item';
-import { brandColor, brandInitials, altBilgi, rozetler } from './ItemRow';
+import { brandInitials, altBilgi, rozetler, SecimIkon } from './ItemRow';
+import { BosSahne } from './Sahne';
 
 interface WishlistPanelProps {
   items: Item[];
@@ -16,14 +17,20 @@ interface WishlistPanelProps {
   /** "Denedim": kaydı sıralamaya taşıyan dönüşüm formunu açar. */
   onTried: (item: Item) => void;
   onAdd: () => void;
+  /** Toplu seçim modu: dokunmak kaydı seçer, "Denedim" gizlenir. */
+  secimModu?: boolean;
+  secililer?: Set<string> | null;
+  /** Masaüstü kart görünümü — sıralamanın kartlarıyla aynı ızgara. */
+  kart?: boolean;
 }
 
 export default function WishlistPanel({
-  items, kategoriler, alanlar, selectedId, onSelect, onTried, onAdd,
+  items, kategoriler, alanlar, selectedId, onSelect, onTried, onAdd, secimModu, secililer, kart,
 }: WishlistPanelProps) {
   if (items.length === 0) {
     return (
       <div className="wish-empty">
+        <BosSahne tur="denenmemis" />
         <p className="wish-empty-title">Listen boş</p>
         <p>Denemek istediğin ama henüz sırası gelmemiş kayıtları buraya ekle.</p>
         <button type="button" className="btn-primary" onClick={onAdd}>Listeye Ekle</button>
@@ -32,30 +39,29 @@ export default function WishlistPanel({
   }
 
   return (
-    <div className="wish-rows">
+    <div className={`wish-rows${kart ? ' wish-kart' : ''}`}>
       {items.map(item => {
         const kat = kategoriBul(kategoriler, item.category_id);
         // Kategoriye bağlı bir metin alanı doluysa onu, değilse kategorinin adını göster.
         const alt = altBilgi(item, alanlar) || kat?.ad || '';
+        const secili = secimModu ? !!secililer?.has(item.id) : selectedId === item.id;
 
         return (
           <div
             key={item.id}
-            className={`wish-row${selectedId === item.id ? ' is-selected' : ''}`}
+            className={`wish-row${secili ? ' is-selected' : ''}${secimModu ? ' is-secim' : ''}`}
           >
             <button
               type="button"
               className="wish-row-main"
-              aria-pressed={selectedId === item.id}
+              aria-pressed={secili}
               onClick={() => onSelect(item)}
             >
+              {secimModu && <span className="row-check" aria-hidden="true">{SecimIkon}</span>}
               {item.fotograf_url
                 ? <img src={item.fotograf_url} className="wish-thumb" alt="" />
                 : (
-                  <span
-                    className="wish-thumb thumb-fallback"
-                    style={{ '--marka': brandColor(item.ad || '') } as React.CSSProperties}
-                  >
+                  <span className="wish-thumb thumb-fallback">
                     {brandInitials(item.ad)}
                   </span>
                 )
@@ -77,13 +83,15 @@ export default function WishlistPanel({
               </span>
             </button>
 
-            <button
-              type="button"
-              className="wish-tried"
-              onClick={() => onTried(item)}
-            >
-              Denedim
-            </button>
+            {!secimModu && (
+              <button
+                type="button"
+                className="wish-tried"
+                onClick={() => onTried(item)}
+              >
+                Denedim
+              </button>
+            )}
           </div>
         );
       })}

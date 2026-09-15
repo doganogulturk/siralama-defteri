@@ -30,6 +30,8 @@ interface ListeAyarlariModalProps {
   /** Her değişiklikten sonra çağrılır — sayfa verisini baştan okusun. */
   onChanged: () => Promise<void> | void;
   onClose: () => void;
+  /** "Şimdi ata" köprüsü: popup'ı kapatıp kategorisiz kayıtlarla seçim modunu açar. */
+  onKategorisizAta?: () => void;
 }
 
 /**
@@ -38,7 +40,7 @@ interface ListeAyarlariModalProps {
  * formuyla aynı kabuk. Değişiklikler anında kaydediliyor, "Kaydet" yok.
  */
 export default function ListeAyarlariModal({
-  liste, kategoriler, items, onChanged, onClose,
+  liste, kategoriler, items, onChanged, onClose, onKategorisizAta,
 }: ListeAyarlariModalProps) {
   const router = useRouter();
   const [ad, setAd] = useState(liste.ad);
@@ -57,6 +59,7 @@ export default function ListeAyarlariModal({
 
   const alanlar = liste.alanlar ?? [];
   const toplam = items.length;
+  const kategorisiz = items.filter(i => !i.category_id).length;
 
   const calistir = async (fn: () => Promise<unknown>) => {
     setBusy(true);
@@ -226,6 +229,14 @@ export default function ListeAyarlariModal({
               ))}
               {kategoriler.length === 0 && <p className="ayar-bos">Henüz kategori yok.</p>}
             </div>
+
+            {/* Kategoriler sonradan açıldıysa kayıtlar hâlâ kategorisiz: tek tek düzenlemek yerine toplu atamaya köprü. */}
+            {kategoriler.length > 0 && kategorisiz > 0 && onKategorisizAta && (
+              <button type="button" className="ayar-kopru" onClick={onKategorisizAta}>
+                <span><strong>{kategorisiz} kayıt</strong> kategorisiz</span>
+                <em>Şimdi ata →</em>
+              </button>
+            )}
 
             <div className="ayar-ekle">
               <input

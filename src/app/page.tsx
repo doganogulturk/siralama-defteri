@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import Hesap from '../components/Hesap';
+import { BosSahne } from '../components/Sahne';
 import Link from 'next/link';
 import { useListeler, siralanan } from '../hooks/useListeler';
 import ListeEkleModal from '../components/ListeEkleModal';
@@ -60,6 +61,7 @@ export default function ListelerPage() {
           <p className="state-msg">Yükleniyor…</p>
         ) : listeler.length === 0 ? (
           <div className="state-empty">
+            <BosSahne tur="listeler" />
             <p className="state-empty-title">Henüz listen yok</p>
             <p>Sıralamak istediğin şeyle başla: kola, döner, Türk kahvesi…</p>
             <button type="button" className="btn-primary" onClick={() => setFormAcik(true)}>

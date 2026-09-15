@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { AlanTanimi, Kategori, alanKisa, filtreAlanlari } from '../types/item';
-import { BayrakDurumu, Filtre, bayrakDurumu } from '../lib/filtre';
+import { BayrakDurumu, Filtre, KATEGORISIZ, bayrakDurumu } from '../lib/filtre';
 
 interface FilterPanelProps {
   /** Panel iki kez render ediliyor (mobil şerit + masaüstü şeridi); radio
@@ -16,6 +16,8 @@ interface FilterPanelProps {
   onChange: (next: Filtre) => void;
   kategoriSayilari: Record<string, number>;
   bayrakSayilari: Record<string, Record<BayrakDurumu, number>>;
+  /** Açık sekmede kategorisi olmayan kayıt sayısı; sıfırdan büyükse şeritte "Kategorisiz" hapı çıkar. */
+  kategorisizAdet?: number;
 }
 
 const DURUMLAR: BayrakDurumu[] = ['hepsi', 'evet', 'hayir'];
@@ -36,7 +38,9 @@ export default function FilterPanel({
   onChange,
   kategoriSayilari,
   bayrakSayilari,
+  kategorisizAdet = 0,
 }: FilterPanelProps) {
+  const kategorisizAcik = filtre.kategoriler.has(KATEGORISIZ);
   const inline = layout === 'inline';
   const bayrakAlanlari = filtreAlanlari(alanlar);
   /** Şeritte "Tümü" kategori seçimini temizler; hiçbiri seçili değilken açıktır. */
@@ -111,6 +115,20 @@ export default function FilterPanel({
               >
                 <span className="opt-mark" aria-hidden="true" />
                 <span className="opt-label">Tümü</span>
+              </button>
+            )}
+            {/* Kalan atama işini gösteriyor: sonradan açılan kategorilere dağıtılmamış kayıtlar.
+                Seçiliyken sayı sıfıra inse de duruyor ki kullanıcı "Tümü"ne kendisi dönsün. */}
+            {inline && (kategorisizAdet > 0 || kategorisizAcik) && (
+              <button
+                type="button"
+                className={`opt opt-radio opt-kategorisiz${kategorisizAcik ? ' is-on' : ''}`}
+                aria-pressed={kategorisizAcik}
+                onClick={() => onChange({ ...filtre, kategoriler: new Set([KATEGORISIZ]) })}
+              >
+                <span className="opt-mark" aria-hidden="true" />
+                <span className="opt-label">Kategorisiz</span>
+                <span className="opt-count">{kategorisizAdet}</span>
               </button>
             )}
             {kategoriler.map(kat => {

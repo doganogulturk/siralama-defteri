@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { signInWithGoogle } from '../lib/auth';
 import { hataMetni } from '../lib/hata';
 import Hesap from './Hesap';
+import { SahneSatiri } from './Sahne';
 
 const GoogleIkon = (
   <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true">
@@ -116,15 +117,6 @@ function GirisDestesi() {
     </div>
   );
 }
-
-const SahneSatiri = ({ no, ad, foto, className = '' }: { no: string; ad: string; foto: string; className?: string }) => (
-  <span className={`oz-row ${className}`}>
-    <span className="oz-tutamak" />
-    <i>{no}</i>
-    <span className="oz-foto" style={{ '--f': foto } as React.CSSProperties} />
-    <span className="oz-ad">{ad}</span>
-  </span>
-);
 
 /**
  * Giriş ekranındaki özellikler. Sahneler genel ikon değil, uygulamanın kendi

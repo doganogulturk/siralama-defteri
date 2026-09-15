@@ -2,11 +2,28 @@
 
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createListe, getListeler } from '../lib/items';
+import { KATEGORI_PALET, createKategori, createListe, getListeler } from '../lib/items';
 import { benzersizSlug, slugify } from '../lib/slug';
 import { topluAyristir, topluKaydet, topluKayitSayisi } from '../lib/toplu';
 import { hataMetni } from '../lib/hata';
+import { Kategori } from '../types/item';
 import TopluAlan from './TopluAlan';
+
+const trAnahtar = (s: string) => s.trim().toLocaleLowerCase('tr');
+
+/**
+ * Eklenmiş kategori adlarına kutudaki metni katar. Metin virgülle ayrılmış birden
+ * çok ad olabilir ("Şekerli, Şekersiz"); boşlar ve büyük-küçük harf farkıyla
+ * tekrarlar atılıyor — veritabanında (list_id, ad) benzersiz.
+ */
+const kategoriListesi = (mevcut: string[], metin: string): string[] => {
+  const sonuc = [...mevcut];
+  for (const parca of metin.split(',')) {
+    const ad = parca.trim();
+    if (ad && !sonuc.some(x => trAnahtar(x) === trAnahtar(ad))) sonuc.push(ad);
+  }
+  return sonuc;
+};
 
 interface ListeEkleModalProps {
   isOpen: boolean;
@@ -27,10 +44,19 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
   const [topluAcik, setTopluAcik] = useState(false);
   const [toplu, setToplu] = useState('');
   const bloklar = useMemo(() => topluAyristir(toplu), [toplu]);
+  /** Liste oluşurken açılacak kategoriler — sırası kategori sırası ve renk sırası. */
+  const [kategoriAdlari, setKategoriAdlari] = useState<string[]>([]);
+  const [kategoriGiris, setKategoriGiris] = useState('');
 
   if (!isOpen) return null;
 
   const topluAdet = topluKayitSayisi(bloklar);
+
+  const kategoriEkle = () => {
+    setKategoriAdlari(prev => kategoriListesi(prev, kategoriGiris));
+    setKategoriGiris('');
+  };
+  const kategoriCikar = (ad: string) => setKategoriAdlari(prev => prev.filter(x => x !== ad));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,13 +69,26 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
         slug: benzersizSlug(slugify(ad), mevcut.map(l => l.slug)),
         sira: mevcut.length,
       });
+      // Kutuda yazılı kalıp eklenmemiş ad da sayılıyor: Enter'a basmayı unutmak kolay.
+      const adlar = kategoriListesi(kategoriAdlari, kategoriGiris);
+      const olusanKategoriler: Kategori[] = [];
+      for (const [i, kategoriAdi] of adlar.entries()) {
+        olusanKategoriler.push(await createKategori({
+          list_id: olusan.id,
+          ad: kategoriAdi,
+          renk: KATEGORI_PALET[i % KATEGORI_PALET.length],
+          sira: i,
+        }));
+      }
       if (topluAdet > 0) {
-        await topluKaydet({ liste: olusan, kategoriler: [], bloklar, baslangicSira: 0 });
+        // Toplu metindeki başlıklar yeni kategorilerle aynı adı taşıyorsa onlara bağlanıyor.
+        await topluKaydet({ liste: olusan, kategoriler: olusanKategoriler, bloklar, baslangicSira: 0 });
       }
       onCreated?.();
-      // Kategorisiz doğan listede yapılacak ilk iş ayarlar; toplu giriş bunu zaten
-      // hallettiyse kullanıcı doğrudan sıralamasına düşsün.
-      router.push(topluAdet > 0 ? `/l/${olusan.slug}` : `/l/${olusan.slug}?ayarlar=1`);
+      // Hiçbir şey kurulmadan doğan listede ilk iş ayarlar; kategori ya da kayıt
+      // girildiyse kullanıcı doğrudan sıralamasına düşsün.
+      const kuruldu = topluAdet > 0 || adlar.length > 0;
+      router.push(kuruldu ? `/l/${olusan.slug}` : `/l/${olusan.slug}?ayarlar=1`);
     } catch (err: unknown) {
       alert('Liste oluşturulamadı: ' + hataMetni(err));
       setKaydediliyor(false);
@@ -87,6 +126,53 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
             />
           </label>
 
+          <div className="field">
+            <span className="field-label">Kategoriler</span>
+            {/* Haplar ve giriş aynı kutuda: Enter ya da virgül adı hapa çeviriyor. */}
+            <div className="yeni-kat">
+              {kategoriAdlari.map((kategoriAdi, i) => (
+                <span className="yeni-kat-hap" key={kategoriAdi}>
+                  <i style={{ background: KATEGORI_PALET[i % KATEGORI_PALET.length] }} aria-hidden="true" />
+                  {kategoriAdi}
+                  <button
+                    type="button"
+                    onClick={() => kategoriCikar(kategoriAdi)}
+                    aria-label={`${kategoriAdi} kategorisini çıkar`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              <input
+                type="text"
+                className="yeni-kat-giris"
+                placeholder={kategoriAdlari.length > 0 ? 'Bir tane daha…' : 'Şekerli, Şekersiz…'}
+                value={kategoriGiris}
+                onChange={(e) => {
+                  // Virgül yazıldığı an ad hapa dönüşüyor; yapıştırılan "a, b, c" de böyle bölünüyor.
+                  if (e.target.value.includes(',')) {
+                    setKategoriAdlari(prev => kategoriListesi(prev, e.target.value));
+                    setKategoriGiris('');
+                  } else {
+                    setKategoriGiris(e.target.value);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    // Formu göndermesin: Enter burada "kategoriyi ekle" demek.
+                    e.preventDefault();
+                    kategoriEkle();
+                  } else if (e.key === 'Backspace' && !kategoriGiris && kategoriAdlari.length > 0) {
+                    setKategoriAdlari(prev => prev.slice(0, -1));
+                  }
+                }}
+                onBlur={() => { if (kategoriGiris.trim()) kategoriEkle(); }}
+                aria-label="Yeni kategori adı"
+              />
+            </div>
+            <p className="field-hint">İsteğe bağlı. Enter ya da virgülle ekle; sonra liste ayarlarından da değiştirebilirsin.</p>
+          </div>
+
           {topluAcik ? (
             <TopluAlan deger={toplu} onChange={setToplu} bloklar={bloklar} autoFocus />
           ) : (
@@ -98,7 +184,9 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
           <p className="field-hint">
             {topluAdet > 0
               ? 'Kayıtlar denenmiş sayılır; sıralamayı sonra sürükleyerek düzeltirsin.'
-              : 'Kategorileri ve ek alanları bir sonraki adımda tanımlayacaksın.'}
+              : kategoriAdlari.length > 0
+                ? 'Ek alanları istersen liste ayarlarından eklersin.'
+                : 'Ek alanları bir sonraki adımda, liste ayarlarında tanımlayacaksın.'}
           </p>
 
           <div className="form-screen-actions">

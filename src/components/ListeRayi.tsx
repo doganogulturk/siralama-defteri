@@ -12,34 +12,17 @@ const ArtiIkon = (
   </svg>
 );
 
-/**
- * Ayar simgesi: üç çizgi ve tutamakları. Dişli yerine sürgü, çünkü sekme
- * simgesi de (`app/icon.svg`) üç çizgiden kurulu — aynı sözlük.
- */
-const AyarIkon = (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       strokeWidth="1.9" strokeLinecap="round" aria-hidden="true">
-    <path d="M3 6h7M16 6h5M3 12h3M12 12h9M3 18h9M18 18h3" />
-    <circle cx="13" cy="6" r="2.1" /><circle cx="9" cy="12" r="2.1" /><circle cx="15" cy="18" r="2.1" />
-  </svg>
-);
-
 interface ListeRayiProps {
   /** Rayda vurgulanacak liste. */
   aktifSlug?: string;
-  /** Açık listenin ayar simgesi: sayfa kendi ayarlar popup'ını açar. */
-  onAyarlar?: () => void;
 }
 
 /**
- * Masaüstü sol rayı: künye, liste indeksi ve yeni liste düğmesi.
- *
- * Her satır iki hedef taşıyor: sayı + ad listeyi açar, sağdaki simge o listenin
- * ayarlarını. Açık listede simge popup'ı yerinde açıyor; başka bir listede o
- * listeye `?ayarlar=1` ile gidiyor, popup orada açık doğuyor. İç içe bağlantı
- * olmaması için satır bir sarmalayıcı.
+ * Masaüstü sol rayı: künye, liste indeksi ve yeni liste düğmesi. Satırlarda ayar
+ * simgesi yok — liste ayarları sıralama ekranının başlığındaki "Liste ayarları"
+ * düğmesinden açılıyor.
  */
-export default function ListeRayi({ aktifSlug, onAyarlar }: ListeRayiProps) {
+export default function ListeRayi({ aktifSlug }: ListeRayiProps) {
   const { listeler, sayilar, load } = useListeler();
   const [formAcik, setFormAcik] = useState(false);
 
@@ -56,7 +39,7 @@ export default function ListeRayi({ aktifSlug, onAyarlar }: ListeRayiProps) {
         <nav className="rail-index" aria-label="Listeler">
           {listeler.map(l => {
             const aktif = l.slug === aktifSlug;
-            const ayarEtiketi = `${l.ad} listesinin ayarları`;
+            const sampiyon = sayilar[l.id]?.ilkUc[0];
             return (
               <div key={l.id} className={`rail-index-item${aktif ? ' is-on' : ''}`}>
                 <Link
@@ -65,17 +48,11 @@ export default function ListeRayi({ aktifSlug, onAyarlar }: ListeRayiProps) {
                   aria-current={aktif ? 'page' : undefined}
                 >
                   <span className="rail-index-sayi">{siralanan(sayilar[l.id])}</span>
-                  <span className="rail-index-ad">{l.ad}</span>
+                  <span className="rail-index-metin">
+                    <span className="rail-index-ad">{l.ad}</span>
+                    {sampiyon && <span className="rail-index-sampiyon">{sampiyon.ad}</span>}
+                  </span>
                 </Link>
-                {aktif && onAyarlar ? (
-                  <button type="button" className="rail-index-ayar" onClick={onAyarlar} aria-label={ayarEtiketi}>
-                    {AyarIkon}
-                  </button>
-                ) : (
-                  <Link href={`/l/${l.slug}?ayarlar=1`} className="rail-index-ayar" aria-label={ayarEtiketi}>
-                    {AyarIkon}
-                  </Link>
-                )}
               </div>
             );
           })}

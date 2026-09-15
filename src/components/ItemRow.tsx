@@ -8,14 +8,6 @@ import {
   AlanTanimi, Item, alanGorunur, alanKisa, bayrak, metin,
 } from '../types/item';
 
-export const brandColor = (ad: string) => {
-  let hash = 0;
-  for (let i = 0; i < ad.length; i++) {
-    hash = ad.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return `hsl(${Math.abs(hash) % 360}, 42%, 44%)`;
-};
-
 export const brandInitials = (ad: string | null | undefined) => {
   const words = (ad || '').trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return '?';
@@ -58,10 +50,19 @@ interface RowProps {
   isSelected: boolean;
   onSelect: (item: Item) => void;
   draggable?: boolean;
+  /** Toplu seçim modu: solda seçim kutusu; dokunmak kaydı seçer. */
+  secimModu?: boolean;
 }
 
+export const SecimIkon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M5 12.5l4.5 4.5L19 7.5" />
+  </svg>
+);
+
 function RowShell({
-  item, alanlar, rank, asla, isSelected, onSelect, draggable,
+  item, alanlar, rank, asla, isSelected, onSelect, draggable, secimModu,
   handleProps, nodeRef, style, dragging,
 }: RowProps & {
   handleProps?: Record<string, unknown>;
@@ -80,7 +81,7 @@ function RowShell({
       role="button"
       tabIndex={0}
       aria-pressed={isSelected}
-      className={`row${asla ? ' is-asla' : ''}${isSelected ? ' is-selected' : ''}${dragging ? ' is-dragging' : ''}`}
+      className={`row${asla ? ' is-asla' : ''}${isSelected ? ' is-selected' : ''}${dragging ? ' is-dragging' : ''}${secimModu ? ' is-secim' : ''}`}
       onClick={() => onSelect(item)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -104,6 +105,8 @@ function RowShell({
         </span>
       )}
 
+      {secimModu && <span className="row-check" aria-hidden="true">{SecimIkon}</span>}
+
       {asla ? (
         <span className="row-rank is-asla" aria-label="Bir daha asla">{AslaIkon}</span>
       ) : (
@@ -115,9 +118,7 @@ function RowShell({
       {item.fotograf_url
         ? <img src={item.fotograf_url} className="row-thumb" alt="" />
         : (
-          // Renk değişkenle veriliyor ki CSS gerektiğinde ezebilsin; satır içi
-          // `background` olsaydı ezemezdi.
-          <span className="row-thumb row-thumb-fallback" style={{ '--marka': brandColor(item.ad || '') } as React.CSSProperties}>
+          <span className="row-thumb row-thumb-fallback">
             {brandInitials(item.ad)}
           </span>
         )

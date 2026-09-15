@@ -93,7 +93,17 @@ a { color: var(--accent); }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.mobile-brand-text em { font-style: normal; font-size: 0.8rem; color: var(--mute); margin-top: 2px; }
+.mobile-brand-text em {
+  max-width: 100%;
+  overflow: hidden;
+  margin-top: 2px;
+  font-style: normal;
+  font-size: 0.8rem;
+  color: var(--mute);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.mobile-brand-text em b { font-weight: 700; color: var(--ink); }
 .mobile-brand-back,
 .mobile-brand-settings {
   display: grid;
@@ -109,6 +119,7 @@ a { color: var(--accent); }
 }
 .mobile-brand-back:active,
 .mobile-brand-settings:active { transform: scale(0.94); }
+.mobile-brand-settings-ad { display: none; }
 
 .mobile-summary {
   text-align: center;
@@ -136,24 +147,27 @@ a { color: var(--accent); }
 /* ═══════════════════════════════════════════════════════
    SEKMELER — segment kontrolü
 ═══════════════════════════════════════════════════════ */
+/* İçerik genişliğinde: boydan boya segment başlığın altında fazla yer kaplıyordu. */
 .tabs {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-columns: auto;
+  width: fit-content;
+  max-width: 100%;
   gap: 2px;
-  padding: 4px;
+  padding: 3px;
   margin-top: 14px;
   border-radius: var(--pill);
   background: var(--tint);
 }
 .tab {
-  min-height: 40px;
+  min-height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 12px;
+  padding: 0 16px;
   border-radius: var(--pill);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--mute);
   white-space: nowrap;
@@ -229,6 +243,41 @@ a { color: var(--accent); }
 
 .list-note { font-size: 0.8rem; color: var(--mute); padding-bottom: 8px; text-wrap: pretty; }
 
+/* Sekmeler, filtre şeridi, görünüm geçişi ve "Seç" tek esnek satırda. Mobilde satır
+   sarıyor: filtrenin taban genişliği sekmelerin yanına sığmadığı için alta iniyor,
+   sekmeler üst satırda tek başına ortalı kalıyor. Masaüstü kuralı sarmayı kapatıyor. */
+.liste-arac { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; column-gap: 8px; }
+.liste-arac-filtre { flex: 1 0 calc(100% - 96px); min-width: 0; }
+.secim-ac {
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: var(--pill);
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background var(--t) var(--ease), color var(--t) var(--ease);
+}
+.secim-ac:hover { box-shadow: inset 0 0 0 1px var(--faint); }
+.secim-ac.is-on { background: var(--ink); color: var(--paper); box-shadow: none; }
+
+/* Kart / Satır geçişi (masaüstü) — sekmelerle aynı segment dili, simgeli. */
+.gorunum-secici { display: flex; gap: 2px; flex-shrink: 0; padding: 3px; border-radius: var(--pill); background: var(--tint); }
+.gorunum-secici button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 34px;
+  border-radius: var(--pill);
+  color: var(--mute);
+  transition: background var(--t) var(--ease), color var(--t) var(--ease);
+}
+.gorunum-secici button:hover { color: var(--ink); }
+.gorunum-secici button.is-on { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+/* "Kategorisiz": yapılacak işi gösteren hap — seçili değilken kesik çizgili. */
+.opt-kategorisiz:not(.is-on) { box-shadow: none; outline: 1.5px dashed var(--faint); outline-offset: -1.5px; }
+
 /* ═══════════════════════════════════════════════════════
    SIRALAMA KARTLARI
 ═══════════════════════════════════════════════════════ */
@@ -250,6 +299,24 @@ a { color: var(--accent); }
 .row:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .row.is-selected { box-shadow: 0 0 0 2.5px var(--ink), var(--shadow); }
 .row.is-dragging { box-shadow: var(--shadow-lift); cursor: grabbing; }
+
+/* Seçim modu: solda yuvarlak kutu; seçilince mürekkep dolgu ve tik (satır halkasıyla aynı dil). */
+.row.is-secim,
+.wish-row.is-secim { user-select: none; }
+.row.is-secim { padding-left: 12px; }
+.row-check {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: var(--pill);
+  box-shadow: inset 0 0 0 2px var(--faint);
+  color: transparent;
+  transition: background var(--t) var(--ease), color var(--t) var(--ease), box-shadow var(--t) var(--ease);
+}
+.row.is-selected .row-check,
+.wish-row.is-selected .row-check { background: var(--ink); box-shadow: none; color: var(--paper); }
 
 .row-grip {
   display: grid;
@@ -282,8 +349,10 @@ a { color: var(--accent); }
   letter-spacing: -0.02em;
 }
 
+/* Fotoğrafsız kayıt: hepsi aynı sade zemin ve soluk baş harfler. Kayıt başına renk
+   fotoğraflı kartların arasında gürültü yapıyordu; renk fotoğrafa kalıyor. */
 .row-thumb-fallback,
-.thumb-fallback { background: var(--marka, var(--sunk)); }
+.thumb-fallback { background: var(--sunk); color: var(--mute); }
 
 .row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .row-name {
@@ -495,6 +564,15 @@ a { color: var(--accent); }
 .state-empty .btn-primary,
 .wish-empty .btn-primary { margin-top: 6px; text-decoration: none; }
 
+/* Boş durum sahnesi — giriş ekranındaki özellik kartlarının dili (.oz-*, components/Sahne.tsx).
+   Taslak parçalar kesik çizgili: "burası senin dolduracağın yer". */
+.state-empty .oz-sahne,
+.wish-empty .oz-sahne { align-self: stretch; margin-bottom: 8px; }
+.oz-row.is-taslak,
+.oz-liste.is-taslak { background: none; box-shadow: none; outline: 1.5px dashed var(--faint); outline-offset: -1.5px; color: var(--mute); }
+.oz-foto.is-taslak { background: var(--tint); }
+.oz-liste.is-taslak em { color: var(--mute); }
+
 .alert {
   display: flex;
   align-items: center;
@@ -580,6 +658,111 @@ a { color: var(--accent); }
 }
 .fab::before { content: "+"; font-size: 1.5rem; font-weight: 500; line-height: 1; margin-top: -2px; }
 .fab:active { transform: translateX(-50%) scale(0.96); }
+
+/* Seçim modunun işlem çubuğu: ekleme düğmesinin yerinde, mürekkep zeminde.
+   Üstte sayı ve "Tümünü seç", altta kategori hapları (taşarsa yatay kayar). */
+.secim-cubugu {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 10px 12px 16px;
+  border-radius: 22px;
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: var(--shadow-lift);
+  animation: sheet-up 0.2s var(--ease);
+}
+.secim-cubugu-ust { display: flex; align-items: center; gap: 12px; }
+.secim-cubugu-ust strong { flex: 1; min-width: 0; overflow: hidden; font-size: 0.95rem; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
+/* Karışık seçim notu kendi satırında: üst satıra sığmayıp kesilirdi. */
+.secim-not { margin: -4px 0 0; font-size: 0.8rem; color: rgba(243, 238, 229, 0.65); text-wrap: pretty; }
+
+/* Alt satır: sekmeye göre üç işlem. Genişlik içeriğe göre paylaşılıyor — eşit
+   paylı olunca dar telefonda kısa "Sil" yer kaplıyor, "Bir daha asla" kesiliyordu. */
+.secim-islemler { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.secim-islem {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: var(--pill);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--paper);
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background var(--t) var(--ease), transform var(--t) var(--ease), opacity var(--t) var(--ease);
+}
+.secim-islem svg { flex-shrink: 0; }
+.secim-islem span { overflow: hidden; text-overflow: ellipsis; }
+.secim-islem:hover:not(:disabled) { background: rgba(255, 255, 255, 0.18); }
+.secim-islem:not(:disabled):active { transform: scale(0.96); }
+.secim-islem:disabled { opacity: 0.4; cursor: default; }
+.secim-islem.is-vurgu { background: var(--accent); color: #fff; }
+.secim-islem.is-vurgu:hover:not(:disabled) { background: var(--accent-deep); }
+/* Silme: vurgunun koyu zemindeki açık tonu — tek vurgu rengi kuralı içinde "tehlikeli". */
+.secim-islem.is-tehlike { background: color-mix(in oklab, var(--accent) 28%, transparent); color: #ffd6c8; }
+.secim-islem.is-tehlike:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 42%, transparent); }
+.secim-geri {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: var(--pill);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--paper);
+}
+.secim-geri:hover { background: rgba(255, 255, 255, 0.2); }
+.secim-link { font-size: 0.86rem; font-weight: 600; color: rgba(243, 238, 229, 0.72); white-space: nowrap; }
+.secim-link:hover:not(:disabled) { color: var(--paper); }
+.secim-link:disabled { opacity: 0.4; cursor: default; }
+.secim-kapat {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: var(--pill);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--paper);
+}
+.secim-kapat:hover { background: rgba(255, 255, 255, 0.2); }
+.secim-kategoriler { flex: 1; min-width: 0; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.secim-kategoriler::-webkit-scrollbar { display: none; }
+.secim-kat {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px 0 13px;
+  border-radius: var(--pill);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: transform var(--t) var(--ease), opacity var(--t) var(--ease);
+}
+.secim-kat i { width: 9px; height: 9px; flex-shrink: 0; border-radius: var(--pill); background: var(--kat, var(--mute)); }
+.secim-kat.is-kaldir { padding: 0 16px; background: transparent; color: var(--paper); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28); }
+.secim-kat:disabled { opacity: 0.4; cursor: default; }
+.secim-kat:not(:disabled):active { transform: scale(0.96); }
+
+@media (max-width: 1023px) {
+  /* Çubuk ekleme düğmesinden uzun: son kartlar altında kalmasın. */
+  .list:has(.secim-cubugu) { padding-bottom: 170px; }
+}
 
 /* ═══════════════════════════════════════════════════════
    FORM — mobilde alttan açılan panel, masaüstünde kutu
@@ -724,6 +907,56 @@ a { color: var(--accent); }
 .field-textarea { line-height: 1.5; resize: vertical; min-height: 84px; }
 .field-select { margin-top: 6px; appearance: auto; }
 .field-fade-in { animation: drop 0.16s var(--ease); }
+
+/* Yeni liste: kategori girişi — haplar ve giriş kutusu tek alan gibi. */
+.yeni-kat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 6px 8px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  transition: box-shadow var(--t) var(--ease);
+}
+.yeni-kat:focus-within { box-shadow: inset 0 0 0 2px var(--ink); }
+.yeni-kat-hap {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 4px 0 11px;
+  border-radius: var(--pill);
+  background: var(--paper);
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: drop 0.16s var(--ease);
+}
+.yeni-kat-hap i { width: 8px; height: 8px; flex-shrink: 0; border-radius: var(--pill); }
+.yeni-kat-hap button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--pill);
+  color: var(--mute);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.yeni-kat-hap button:hover { background: var(--tint); color: var(--ink); }
+.yeni-kat-giris {
+  flex: 1;
+  min-width: 140px;
+  min-height: 34px;
+  padding: 0 6px;
+  border: none;
+  background: none;
+  font-size: 1rem;
+  outline: none;
+}
+.yeni-kat-giris::placeholder { color: var(--faint); }
 
 /* Kategori seçimi — haplar */
 .kategori-picker { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -934,6 +1167,29 @@ a { color: var(--accent); }
 .detail-actions .btn-danger { flex: 1; }
 .detail-actions .btn-primary { flex: 2; }
 
+/* Sıralamadaki yeri: bir üstü, kendisi (mürekkep halka) ve bir altı. */
+.detail-komsular { display: flex; flex-direction: column; gap: 4px; }
+.detail-komsu {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 14px 0 10px;
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  transition: background var(--t) var(--ease);
+}
+button.detail-komsu { color: var(--soft); }
+button.detail-komsu:hover { background: var(--sunk); color: var(--ink); }
+.detail-komsu i { font-family: var(--display); font-style: normal; font-weight: 800; text-align: center; color: var(--faint); font-variant-numeric: tabular-nums; }
+.detail-komsu span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.detail-komsu.is-on { background: var(--card); box-shadow: 0 0 0 2.5px var(--ink); }
+.detail-komsu.is-on i { color: var(--accent); }
+
 .pane-section { margin-top: 22px; padding: 0 6px; }
 .pane-section-title {
   margin-bottom: 8px;
@@ -989,6 +1245,96 @@ a { color: var(--accent); }
 }
 .wish-tried:hover { background: var(--accent-deep); }
 .wish-tried:active { transform: scale(0.96); }
+.wish-row.is-secim { cursor: pointer; }
+
+/* ═══════════════════════════════════════════════════════
+   KART GÖRÜNÜMÜ — masaüstü
+   Satırla aynı işaretleme, yalnızca yerleşim değişiyor. Fotoğraf üstte ve
+   kırpılmadan sığdırılıyor (ürün fotoğrafları çoğunlukla dikey); sıra numarası
+   fotoğrafın sol üstünde hap, tutamak ve seçim kutusu sağ üstte.
+═══════════════════════════════════════════════════════ */
+.rows-kart,
+.wish-kart { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+/* "Bir daha asla" çizgisi ızgarada tam genişlikte ayraç. */
+.rows-kart .asla-siniri,
+.rows-kart .asla-bos { grid-column: 1 / -1; }
+.rows-kart .asla-siniri { margin: 10px 0 0; }
+
+.rows-kart .row,
+.wish-kart .wish-row { flex-direction: column; align-items: stretch; gap: 0; padding: 8px 8px 12px; }
+.rows-kart .row.is-secim { padding-left: 8px; }
+.rows-kart .row-thumb,
+.wish-kart .wish-thumb {
+  width: 100%;
+  height: 150px;
+  border-radius: 14px;
+  object-fit: contain;
+  background: var(--paper);
+}
+.rows-kart .row-thumb-fallback,
+.wish-kart .thumb-fallback { background: var(--sunk); color: var(--faint); font-size: 2.2rem; }
+.rows-kart .row-text { padding: 10px 6px 0; }
+.rows-kart .row-tags { flex-wrap: wrap; padding: 6px 6px 0; }
+.rows-kart .row-rank {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  min-width: 36px;
+  padding: 6px 10px;
+  border-radius: var(--pill);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  font-size: 1.05rem;
+  text-align: center;
+  color: var(--mute);
+}
+.rows-kart .row-rank.is-podium,
+.rows-kart .row-rank.is-asla { color: var(--accent); }
+.rows-kart .row-grip {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--pill);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transition: opacity var(--t) var(--ease);
+}
+.rows-kart .row:hover .row-grip,
+.rows-kart .row-grip:focus-visible,
+.rows-kart .row.is-dragging .row-grip { opacity: 1; }
+.rows-kart .row-check,
+.wish-kart .row-check { position: absolute; top: 14px; right: 14px; z-index: 1; background: var(--card); }
+
+.wish-kart .wish-row { position: relative; gap: 10px; }
+.wish-kart .wish-row-main { flex: 1; flex-direction: column; align-items: stretch; gap: 10px; }
+.wish-kart .wish-text { padding: 0 6px; }
+.wish-kart .wish-note { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.wish-kart .wish-tried { margin: 0 6px; }
+
+/* Liste ayarlarında kategorisiz kayıtlara köprü: toplu atamayı açıyor. */
+.ayar-kopru {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 16px;
+  border-radius: var(--r-sm);
+  background: var(--accent-wash);
+  color: var(--accent-deep);
+  font-size: 0.9rem;
+  text-align: left;
+  transition: background var(--t) var(--ease);
+}
+.ayar-kopru:hover { background: var(--accent-soft); }
+.ayar-kopru em { font-style: normal; font-weight: 700; white-space: nowrap; }
 
 /* ═══════════════════════════════════════════════════════
    LİSTE AYARLARI — popup
@@ -1401,7 +1747,7 @@ a { color: var(--accent); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gate-deste, .form-screen, .form-screen-backdrop, .toast { animation: none; }
+  .gate-deste, .form-screen, .form-screen-backdrop, .toast, .secim-cubugu { animation: none; }
   .gate-kart, .gk-cizgi { transition: none; }
 }
 
@@ -1512,7 +1858,7 @@ a { color: var(--accent); }
     align-items: center;
     gap: 12px;
     min-height: 52px;
-    padding: 0 4px 0 9px;
+    padding: 0 12px 0 9px;
     color: inherit;
     text-decoration: none;
   }
@@ -1540,22 +1886,17 @@ a { color: var(--accent); }
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .rail-index-ayar {
-    display: grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    margin-right: 8px;
-    flex-shrink: 0;
-    border-radius: var(--pill);
+  /* Ad ve altında listenin şampiyonu — ana ekrandaki podyumun raydaki kısa hâli. */
+  .rail-index-metin { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 7px 0; }
+  .rail-index-metin .rail-index-ad { line-height: 1.25; }
+  .rail-index-sampiyon {
+    overflow: hidden;
+    font-size: 0.78rem;
+    line-height: 1.3;
     color: var(--mute);
-    opacity: 0;
-    transition: background var(--t) var(--ease), color var(--t) var(--ease), opacity var(--t) var(--ease);
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
-  .rail-index-item:hover .rail-index-ayar,
-  .rail-index-item.is-on .rail-index-ayar,
-  .rail-index-ayar:focus-visible { opacity: 1; }
-  .rail-index-ayar:hover { background: var(--ink); color: #fff; }
 
   .rail-add {
     display: flex;
@@ -1605,7 +1946,26 @@ a { color: var(--accent); }
   .mobile-brand-text { align-items: flex-start; text-align: left; flex: 1; }
   .mobile-brand-text strong { font-size: 2.3rem; line-height: 1; }
   .mobile-brand-text em { font-size: 0.9rem; margin-top: 4px; }
-  .mobile-brand-settings { margin-left: auto; }
+  /* Masaüstünde ayar düğmesi bir bağlantı gibi: simgesiz, zeminsiz, uygulamadaki
+     bağlantılarla aynı vurgu renginde ve altı çizili. Raydaki satır simgelerinin yerini alıyor. */
+  .mobile-brand-settings {
+    display: inline;
+    width: auto;
+    height: auto;
+    margin-left: auto;
+    padding: 6px 2px;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--accent);
+    font-size: 0.92rem;
+    font-weight: 600;
+    transition: color var(--t) var(--ease);
+  }
+  .mobile-brand-settings svg { display: none; }
+  .mobile-brand-settings-ad { display: inline; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+  .mobile-brand-settings:hover:not(:disabled) { color: var(--accent-deep); }
+  .mobile-brand-settings:active { transform: none; }
 
   .app:not(.app-solo) .sticky-top {
     position: sticky;
@@ -1629,6 +1989,16 @@ a { color: var(--accent); }
     z-index: 20;
   }
   .fab:active { transform: scale(0.96); }
+  /* Masaüstünde çubuk orta sütunun dibine yapışık, sütun genişliğinde. */
+  .secim-cubugu {
+    position: sticky;
+    left: auto;
+    right: auto;
+    bottom: 24px;
+    margin-top: auto;
+    margin-bottom: 24px;
+    z-index: 20;
+  }
   .list > .rows,
   .list > .wish-rows { margin-bottom: 24px; }
 
@@ -1659,6 +2029,15 @@ a { color: var(--accent); }
   .app.pane-kapali { grid-template-columns: 272px minmax(0, 1fr); }
   .app.pane-kapali .list > :not(.fab) { width: 100%; max-width: 760px; margin-left: auto; margin-right: auto; }
   .app.pane-kapali .list > .sticky-top { max-width: 816px; }
+  /* Kart görünümünde sütun genişliyor ki ızgaraya daha çok kart sığsın. */
+  .app.pane-kapali .list.is-kart > :not(.fab) { max-width: 1080px; }
+  .app.pane-kapali .list.is-kart > .sticky-top { max-width: 1136px; }
+  /* Masaüstü araç satırı tek satır: sekmeler solda, kategori şeridi kalan alanda ortalı
+     (taşarsa soldan kesilmesin diye "safe"), görünüm ve "Seç" sağda. */
+  .liste-arac { flex-wrap: nowrap; justify-content: flex-start; column-gap: 12px; padding: 14px 0 2px; }
+  .liste-arac > .tabs { margin-top: 0; flex-shrink: 0; }
+  .liste-arac-filtre { flex: 1 1 0; }
+  .liste-arac .filters-inline { justify-content: safe center; }
 
   /* Liste ayarları popup'ı kayıt formundan biraz geniş */
   .form-screen-ayar { width: 600px; }

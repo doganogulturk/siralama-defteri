@@ -4,10 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Item, Kategori, Liste } from '../types/item';
 import {
   getListeBySlug, getKategoriler, getItems,
-  createItem, updateItem, deleteItem, updateItemsSira, deleteFotograf,
+  createItem, updateItem, deleteItem, deleteItems,
+  updateItemsSira, updateItemsKategori, deleteFotograf,
 } from '../lib/items';
 import { sortSirali, sortIstekListesi } from '../lib/sort';
 import { hataMetni } from '../lib/hata';
+import { listeleriTazele } from './useListeler';
 
 /** Sıralamadaki kayıt: denenmiş ve "Bir daha asla" bölümünde değil. */
 const siralamada = (i: Item) => i.denendi && !i.asla;
@@ -85,6 +87,8 @@ export function useListStore(slug: string) {
         sira: i.sira ?? 0,
         ...(aslaDahil ? { asla: !!i.asla } : {}),
       })));
+      // Şampiyon değişmiş olabilir: ray ve ana ekran ilk üçü yeniden okusun.
+      listeleriTazele();
     } catch (e: unknown) {
       alert('Sıralama kaydedilemedi: ' + hataMetni(e));
     } finally {
@@ -172,9 +176,68 @@ export function useListStore(slug: string) {
     });
   }, [persistSira]);
 
+  /**
+   * Toplu kategori atama: seçili kayıtlar tek istekte aynı kategoriye. `ozellikler`e
+   * dokunmuyor — eski kategoriye bağlı alan değerleri kayıtta kalıp görünmez olur.
+   */
+  const kategoriAta = useCallback(async (ids: string[], categoryId: string | null) => {
+    await updateItemsKategori(ids, categoryId);
+    const hedef = new Set(ids);
+    setItems(prev => prev.map(i => (hedef.has(i.id) ? { ...i, category_id: categoryId } : i)));
+  }, []);
+
+  /*
+   * Toplu işlemler önce yazıp sonra ekranı güncelliyor: hata olursa sayfa veriyi
+   * baştan okuyor, yarım kalmış bir iyimser durum ekranda kalmıyor. Hepsi kayıt
+   * sayılarını ya da şampiyonu değiştirebildiği için sonunda ray tazeleniyor.
+   */
+
+  /**
+   * Seçili denenmiş kayıtları "Bir daha asla" ile sıralama arasında taşır (`asla`
+   * hedef bölüm). Taşınanlar mevcut sıralarıyla hedef bölümün sonuna ekleniyor;
+   * iki bölüm de kendi içinde 0'dan yeniden numaralanıyor.
+   */
+  const bolumDegistir = useCallback(async (ids: string[], asla: boolean) => {
+    const hedef = new Set(ids);
+    const sira = sortSirali(items.filter(siralamada));
+    const bolum = sortSirali(items.filter(i => i.denendi && i.asla));
+    const [kaynak, varis] = asla ? [sira, bolum] : [bolum, sira];
+    const kalan = kaynak.filter(i => !hedef.has(i.id));
+    const yeniVaris = [...varis, ...kaynak.filter(i => hedef.has(i.id))];
+    const [yeniSira, yeniBolum] = asla ? [kalan, yeniVaris] : [yeniVaris, kalan];
+    const next = [
+      ...yeniSira.map((it, idx) => ({ ...it, sira: idx, asla: false })),
+      ...yeniBolum.map((it, idx) => ({ ...it, sira: idx, asla: true })),
+    ];
+    await updateItemsSira(next.map(i => ({ id: i.id, sira: i.sira, asla: i.asla })));
+    setItems(prev => [...prev.filter(i => !i.denendi), ...next]);
+    listeleriTazele();
+  }, [items]);
+
+  /** Toplu "Denedim": seçili bekleyenler, listede göründükleri sırayla sıralamanın sonuna. */
+  const denendiYap = useCallback(async (ids: string[]) => {
+    const hedef = new Set(ids);
+    const sira = sortSirali(items.filter(siralamada));
+    const baslangic = sira.length > 0 ? (sira[sira.length - 1].sira ?? 0) + 1 : 0;
+    const tasinan = sortIstekListesi(items.filter(i => !i.denendi && hedef.has(i.id)))
+      .map((it, n) => ({ ...it, denendi: true, asla: false, sira: baslangic + n }));
+    await updateItemsSira(tasinan.map(i => ({ id: i.id, sira: i.sira, asla: false, denendi: true })));
+    const yeni = new Map(tasinan.map(i => [i.id, i]));
+    setItems(prev => prev.map(i => yeni.get(i.id) ?? i));
+    listeleriTazele();
+  }, [items]);
+
+  /** Toplu silme: kayıtlar ve fotoğrafları. Onayı sayfa soruyor. */
+  const topluSil = useCallback(async (ids: string[]) => {
+    const hedef = new Set(ids);
+    await deleteItems(items.filter(i => hedef.has(i.id)));
+    setItems(prev => prev.filter(i => !hedef.has(i.id)));
+    listeleriTazele();
+  }, [items]);
+
   return {
     liste, kategoriler, items, denenenler, aslaListesi, istekListesi,
     loading, error, isSaving,
-    load, saveEntry, removeEntry, reorder,
+    load, saveEntry, removeEntry, reorder, kategoriAta, bolumDegistir, denendiYap, topluSil,
   };
 }

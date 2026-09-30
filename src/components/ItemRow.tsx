@@ -5,14 +5,8 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
-  AlanTanimi, Item, alanGorunur, alanKisa, bayrak, metin,
+  AlanTanimi, Item, alanGorunur, alanKisa, bayrak, brandInitials, metin,
 } from '../types/item';
-
-export const brandInitials = (ad: string | null | undefined) => {
-  const words = (ad || '').trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return '?';
-  return words.slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('') || '?';
-};
 
 /** Kayda ait ilk dolu metin alanı — satırın altındaki ince açıklama. */
 export function altBilgi(item: Item, alanlar: AlanTanimi[]): string {
@@ -81,7 +75,7 @@ function RowShell({
       role="button"
       tabIndex={0}
       aria-pressed={isSelected}
-      className={`row${asla ? ' is-asla' : ''}${isSelected ? ' is-selected' : ''}${dragging ? ' is-dragging' : ''}${secimModu ? ' is-secim' : ''}`}
+      className={`row${asla ? ' is-asla' : ''}${rank === 1 && !asla ? ' is-sampiyon' : ''}${isSelected ? ' is-selected' : ''}${dragging ? ' is-dragging' : ''}${secimModu ? ' is-secim' : ''}`}
       onClick={() => onSelect(item)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {

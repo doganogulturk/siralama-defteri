@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlanTanimi, AlanTipi, Item, Kategori, Liste } from '../types/item';
 import {
@@ -8,6 +8,7 @@ import {
 } from '../lib/items';
 import { listeleriTazele } from '../hooks/useListeler';
 import { hataMetni } from '../lib/hata';
+import Sheet from './Sheet';
 
 const KaldirIkon = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -50,12 +51,6 @@ export default function ListeAyarlariModal({
   const [yeniAlanEtiket, setYeniAlanEtiket] = useState('');
   const [yeniAlanTip, setYeniAlanTip] = useState<AlanTipi>('bool');
   const [yeniAlanKategori, setYeniAlanKategori] = useState('');
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
 
   const alanlar = liste.alanlar ?? [];
   const toplam = items.length;
@@ -179,174 +174,169 @@ export default function ListeAyarlariModal({
   };
 
   return (
-    <div
-      className="form-screen-backdrop"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <section className="form-screen form-screen-ayar" aria-label="Liste ayarları">
-        <header className="form-screen-header">
-          <button type="button" className="form-screen-back" onClick={onClose} aria-label="Kapat">
-            {KapatIkon}
-          </button>
-          <input
-            className="ayar-ad"
-            value={ad}
-            onChange={(e) => setAd(e.target.value)}
-            onBlur={adKaydet}
-            onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-            aria-label="Liste adı"
-          />
-          <span className="form-screen-header-spacer" />
-        </header>
+    <Sheet onClose={onClose} className="form-screen-ayar" label="Liste ayarları">
+      <header className="form-screen-header">
+        <button type="button" className="form-screen-back" onClick={onClose} aria-label="Kapat">
+          {KapatIkon}
+        </button>
+        <input
+          className="ayar-ad"
+          value={ad}
+          onChange={(e) => setAd(e.target.value)}
+          onBlur={adKaydet}
+          onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+          aria-label="Liste adı"
+        />
+        <span className="form-screen-header-spacer" />
+      </header>
 
-        <div className="form-screen-body ayar-govde">
-          <section className="ayar-bolum">
-            <h2 className="ayar-bolum-baslik">Kategoriler</h2>
+      <div className="form-screen-body ayar-govde">
+        <section className="ayar-bolum">
+          <h2 className="ayar-bolum-baslik">Kategoriler</h2>
 
-            <div className="kat-satirlar">
-              {kategoriler.map(kat => (
-                <div className="kat-satir" key={kat.id}>
-                  <span className="kat-renk" style={{ background: kat.renk }} />
-                  <input
-                    className="kat-ad"
-                    defaultValue={kat.ad}
-                    onBlur={(e) => kategoriAdiKaydet(kat, e.target.value)}
-                    aria-label={`${kat.ad} kategorisinin adı`}
-                  />
-                  <span className="kat-sayi">
-                    {items.filter(i => i.category_id === kat.id).length} kayıt
-                  </span>
-                  <button
-                    type="button"
-                    className="ayar-sil"
-                    onClick={() => kategoriSil(kat)}
-                    disabled={busy}
-                    aria-label={`${kat.ad} kategorisini sil`}
-                  >
-                    {KaldirIkon}
-                  </button>
-                </div>
+          <div className="kat-satirlar">
+            {kategoriler.map(kat => (
+              <div className="kat-satir" key={kat.id}>
+                <span className="kat-renk" style={{ background: kat.renk }} />
+                <input
+                  className="kat-ad"
+                  defaultValue={kat.ad}
+                  onBlur={(e) => kategoriAdiKaydet(kat, e.target.value)}
+                  aria-label={`${kat.ad} kategorisinin adı`}
+                />
+                <span className="kat-sayi">
+                  {items.filter(i => i.category_id === kat.id).length} kayıt
+                </span>
+                <button
+                  type="button"
+                  className="ayar-sil"
+                  onClick={() => kategoriSil(kat)}
+                  disabled={busy}
+                  aria-label={`${kat.ad} kategorisini sil`}
+                >
+                  {KaldirIkon}
+                </button>
+              </div>
+            ))}
+            {kategoriler.length === 0 && <p className="ayar-bos">Henüz kategori yok.</p>}
+          </div>
+
+          {/* Kategoriler sonradan açıldıysa kayıtlar hâlâ kategorisiz: tek tek düzenlemek yerine toplu atamaya köprü. */}
+          {kategoriler.length > 0 && kategorisiz > 0 && onKategorisizAta && (
+            <button type="button" className="ayar-kopru" onClick={onKategorisizAta}>
+              <span><strong>{kategorisiz} kayıt</strong> kategorisiz</span>
+              <em>Şimdi ata →</em>
+            </button>
+          )}
+
+          <div className="ayar-ekle">
+            <input
+              className="field-input"
+              placeholder="Yeni kategori adı"
+              value={yeniKategori}
+              onChange={(e) => setYeniKategori(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void kategoriEkle(); } }}
+            />
+            <button type="button" className="btn-primary" onClick={kategoriEkle} disabled={busy}>
+              Ekle
+            </button>
+          </div>
+        </section>
+
+        <section className="ayar-bolum">
+          <h2 className="ayar-bolum-baslik">Ek alanlar</h2>
+
+          <div className="alan-satirlar">
+            {alanlar.map(alan => (
+              <div className="alan-satir" key={alan.anahtar}>
+                <select
+                  className="alan-tip"
+                  value={alan.tip}
+                  onChange={(e) => alanTipiKaydet(alan, e.target.value as AlanTipi)}
+                  disabled={busy}
+                  aria-label={`${alan.etiket} alanının tipi`}
+                >
+                  <option value="bool">Evet/Hayır</option>
+                  <option value="metin">Metin</option>
+                </select>
+                <input
+                  className="alan-ad"
+                  defaultValue={alan.etiket}
+                  onBlur={(e) => alanAdiKaydet(alan, e.target.value)}
+                  disabled={busy}
+                  aria-label={`${alan.etiket} alanının adı`}
+                />
+                <button
+                  type="button"
+                  className="ayar-sil"
+                  onClick={() => alanSil(alan)}
+                  disabled={busy}
+                  aria-label={`${alan.etiket} alanını kaldır`}
+                >
+                  {KaldirIkon}
+                </button>
+                <select
+                  className="alan-kat"
+                  value={alan.kategori_id ?? ''}
+                  onChange={(e) => alanKategoriKaydet(alan, e.target.value)}
+                  disabled={busy}
+                  aria-label={`${alan.etiket} alanının kapsamı`}
+                >
+                  <option value="">Tüm kategoriler</option>
+                  {kategoriler.map(k => (
+                    <option key={k.id} value={k.id}>Yalnızca {k.ad}</option>
+                  ))}
+                </select>
+              </div>
+            ))}
+            {alanlar.length === 0 && <p className="ayar-bos">Henüz ek alan yok.</p>}
+          </div>
+
+          <div className="alan-ekle">
+            <input
+              className="field-input"
+              placeholder="Alan adı"
+              value={yeniAlanEtiket}
+              onChange={(e) => setYeniAlanEtiket(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void alanEkle(); } }}
+              aria-label="Yeni alanın adı"
+            />
+            <select
+              className="alan-tip"
+              value={yeniAlanTip}
+              onChange={(e) => setYeniAlanTip(e.target.value as AlanTipi)}
+              aria-label="Yeni alanın tipi"
+            >
+              <option value="bool">Evet/Hayır</option>
+              <option value="metin">Metin</option>
+            </select>
+            <select
+              className="alan-kat"
+              value={yeniAlanKategori}
+              onChange={(e) => setYeniAlanKategori(e.target.value)}
+              aria-label="Yeni alanın kapsamı"
+            >
+              <option value="">Tüm kategoriler</option>
+              {kategoriler.map(k => (
+                <option key={k.id} value={k.id}>Yalnızca {k.ad}</option>
               ))}
-              {kategoriler.length === 0 && <p className="ayar-bos">Henüz kategori yok.</p>}
-            </div>
+            </select>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={alanEkle}
+              disabled={busy || !yeniAlanEtiket.trim()}
+            >
+              Alan ekle
+            </button>
+          </div>
+        </section>
 
-            {/* Kategoriler sonradan açıldıysa kayıtlar hâlâ kategorisiz: tek tek düzenlemek yerine toplu atamaya köprü. */}
-            {kategoriler.length > 0 && kategorisiz > 0 && onKategorisizAta && (
-              <button type="button" className="ayar-kopru" onClick={onKategorisizAta}>
-                <span><strong>{kategorisiz} kayıt</strong> kategorisiz</span>
-                <em>Şimdi ata →</em>
-              </button>
-            )}
-
-            <div className="ayar-ekle">
-              <input
-                className="field-input"
-                placeholder="Yeni kategori adı"
-                value={yeniKategori}
-                onChange={(e) => setYeniKategori(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void kategoriEkle(); } }}
-              />
-              <button type="button" className="btn-primary" onClick={kategoriEkle} disabled={busy}>
-                Ekle
-              </button>
-            </div>
-          </section>
-
-          <section className="ayar-bolum">
-            <h2 className="ayar-bolum-baslik">Ek alanlar</h2>
-
-            <div className="alan-satirlar">
-              {alanlar.map(alan => (
-                <div className="alan-satir" key={alan.anahtar}>
-                  <select
-                    className="alan-tip"
-                    value={alan.tip}
-                    onChange={(e) => alanTipiKaydet(alan, e.target.value as AlanTipi)}
-                    disabled={busy}
-                    aria-label={`${alan.etiket} alanının tipi`}
-                  >
-                    <option value="bool">Evet/Hayır</option>
-                    <option value="metin">Metin</option>
-                  </select>
-                  <input
-                    className="alan-ad"
-                    defaultValue={alan.etiket}
-                    onBlur={(e) => alanAdiKaydet(alan, e.target.value)}
-                    disabled={busy}
-                    aria-label={`${alan.etiket} alanının adı`}
-                  />
-                  <button
-                    type="button"
-                    className="ayar-sil"
-                    onClick={() => alanSil(alan)}
-                    disabled={busy}
-                    aria-label={`${alan.etiket} alanını kaldır`}
-                  >
-                    {KaldirIkon}
-                  </button>
-                  <select
-                    className="alan-kat"
-                    value={alan.kategori_id ?? ''}
-                    onChange={(e) => alanKategoriKaydet(alan, e.target.value)}
-                    disabled={busy}
-                    aria-label={`${alan.etiket} alanının kapsamı`}
-                  >
-                    <option value="">Tüm kategoriler</option>
-                    {kategoriler.map(k => (
-                      <option key={k.id} value={k.id}>Yalnızca {k.ad}</option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-              {alanlar.length === 0 && <p className="ayar-bos">Henüz ek alan yok.</p>}
-            </div>
-
-            <div className="alan-ekle">
-              <input
-                className="field-input"
-                placeholder="Alan adı"
-                value={yeniAlanEtiket}
-                onChange={(e) => setYeniAlanEtiket(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void alanEkle(); } }}
-                aria-label="Yeni alanın adı"
-              />
-              <select
-                className="alan-tip"
-                value={yeniAlanTip}
-                onChange={(e) => setYeniAlanTip(e.target.value as AlanTipi)}
-                aria-label="Yeni alanın tipi"
-              >
-                <option value="bool">Evet/Hayır</option>
-                <option value="metin">Metin</option>
-              </select>
-              <select
-                className="alan-kat"
-                value={yeniAlanKategori}
-                onChange={(e) => setYeniAlanKategori(e.target.value)}
-                aria-label="Yeni alanın kapsamı"
-              >
-                <option value="">Tüm kategoriler</option>
-                {kategoriler.map(k => (
-                  <option key={k.id} value={k.id}>Yalnızca {k.ad}</option>
-                ))}
-              </select>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={alanEkle}
-                disabled={busy || !yeniAlanEtiket.trim()}
-              >
-                Alan ekle
-              </button>
-            </div>
-          </section>
-
-          {/* Yalnızca düğme: neyin silineceğini onay penceresi söylüyor. */}
-          <button type="button" className="btn-danger ayar-liste-sil" onClick={listeSil} disabled={busy}>
-            Listeyi sil
-          </button>
-        </div>
-      </section>
-    </div>
+        {/* Yalnızca düğme: neyin silineceğini onay penceresi söylüyor. */}
+        <button type="button" className="btn-danger ayar-liste-sil" onClick={listeSil} disabled={busy}>
+          Listeyi sil
+        </button>
+      </div>
+    </Sheet>
   );
 }

@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { signInWithGoogle } from '../lib/auth';
 import { hataMetni } from '../lib/hata';
 import Hesap from './Hesap';
+import Marka from './Marka';
 import { SahneSatiri } from './Sahne';
 
 const GoogleIkon = (
@@ -242,11 +243,15 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
 
     return (
       <div className="gate">
+        <header className="gate-bar">
+          <Marka />
+        </header>
+
         <section className="gate-hero">
           <div className="gate-card">
             <GirisDestesi />
 
-            <h1 className="gate-title">Neyi seviyorsan, sırala.</h1>
+            <h1 className="gate-title">Neyi seviyorsan, <em>sırala.</em></h1>
             <p className="gate-sub">
               Koladan kahveye kendi listelerini kur. Denediklerini sürükleyerek diz,
               denemediklerini kenara yaz.
@@ -272,7 +277,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
         </section>
 
         <section className="gate-son">
-          <h2 className="gate-bolum-baslik">İlk listeni şimdi aç.</h2>
+          <h2 className="gate-bolum-baslik">İlk listeni <em>şimdi</em> aç.</h2>
           {girisDugmesi}
         </section>
       </div>

@@ -78,3 +78,10 @@ export const filtreAlanlari = (alanlar: AlanTanimi[]): AlanTanimi[] =>
 
 export const kategoriBul = (kategoriler: Kategori[], id?: string | null): Kategori | undefined =>
   id ? kategoriler.find(k => k.id === id) : undefined;
+
+/** Fotoğrafsız kaydın yedek görseli: adın ilk iki kelimesinin baş harfleri. */
+export const brandInitials = (ad: string | null | undefined) => {
+  const words = (ad || '').trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '?';
+  return words.slice(0, 2).map(w => w[0]?.toLocaleUpperCase('tr') ?? '').join('') || '?';
+};

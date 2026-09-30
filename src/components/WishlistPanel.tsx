@@ -2,8 +2,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React from 'react';
-import { AlanTanimi, Item, Kategori, kategoriBul } from '../types/item';
-import { brandInitials, altBilgi, rozetler, SecimIkon } from './ItemRow';
+import { AlanTanimi, Item, Kategori, brandInitials, kategoriBul } from '../types/item';
+import { altBilgi, rozetler, SecimIkon } from './ItemRow';
 import { BosSahne } from './Sahne';
 
 interface WishlistPanelProps {

@@ -30,6 +30,7 @@ import ItemForm, { FormMode } from '../../../components/ItemForm';
 import ListeRayi from '../../../components/ListeRayi';
 import ListeAyarlariModal from '../../../components/ListeAyarlariModal';
 import { BosSahne } from '../../../components/Sahne';
+import { IskeletSatirlar } from '../../../components/Iskelet';
 
 /* İşlem çubuğunun simgeleri — uygulamanın çizgi simgeleriyle aynı kalınlıkta. */
 const Ikon = ({ children }: { children: React.ReactNode }) => (
@@ -357,7 +358,7 @@ export default function ListePage() {
   const listeAdi = liste?.ad ?? 'Sıralama';
 
   const listBody = (() => {
-    if (loading) return <p className="state-msg">Yükleniyor…</p>;
+    if (loading) return <IskeletSatirlar />;
     if (!liste) {
       return (
         <div className="state-empty">
@@ -508,7 +509,8 @@ export default function ListePage() {
             </svg>
           </Link>
           <span className="mobile-brand-text">
-            <strong>{listeAdi}</strong>
+            {/* Yüklenirken boş: yedek ad ("Sıralama") bir an görünüp listenin adına sıçramasın. */}
+            <strong>{loading && !liste ? '\u00a0' : listeAdi}</strong>
             {/* Yüklenirken boş satır: başlık yüksekliği oynamasın, "Henüz sıralama yok" bir an görünmesin. */}
             <em>
               {loading || !liste

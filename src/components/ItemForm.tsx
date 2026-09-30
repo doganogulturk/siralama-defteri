@@ -8,6 +8,7 @@ import {
 import { uploadFotograf, deleteFotograf } from '../lib/items';
 import { TopluBlok, topluAyristir, topluKayitSayisi } from '../lib/toplu';
 import TopluAlan from './TopluAlan';
+import Sheet from './Sheet';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import { hataMetni } from '../lib/hata';
 
@@ -129,16 +130,6 @@ export default function ItemForm({
     onClose();
   };
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') handleClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, fotografUrl]);
-
   // Ad alanına yalnızca masaüstünde odaklanılıyor; mobilde otomatik odak
   // ekran klavyesini anında açıp formun görünümünü bozuyor.
   useEffect(() => {
@@ -238,281 +229,280 @@ export default function ItemForm({
   };
 
   return (
-    <div className="form-screen-backdrop" onClick={(e) => e.target === e.currentTarget && handleClose()}>
-      <section className="form-screen">
-        <header className="form-screen-header">
-          <button type="button" className="form-screen-back" onClick={handleClose} aria-label="Kapat">
-            {KapatIkon}
+    // Esc ve zemine dokunma da handleClose'dan geçiyor: yüklenip kaydedilmeyen fotoğraf silinsin.
+    <Sheet onClose={handleClose}>
+      <header className="form-screen-header">
+        <button type="button" className="form-screen-back" onClick={handleClose} aria-label="Kapat">
+          {KapatIkon}
+        </button>
+        <h2 className="form-screen-title">
+          {isDonusum ? 'Denedim!' : editingItem ? 'Kaydı Düzenle' : isIstek ? 'Listeye Ekle' : `Kayıt Ekle · ${listeAdi}`}
+        </h2>
+        {editingItem && onDelete ? (
+          <button type="button" className="form-screen-delete" onClick={onDelete} aria-label="Sil">{SilIkon}</button>
+        ) : <span className="form-screen-header-spacer" />}
+      </header>
+
+      {topluVar && (
+        <nav className="tabs" aria-label="Ekleme biçimi">
+          <button
+            type="button"
+            className={`tab${sekme === 'tek' ? ' is-on' : ''}`}
+            aria-current={sekme === 'tek' ? 'true' : undefined}
+            onClick={() => setSekme('tek')}
+          >
+            Tek kayıt
           </button>
-          <h2 className="form-screen-title">
-            {isDonusum ? 'Denedim!' : editingItem ? 'Kaydı Düzenle' : isIstek ? 'Listeye Ekle' : `Kayıt Ekle · ${listeAdi}`}
-          </h2>
-          {editingItem && onDelete ? (
-            <button type="button" className="form-screen-delete" onClick={onDelete} aria-label="Sil">{SilIkon}</button>
-          ) : <span className="form-screen-header-spacer" />}
-        </header>
+          <button
+            type="button"
+            className={`tab${sekme === 'toplu' ? ' is-on' : ''}`}
+            aria-current={sekme === 'toplu' ? 'true' : undefined}
+            onClick={() => setSekme('toplu')}
+          >
+            Toplu
+          </button>
+        </nav>
+      )}
 
-        {topluVar && (
-          <nav className="tabs" aria-label="Ekleme biçimi">
+      {topluSekmede && (
+        <form onSubmit={handleTopluSubmit} className="form-screen-body">
+          <TopluAlan deger={toplu} onChange={setToplu} bloklar={topluBloklar} autoFocus={isDesktop} />
+
+          <p className="field-hint">
+            {isIstek
+              ? 'Kayıtlar bekleyenlere düşer; denedikçe tek tek sıralamaya alırsın.'
+              : 'Kayıtlar yazdığın sırayla sıralamanın altına eklenir; yerlerini sonra sürükleyerek düzeltirsin.'}
+          </p>
+
+          <div className="form-screen-actions">
+            <button type="button" className="btn-quiet" onClick={handleClose}>Vazgeç</button>
             <button
-              type="button"
-              className={`tab${sekme === 'tek' ? ' is-on' : ''}`}
-              aria-current={sekme === 'tek' ? 'true' : undefined}
-              onClick={() => setSekme('tek')}
+              type="submit"
+              className="btn-primary"
+              disabled={topluKaydediliyor || topluAdet === 0}
             >
-              Tek kayıt
+              {topluKaydediliyor
+                ? 'Ekleniyor…'
+                : topluAdet > 0 ? `${topluAdet} Kaydı Ekle` : 'Ekle'}
             </button>
-            <button
-              type="button"
-              className={`tab${sekme === 'toplu' ? ' is-on' : ''}`}
-              aria-current={sekme === 'toplu' ? 'true' : undefined}
-              onClick={() => setSekme('toplu')}
+          </div>
+        </form>
+      )}
+
+      {!topluSekmede && (
+        <form onSubmit={handleSubmit} className="form-screen-body">
+          {/* Fotoğraf solda, ad ve çeşit sağında: formun tepesi tek bir bant
+              olunca "listeye ekleneceği yer" kaydırmadan görünüyor. */}
+          <div className="form-kimlik">
+            <div
+              className={`photo-drop ${fotografUrl ? 'has-image' : ''}`}
+              onClick={() => !uploading && fileInputRef.current?.click()}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
             >
-              Toplu
-            </button>
-          </nav>
-        )}
-
-        {topluSekmede && (
-          <form onSubmit={handleTopluSubmit} className="form-screen-body">
-            <TopluAlan deger={toplu} onChange={setToplu} bloklar={topluBloklar} autoFocus={isDesktop} />
-
-            <p className="field-hint">
-              {isIstek
-                ? 'Kayıtlar bekleyenlere düşer; denedikçe tek tek sıralamaya alırsın.'
-                : 'Kayıtlar yazdığın sırayla sıralamanın altına eklenir; yerlerini sonra sürükleyerek düzeltirsin.'}
-            </p>
-
-            <div className="form-screen-actions">
-              <button type="button" className="btn-quiet" onClick={handleClose}>Vazgeç</button>
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={topluKaydediliyor || topluAdet === 0}
-              >
-                {topluKaydediliyor
-                  ? 'Ekleniyor…'
-                  : topluAdet > 0 ? `${topluAdet} Kaydı Ekle` : 'Ekle'}
-              </button>
-            </div>
-          </form>
-        )}
-
-        {!topluSekmede && (
-          <form onSubmit={handleSubmit} className="form-screen-body">
-            {/* Fotoğraf solda, ad ve çeşit sağında: formun tepesi tek bir bant
-                olunca "listeye ekleneceği yer" kaydırmadan görünüyor. */}
-            <div className="form-kimlik">
-              <div
-                className={`photo-drop ${fotografUrl ? 'has-image' : ''}`}
-                onClick={() => !uploading && fileInputRef.current?.click()}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-              >
-                {uploading ? (
-                  <div className="photo-drop-state">
-                    <span className="photo-drop-title">Yükleniyor…</span>
-                  </div>
-                ) : fotografUrl ? (
-                  <>
-                    <img src={fotografUrl} className="photo-drop-img" alt="" />
-                    <div className="photo-drop-overlay">
-                      <span className="photo-drop-change">Değiştir</span>
-                      <button
-                        type="button"
-                        className="photo-drop-remove"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (fotografUrl !== originalFotografUrl.current) {
-                            void deleteFotograf(fotografUrl);
-                          }
-                          setFotografUrl('');
-                        }}
-                      >
-                        Kaldır
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="photo-drop-placeholder">
-                    <span className="photo-drop-icon">{KameraIkon}</span>
-                    <span className="photo-drop-title">Fotoğraf</span>
-                  </div>
-                )}
-              </div>
-              <div className="form-kimlik-alanlar">
-                <label className="field">
-                  <span className="field-label">Ad *</span>
-                  <input
-                    ref={adRef}
-                    type="text"
-                    className="field-input"
-                    placeholder="Marka ya da isim"
-                    value={ad}
-                    onChange={(e) => setAd(e.target.value)}
-                    required
-                  />
-                </label>
-                <label className="field">
-                  <span className="field-label">Çeşit / Alt Ad</span>
-                  <input
-                    type="text"
-                    className="field-input"
-                    placeholder="Varsa çeşidi"
-                    value={altAd}
-                    onChange={(e) => setAltAd(e.target.value)}
-                  />
-                </label>
-              </div>
-            </div>
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={(e) => e.target.files?.[0] && handleImageFile(e.target.files[0])}
-            />
-
-            {kategoriler.length > 0 && (
-              <div className="field">
-                <span className="field-label">Kategori</span>
-                <div className="kategori-picker">
-                  {kategoriler.map((kat) => (
-                    <button
-                      key={kat.id}
-                      type="button"
-                      className={`kategori-chip${categoryId === kat.id ? ' selected' : ''}`}
-                      style={{ '--kat': kat.renk } as React.CSSProperties}
-                      onClick={() => setCategoryId(kat.id)}
-                    >
-                      <i className="kategori-chip-dot" aria-hidden="true" />
-                      {kat.ad}
-                    </button>
-                  ))}
+              {uploading ? (
+                <div className="photo-drop-state">
+                  <span className="photo-drop-title">Yükleniyor…</span>
                 </div>
-              </div>
-            )}
-
-            {metinAlanlari.map(alan => (
-              <label className="field field-fade-in" key={alan.anahtar}>
-                <span className="field-label">{alan.etiket}</span>
+              ) : fotografUrl ? (
+                <>
+                  <img src={fotografUrl} className="photo-drop-img" alt="" />
+                  <div className="photo-drop-overlay">
+                    <span className="photo-drop-change">Değiştir</span>
+                    <button
+                      type="button"
+                      className="photo-drop-remove"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (fotografUrl !== originalFotografUrl.current) {
+                          void deleteFotograf(fotografUrl);
+                        }
+                        setFotografUrl('');
+                      }}
+                    >
+                      Kaldır
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="photo-drop-placeholder">
+                  <span className="photo-drop-icon">{KameraIkon}</span>
+                  <span className="photo-drop-title">Fotoğraf</span>
+                </div>
+              )}
+            </div>
+            <div className="form-kimlik-alanlar">
+              <label className="field">
+                <span className="field-label">Ad *</span>
+                <input
+                  ref={adRef}
+                  type="text"
+                  className="field-input"
+                  placeholder="Marka ya da isim"
+                  value={ad}
+                  onChange={(e) => setAd(e.target.value)}
+                  required
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">Çeşit / Alt Ad</span>
                 <input
                   type="text"
                   className="field-input"
-                  placeholder={alan.ipucu ?? ''}
-                  value={metinDeger(alan.anahtar)}
-                  onChange={(e) => setOzellik(alan.anahtar, e.target.value)}
+                  placeholder="Varsa çeşidi"
+                  value={altAd}
+                  onChange={(e) => setAltAd(e.target.value)}
                 />
               </label>
-            ))}
+            </div>
+          </div>
 
-            <label className="field">
-              <span className="field-label">Not</span>
-              <textarea
-                className="field-input field-textarea"
-                rows={2}
-                placeholder={isIstek ? 'Nerede gördüm, kim önerdi…' : 'Tadı, dokusu, aklında kalanlar…'}
-                value={notlar}
-                onChange={(e) => setNotlar(e.target.value)}
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={(e) => e.target.files?.[0] && handleImageFile(e.target.files[0])}
+          />
+
+          {kategoriler.length > 0 && (
+            <div className="field">
+              <span className="field-label">Kategori</span>
+              <div className="kategori-picker">
+                {kategoriler.map((kat) => (
+                  <button
+                    key={kat.id}
+                    type="button"
+                    className={`kategori-chip${categoryId === kat.id ? ' selected' : ''}`}
+                    style={{ '--kat': kat.renk } as React.CSSProperties}
+                    onClick={() => setCategoryId(kat.id)}
+                  >
+                    <i className="kategori-chip-dot" aria-hidden="true" />
+                    {kat.ad}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {metinAlanlari.map(alan => (
+            <label className="field field-fade-in" key={alan.anahtar}>
+              <span className="field-label">{alan.etiket}</span>
+              <input
+                type="text"
+                className="field-input"
+                placeholder={alan.ipucu ?? ''}
+                value={metinDeger(alan.anahtar)}
+                onChange={(e) => setOzellik(alan.anahtar, e.target.value)}
               />
             </label>
+          ))}
 
-            {boolAlanlari.map(alan => {
-              const acik = ozellikler[alan.anahtar] === true;
-              return (
-                <div className="field-toggle" key={alan.anahtar}>
-                  <div>
-                    <span className="field-label">{alan.etiket}</span>
-                    {isIstek && (
-                      <p className="field-hint">
-                        Biliyorsan şimdi işaretle; denedikten sonra da değiştirebilirsin.
-                      </p>
-                    )}
-                  </div>
-                  {/* Anahtar yerine iki kutu: hangi tarafın seçili olduğu tartışmasız. */}
-                  <div className="switch" role="group" aria-label={alanKisa(alan)}>
-                    <button
-                      type="button"
-                      className={`switch-opt${acik ? ' is-on' : ''}`}
-                      onClick={() => setOzellik(alan.anahtar, true)}
-                      aria-pressed={acik}
-                    >
-                      Evet
-                    </button>
-                    <button
-                      type="button"
-                      className={`switch-opt${acik ? '' : ' is-on'}`}
-                      onClick={() => setOzellik(alan.anahtar, false)}
-                      aria-pressed={!acik}
-                    >
-                      Hayır
-                    </button>
-                  </div>
+          <label className="field">
+            <span className="field-label">Not</span>
+            <textarea
+              className="field-input field-textarea"
+              rows={2}
+              placeholder={isIstek ? 'Nerede gördüm, kim önerdi…' : 'Tadı, dokusu, aklında kalanlar…'}
+              value={notlar}
+              onChange={(e) => setNotlar(e.target.value)}
+            />
+          </label>
+
+          {boolAlanlari.map(alan => {
+            const acik = ozellikler[alan.anahtar] === true;
+            return (
+              <div className="field-toggle" key={alan.anahtar}>
+                <div>
+                  <span className="field-label">{alan.etiket}</span>
+                  {isIstek && (
+                    <p className="field-hint">
+                      Biliyorsan şimdi işaretle; denedikten sonra da değiştirebilirsin.
+                    </p>
+                  )}
                 </div>
-              );
-            })}
-
-            {showPosition && (
-              <div className="field">
-                <span className="field-label">Listeye Ekleneceği Yer</span>
-                <p className="field-hint">Sonrasında listeden sürükleyerek sırasını değiştirebilirsin.</p>
-                <div className="position-toggle">
+                {/* Anahtar yerine iki kutu: hangi tarafın seçili olduğu tartışmasız. */}
+                <div className="switch" role="group" aria-label={alanKisa(alan)}>
                   <button
                     type="button"
-                    className={positionMode === 'top' ? 'selected' : ''}
-                    onClick={() => setPositionMode('top')}
+                    className={`switch-opt${acik ? ' is-on' : ''}`}
+                    onClick={() => setOzellik(alan.anahtar, true)}
+                    aria-pressed={acik}
                   >
-                    En Üste
+                    Evet
                   </button>
                   <button
                     type="button"
-                    className={positionMode === 'bottom' ? 'selected' : ''}
-                    onClick={() => setPositionMode('bottom')}
+                    className={`switch-opt${acik ? '' : ' is-on'}`}
+                    onClick={() => setOzellik(alan.anahtar, false)}
+                    aria-pressed={!acik}
                   >
-                    En Alta
-                  </button>
-                  <button
-                    type="button"
-                    className={positionMode === 'after' ? 'selected' : ''}
-                    onClick={() => setPositionMode('after')}
-                  >
-                    Şunun Altına
+                    Hayır
                   </button>
                 </div>
-
-                {positionMode === 'after' && (
-                  <select
-                    className="field-select field-fade-in"
-                    value={afterItemId}
-                    onChange={(e) => setAfterItemId(e.target.value)}
-                    aria-label="Hangi kaydın altına eklensin"
-                  >
-                    {existingItems.map((item, idx) => (
-                      <option key={item.id} value={item.id}>
-                        {idx + 1}. {item.ad}{item.alt_ad ? ` — ${item.alt_ad}` : ''}
-                      </option>
-                    ))}
-                  </select>
-                )}
               </div>
-            )}
+            );
+          })}
 
-            <div className="form-screen-actions">
-              <button type="button" className="btn-quiet" onClick={handleClose}>Vazgeç</button>
-              <button type="submit" className="btn-primary" disabled={uploading || kaydediliyor}>
-                {uploading
-                  ? 'Yükleniyor…'
-                  : kaydediliyor ? 'Kaydediliyor…'
-                  : isDonusum ? 'Sıralamaya Ekle'
-                  : editingItem ? 'Güncelle'
-                  : isIstek ? 'Listeme Ekle'
-                  : 'Kaydet'}
-              </button>
+          {showPosition && (
+            <div className="field">
+              <span className="field-label">Listeye Ekleneceği Yer</span>
+              <p className="field-hint">Sonrasında listeden sürükleyerek sırasını değiştirebilirsin.</p>
+              <div className="position-toggle">
+                <button
+                  type="button"
+                  className={positionMode === 'top' ? 'selected' : ''}
+                  onClick={() => setPositionMode('top')}
+                >
+                  En Üste
+                </button>
+                <button
+                  type="button"
+                  className={positionMode === 'bottom' ? 'selected' : ''}
+                  onClick={() => setPositionMode('bottom')}
+                >
+                  En Alta
+                </button>
+                <button
+                  type="button"
+                  className={positionMode === 'after' ? 'selected' : ''}
+                  onClick={() => setPositionMode('after')}
+                >
+                  Şunun Altına
+                </button>
+              </div>
+
+              {positionMode === 'after' && (
+                <select
+                  className="field-select field-fade-in"
+                  value={afterItemId}
+                  onChange={(e) => setAfterItemId(e.target.value)}
+                  aria-label="Hangi kaydın altına eklensin"
+                >
+                  {existingItems.map((item, idx) => (
+                    <option key={item.id} value={item.id}>
+                      {idx + 1}. {item.ad}{item.alt_ad ? ` — ${item.alt_ad}` : ''}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
-          </form>
-        )}
-      </section>
-    </div>
+          )}
+
+          <div className="form-screen-actions">
+            <button type="button" className="btn-quiet" onClick={handleClose}>Vazgeç</button>
+            <button type="submit" className="btn-primary" disabled={uploading || kaydediliyor}>
+              {uploading
+                ? 'Yükleniyor…'
+                : kaydediliyor ? 'Kaydediliyor…'
+                : isDonusum ? 'Sıralamaya Ekle'
+                : editingItem ? 'Güncelle'
+                : isIstek ? 'Listeme Ekle'
+                : 'Kaydet'}
+            </button>
+          </div>
+        </form>
+      )}
+    </Sheet>
   );
 }

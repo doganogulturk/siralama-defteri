@@ -3,11 +3,40 @@
 
 import React, { useState } from 'react';
 import Hesap from '../components/Hesap';
+import Marka from '../components/Marka';
 import { BosSahne } from '../components/Sahne';
+import { IskeletKartlar } from '../components/Iskelet';
 import Link from 'next/link';
 import { useListeler, siralanan } from '../hooks/useListeler';
 import ListeEkleModal from '../components/ListeEkleModal';
 import { useAuth } from '../hooks/useAuth';
+import { brandInitials } from '../types/item';
+import type { OzetKayit } from '../lib/items';
+
+/** Podyumun basamakları soldan sağa: ikinci, birinci, üçüncü. */
+const BASAMAKLAR = [1, 0, 2];
+
+/**
+ * Liste kartındaki podyum: ilk üçün fotoğrafları basamak basamak, şampiyon ortada
+ * ve en yüksekte. Fotoğrafsız kayıt baş harfleriyle, boş basamak kesik çizgiyle.
+ */
+function Podyum({ ilkUc }: { ilkUc: OzetKayit[] }) {
+  return (
+    <span className="podyum" aria-hidden="true">
+      {BASAMAKLAR.map(n => {
+        const k = ilkUc[n];
+        return (
+          <span key={n} className={`podyum-basamak${k ? '' : ' is-bos'}`} data-sira={n + 1}>
+            {k?.fotograf_url
+              ? <img src={k.fotograf_url} alt="" loading="lazy" />
+              : k && <b>{brandInitials(k.ad)}</b>}
+            <i>{n + 1}</i>
+          </span>
+        );
+      })}
+    </span>
+  );
+}
 
 export default function ListelerPage() {
   const { listeler, sayilar, loading, error, load } = useListeler();
@@ -28,26 +57,30 @@ export default function ListelerPage() {
   return (
     <div className="app app-solo">
       <main className="list">
-        <header className="home-head">
-          <div className="home-head-text">
-            {ilkAd && <p className="home-hello">Merhaba {ilkAd}</p>}
-            <h1 className="home-title">Listelerin</h1>
-            {listeler.length > 0 && (
-              <p className="home-summary">
-                <strong>{listeler.length}</strong> liste · <strong>{siralananToplam}</strong> sıralandı ·{' '}
-                <strong>{bekleyen}</strong> denenmemiş
-              </p>
-            )}
-          </div>
+        {/* Üst çubuk: marka solda; masaüstünde ekleme düğmesi ve hesap sağda. */}
+        <div className="home-bar">
+          <Marka />
           <div className="home-head-yan">
-            {/* Masaüstünde yüzen düğme gizli; ekleme başlığın yanına geçiyor. */}
+            {/* Masaüstünde yüzen düğme gizli; ekleme üst çubuğa geçiyor. */}
             <div className="list-head-actions">
               <button type="button" className="btn-primary" onClick={() => setFormAcik(true)}>
-                + Yeni liste
+                <span aria-hidden="true">+</span> Yeni liste
               </button>
             </div>
             {user && <Hesap user={user} className="home-hesap" />}
           </div>
+        </div>
+
+        <header className="home-head">
+          {ilkAd && <p className="home-hello">Merhaba {ilkAd},</p>}
+          <h1 className="home-title">Listelerin</h1>
+          {listeler.length > 0 && (
+            <ul className="home-stats">
+              <li><strong>{listeler.length}</strong> liste</li>
+              <li><strong>{siralananToplam}</strong> sıralandı</li>
+              <li><strong>{bekleyen}</strong> denenmemiş</li>
+            </ul>
+          )}
         </header>
 
         {error && (
@@ -58,7 +91,7 @@ export default function ListelerPage() {
         )}
 
         {loading ? (
-          <p className="state-msg">Yükleniyor…</p>
+          <IskeletKartlar />
         ) : listeler.length === 0 ? (
           <div className="state-empty">
             <BosSahne tur="listeler" />
@@ -81,17 +114,12 @@ export default function ListelerPage() {
                   href={`/l/${l.slug}`}
                   className={`liste-card${sampiyon ? '' : ' is-bos'}`}
                 >
-                  {/* Şampiyonun fotoğrafı kartın arkasında soluk bir zemin; yoksa kart sade kalıyor. */}
-                  {sampiyon?.fotograf_url && (
-                    <span className="liste-card-kapak" aria-hidden="true">
-                      <img src={sampiyon.fotograf_url} alt="" />
-                    </span>
-                  )}
-
                   <span className="liste-card-bas">
                     <strong className="liste-card-ad">{l.ad}</strong>
                     <b className="liste-card-sayi" aria-label={`${adet} sıralandı`}>{adet}</b>
                   </span>
+
+                  <Podyum ilkUc={ilkUc} />
 
                   {sampiyon ? (
                     <ol className="liste-card-podyum">

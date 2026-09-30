@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useListeler, siralanan } from '../hooks/useListeler';
 import ListeEkleModal from './ListeEkleModal';
+import Marka from './Marka';
 
 const ArtiIkon = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -30,11 +31,12 @@ export default function ListeRayi({ aktifSlug }: ListeRayiProps) {
     <>
       <aside className="rail">
         <Link href="/" className="rail-brand">
-          <span className="rail-brand-text">
-            <strong>Sıralama<br />Defteri</strong>
-            <em>{listeler.length} liste</em>
-          </span>
+          <Marka />
         </Link>
+
+        <p className="rail-baslik">
+          Listeler <span>{listeler.length}</span>
+        </p>
 
         <nav className="rail-index" aria-label="Listeler">
           {listeler.map(l => {

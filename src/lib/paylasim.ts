@@ -27,6 +27,9 @@ export function kodUret(uzunluk = 16): string {
 
 export const paylasimAdresi = (kod: string, koken: string) => `${koken}/p/${kod}`;
 
+/** Paylaşım menüsünde ve WhatsApp mesajında bağlantının önündeki metin. */
+export const paylasimMetni = (listeAdi: string) => `${listeAdi} sıralamam`;
+
 export type PaylasilanKayit =
   Pick<Item, 'id' | 'category_id' | 'ad' | 'alt_ad' | 'fotograf_url' | 'ozellikler'> & { asla: boolean };
 

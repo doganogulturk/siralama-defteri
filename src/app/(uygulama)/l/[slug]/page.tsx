@@ -20,6 +20,7 @@ import { TopluBlok, topluKaydet } from '../../../../lib/toplu';
 import { hataMetni } from '../../../../lib/hata';
 import { uploadFotograf, deleteFotograf } from '../../../../lib/items';
 import { useIsDesktop } from '../../../../hooks/useIsDesktop';
+import { paylasimAdresi, paylasimMetni } from '../../../../lib/paylasim';
 import FilterPanel from '../../../../components/FilterPanel';
 import {
   ASLA_SINIRI, AslaSiniri, DraggableRow, StaticRow, SuruklenebilirAslaSiniri,
@@ -50,6 +51,12 @@ const KartIkon = (
     <rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" />
     <rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" />
   </Ikon>
+);
+const PaylasIkon = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 15V3M7.5 7.5L12 3l4.5 4.5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />
+  </svg>
 );
 const SatirIkon = <Ikon><path d="M4 6h16M4 12h16M4 18h16" /></Ikon>;
 
@@ -357,6 +364,28 @@ export default function ListePage() {
 
   const listeAdi = liste?.ad ?? 'Sıralama';
 
+  /**
+   * Başlıktaki Paylaş: liste paylaşılıyorsa sistemin paylaşım menüsü (yoksa
+   * bağlantı panoya); paylaşılmıyorsa bağlantı oluşturulabilsin diye ayarlar.
+   */
+  const paylas = async () => {
+    if (!liste) return;
+    if (!liste.paylasim_kodu) { setAyarlarAcik(true); return; }
+    const url = paylasimAdresi(liste.paylasim_kodu, window.location.origin);
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: liste.ad, text: paylasimMetni(liste.ad), url });
+      } catch { /* Menü kapatıldı: yapılacak bir şey yok. */ }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setBildirim('Paylaşım bağlantısı kopyalandı');
+    } catch {
+      setAyarlarAcik(true);   // Pano kapalı: bağlantı ayarlarda seçilip kopyalanabilir.
+    }
+  };
+
   const listBody = (() => {
     if (loading) return <IskeletSatirlar />;
     if (!liste) {
@@ -518,6 +547,17 @@ export default function ListePage() {
                 : ranked[0] ? <>Şampiyon: <b>{ranked[0].ad}</b></> : 'Henüz sıralama yok'}
             </em>
           </span>
+          <div className="mobile-brand-yan">
+          <button
+            type="button"
+            className="mobile-brand-settings"
+            aria-label="Listeyi paylaş"
+            onClick={paylas}
+            disabled={!liste}
+          >
+            {PaylasIkon}
+            <span className="mobile-brand-settings-ad">Paylaş</span>
+          </button>
           <button
             type="button"
             className="mobile-brand-settings"
@@ -533,6 +573,7 @@ export default function ListePage() {
             {/* Etiket yalnızca masaüstünde: mobil başlıkta sığmaz, adı keserdi. */}
             <span className="mobile-brand-settings-ad">Liste ayarları</span>
           </button>
+          </div>
         </div>
 
         {total > 0 && (

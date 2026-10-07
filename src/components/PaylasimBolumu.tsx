@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Liste } from '../types/item';
-import { kodUret, paylasimAdresi } from '../lib/paylasim';
+import { kodUret, paylasimAdresi, paylasimMetni } from '../lib/paylasim';
 import { useAuth } from '../hooks/useAuth';
 
 interface PaylasimBolumuProps {
@@ -38,7 +38,7 @@ export default function PaylasimBolumu({ liste, busy, kodKaydet }: PaylasimBolum
 
   const kod = liste.paylasim_kodu;
   const adres = kod ? paylasimAdresi(kod, window.location.origin) : '';
-  const mesaj = `${liste.ad} sıralamam: ${adres}`;
+  const mesaj = `${paylasimMetni(liste.ad)}: ${adres}`;
 
   const kopyala = async () => {
     try {
@@ -51,7 +51,7 @@ export default function PaylasimBolumu({ liste, busy, kodKaydet }: PaylasimBolum
 
   const paylas = async () => {
     try {
-      await navigator.share({ title: liste.ad, text: `${liste.ad} sıralamam`, url: adres });
+      await navigator.share({ title: liste.ad, text: paylasimMetni(liste.ad), url: adres });
     } catch {
       /* Kullanıcı menüyü kapattı: yapılacak bir şey yok. */
     }

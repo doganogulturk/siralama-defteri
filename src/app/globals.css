@@ -167,10 +167,10 @@ a { color: var(--accent-ink); }
 
 .list { padding: 0 16px 128px; }
 
-/* Sıralama ekranının üst çubuğu: yuvarlak geri ve ayar düğmeleri, ortada ad. */
+/* Sıralama ekranının üst çubuğu: solda geri, sağda paylaş ve ayarlar, ortada ad. */
 .mobile-brand {
   display: grid;
-  grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap);
+  grid-template-columns: var(--tap) minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
   padding: 14px 0 2px;
@@ -222,6 +222,7 @@ a { color: var(--accent-ink); }
 .mobile-brand-settings:active { transform: scale(0.94); }
 .mobile-brand-settings:disabled { opacity: 0.5; cursor: default; }
 .mobile-brand-settings-ad { display: none; }
+.mobile-brand-yan { display: flex; gap: 8px; }
 
 .mobile-summary {
   text-align: center;
@@ -2279,14 +2280,13 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   .mobile-brand-text strong { font-size: 3.4rem; line-height: 1; }
   .mobile-brand-text em { font-size: 0.9rem; margin-top: 6px; }
   /* Masaüstünde ayar düğmesi simgeli, sakin bir hap: raydaki satır simgelerinin yerini alıyor. */
+  .mobile-brand-yan { margin-left: auto; margin-bottom: 6px; }
   .mobile-brand-settings {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     width: auto;
     height: 38px;
-    margin-left: auto;
-    margin-bottom: 6px;
     padding: 0 14px 0 12px;
     font-size: 0.875rem;
     font-weight: 500;

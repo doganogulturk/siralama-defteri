@@ -61,7 +61,7 @@ export async function createListe(
 
 export async function updateListe(
   id: string,
-  entry: Partial<Pick<Liste, 'ad' | 'slug' | 'renk' | 'sira' | 'alanlar'>>
+  entry: Partial<Pick<Liste, 'ad' | 'slug' | 'renk' | 'sira' | 'alanlar' | 'paylasim_kodu'>>
 ): Promise<Liste> {
   const { data, error } = await supabase
     .from(T_LISTS)

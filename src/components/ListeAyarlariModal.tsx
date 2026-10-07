@@ -9,6 +9,7 @@ import {
 import { listeleriTazele } from '../hooks/useListeler';
 import { hataMetni } from '../lib/hata';
 import Sheet from './Sheet';
+import PaylasimBolumu from './PaylasimBolumu';
 
 const KaldirIkon = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -36,8 +37,8 @@ interface ListeAyarlariModalProps {
 }
 
 /**
- * Liste ayarları: başlıkta düzenlenebilir ad, altında kategoriler, ek alanlar ve
- * silme. Ayrı bir sayfa değil, sıralama ekranının üstünde açılan popup — kayıt
+ * Liste ayarları: başlıkta düzenlenebilir ad, altında paylaşım, kategoriler, ek
+ * alanlar ve silme. Ayrı bir sayfa değil, sıralama ekranının üstünde açılan popup — kayıt
  * formuyla aynı kabuk. Değişiklikler anında kaydediliyor, "Kaydet" yok.
  */
 export default function ListeAyarlariModal({
@@ -191,6 +192,12 @@ export default function ListeAyarlariModal({
       </header>
 
       <div className="form-screen-body ayar-govde">
+        <PaylasimBolumu
+          liste={liste}
+          busy={busy}
+          kodKaydet={(kod) => calistir(() => updateListe(liste.id, { paylasim_kodu: kod }))}
+        />
+
         <section className="ayar-bolum">
           <h2 className="ayar-bolum-baslik">Kategoriler</h2>
 

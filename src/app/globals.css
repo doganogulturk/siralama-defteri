@@ -2409,6 +2409,89 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   .app-solo .list { padding: 0 64px 88px; }
 }
 
+/* ═══════════════════════════════════════════════════════
+   PAYLAŞIM — salt okunur liste (/p/[kod])
+   Sıralama ekranının satırları; dokunma, sürükleme ve seçim yok.
+═══════════════════════════════════════════════════════ */
+.paylasim {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 16px calc(48px + env(safe-area-inset-bottom));
+}
+.paylasim-bar { display: flex; align-items: center; padding: 16px 0 0; }
+.paylasim-marka { text-decoration: none; border-radius: 10px; }
+.paylasim-bas { padding: 36px 0 18px; }
+.paylasim-sahip { font-size: 1rem; color: var(--mute); }
+.paylasim-baslik {
+  margin-top: 4px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(3rem, 14vw, 4.2rem);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.paylasim-ozet { margin-top: 14px; font-size: 0.9rem; color: var(--mute); }
+.paylasim-ozet strong { color: var(--ink); font-weight: 600; }
+.paylasim .rows { list-style: none; }
+.paylasim .row,
+.paylasim .row:hover { cursor: default; box-shadow: var(--hair), var(--shadow-sm); }
+.paylasim .row { padding-right: 14px; }
+.paylasim .row.is-sampiyon,
+.paylasim .row.is-sampiyon:hover { box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 30%, transparent), var(--shadow); }
+.paylasim .row.is-asla,
+.paylasim .row.is-asla:hover { box-shadow: var(--hair); }
+/* Kategori: rozetlerin başında, kategorinin renginde nokta. */
+.row-tag.is-kat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--tint);
+  color: var(--soft);
+}
+.row-tag.is-kat::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--kat);
+}
+/* Dar ekranda rozetler adı ezmesin: yalnızca kategori kalıyor. */
+@media (max-width: 479px) {
+  .paylasim .row-tag:not(.is-kat) { display: none; }
+}
+.paylasim > .state-empty { margin-top: 36px; }
+.paylasim-son {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-top: 48px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--mute);
+}
+
+/* ── Liste ayarları: paylaşım bölümü ── */
+.paylas-acik { display: flex; flex-direction: column; gap: 10px; }
+.paylas-adres {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.paylas-adres input {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.86rem;
+  color: var(--soft);
+  font-variant-numeric: tabular-nums;
+}
+.paylas-islemler { display: flex; flex-wrap: wrap; gap: 8px; }
+.paylas-not { font-size: 0.82rem; color: var(--mute); }
+.paylas-not a { color: var(--accent-ink); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
   .gate-kart, .gk-cizgi { transition: none; }

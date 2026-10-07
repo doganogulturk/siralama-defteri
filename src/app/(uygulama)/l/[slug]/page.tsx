@@ -10,27 +10,27 @@ import {
 import {
   SortableContext, verticalListSortingStrategy, rectSortingStrategy, arrayMove, sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
-import { Item, alanKisa, bayrak, filtreAlanlari } from '../../../types/item';
+import { Item, alanKisa, bayrak, filtreAlanlari } from '../../../../types/item';
 import {
   KATEGORISIZ, bosFiltre, filtreBos, filtreUygula, kategoriSayilari, bayrakSayilari,
-} from '../../../lib/filtre';
-import { useListStore } from '../../../hooks/useListStore';
-import { listeleriTazele } from '../../../hooks/useListeler';
-import { TopluBlok, topluKaydet } from '../../../lib/toplu';
-import { hataMetni } from '../../../lib/hata';
-import { uploadFotograf, deleteFotograf } from '../../../lib/items';
-import { useIsDesktop } from '../../../hooks/useIsDesktop';
-import FilterPanel from '../../../components/FilterPanel';
+} from '../../../../lib/filtre';
+import { useListStore } from '../../../../hooks/useListStore';
+import { listeleriTazele } from '../../../../hooks/useListeler';
+import { TopluBlok, topluKaydet } from '../../../../lib/toplu';
+import { hataMetni } from '../../../../lib/hata';
+import { uploadFotograf, deleteFotograf } from '../../../../lib/items';
+import { useIsDesktop } from '../../../../hooks/useIsDesktop';
+import FilterPanel from '../../../../components/FilterPanel';
 import {
   ASLA_SINIRI, AslaSiniri, DraggableRow, StaticRow, SuruklenebilirAslaSiniri,
-} from '../../../components/ItemRow';
-import DetailPane from '../../../components/DetailPane';
-import WishlistPanel from '../../../components/WishlistPanel';
-import ItemForm, { FormMode } from '../../../components/ItemForm';
-import ListeRayi from '../../../components/ListeRayi';
-import ListeAyarlariModal from '../../../components/ListeAyarlariModal';
-import { BosSahne } from '../../../components/Sahne';
-import { IskeletSatirlar } from '../../../components/Iskelet';
+} from '../../../../components/ItemRow';
+import DetailPane from '../../../../components/DetailPane';
+import WishlistPanel from '../../../../components/WishlistPanel';
+import ItemForm, { FormMode } from '../../../../components/ItemForm';
+import ListeRayi from '../../../../components/ListeRayi';
+import ListeAyarlariModal from '../../../../components/ListeAyarlariModal';
+import { BosSahne } from '../../../../components/Sahne';
+import { IskeletSatirlar } from '../../../../components/Iskelet';
 
 /* İşlem çubuğunun simgeleri — uygulamanın çizgi simgeleriyle aynı kalınlıkta. */
 const Ikon = ({ children }: { children: React.ReactNode }) => (

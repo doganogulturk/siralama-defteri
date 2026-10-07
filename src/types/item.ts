@@ -26,6 +26,8 @@ export interface Liste {
   renk: string;
   sira: number;
   alanlar: AlanTanimi[];
+  /** Salt okunur paylaşım bağlantısının kodu (`/p/[kod]`); boşsa liste paylaşılmıyor. */
+  paylasim_kodu?: string | null;
   created_at?: string;
 }
 
@@ -58,10 +60,10 @@ export interface Item {
   created_at?: string;
 }
 
-export const bayrak = (item: Item, anahtar: string): boolean =>
+export const bayrak = (item: Pick<Item, 'ozellikler'>, anahtar: string): boolean =>
   item.ozellikler?.[anahtar] === true;
 
-export const metin = (item: Item, anahtar: string): string => {
+export const metin = (item: Pick<Item, 'ozellikler'>, anahtar: string): string => {
   const v = item.ozellikler?.[anahtar];
   return typeof v === 'string' ? v : '';
 };
@@ -85,3 +87,20 @@ export const brandInitials = (ad: string | null | undefined) => {
   if (words.length === 0) return '?';
   return words.slice(0, 2).map(w => w[0]?.toLocaleUpperCase('tr') ?? '').join('') || '?';
 };
+
+/** Kayda ait ilk dolu metin alanı — satırın altındaki ince açıklama. */
+export function altBilgi(item: Pick<Item, 'category_id' | 'ozellikler'>, alanlar: AlanTanimi[]): string {
+  for (const alan of alanlar) {
+    if (alan.tip !== 'metin' || !alanGorunur(alan, item.category_id)) continue;
+    const deger = metin(item, alan.anahtar);
+    if (deger) return deger;
+  }
+  return '';
+}
+
+/** Kayıtta işaretli bool alanların kısa adları — satır ve panellerdeki rozetler. */
+export function rozetler(item: Pick<Item, 'ozellikler'>, alanlar: AlanTanimi[]): string[] {
+  return alanlar
+    .filter(a => a.tip === 'bool' && bayrak(item, a.anahtar))
+    .map(alanKisa);
+}

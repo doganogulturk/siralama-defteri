@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Instrument_Serif } from "next/font/google";
 import "./globals.css";
-import AuthGate from "../components/AuthGate";
 
 /*
  * Yazı tipleri derleme anında indirilip uygulamayla birlikte sunuluyor: tarayıcı
@@ -21,7 +20,16 @@ const instrumentSerif = Instrument_Serif({
   variable: "--font-serif",
 });
 
+/**
+ * Paylaşım bağlantılarının önizleme görseli tam adres ister. Vercel üretim alan
+ * adını kendisi veriyor; yerelde geliştirme sunucusu.
+ */
+const siteAdresi = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteAdresi),
   title: {
     default: "Sıralama Defteri",
     template: "%s | Sıralama Defteri",
@@ -45,9 +53,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr" className={`${geist.variable} ${instrumentSerif.variable}`}>
-      <body>
-        <AuthGate>{children}</AuthGate>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

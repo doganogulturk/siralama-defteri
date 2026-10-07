@@ -2,16 +2,16 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useState } from 'react';
-import Hesap from '../components/Hesap';
-import Marka from '../components/Marka';
-import { BosSahne } from '../components/Sahne';
-import { IskeletKartlar } from '../components/Iskelet';
+import Hesap from '../../components/Hesap';
+import Marka from '../../components/Marka';
+import { BosSahne } from '../../components/Sahne';
+import { IskeletKartlar } from '../../components/Iskelet';
 import Link from 'next/link';
-import { useListeler, siralanan } from '../hooks/useListeler';
-import ListeEkleModal from '../components/ListeEkleModal';
-import { useAuth } from '../hooks/useAuth';
-import { brandInitials } from '../types/item';
-import type { OzetKayit } from '../lib/items';
+import { useListeler, siralanan } from '../../hooks/useListeler';
+import ListeEkleModal from '../../components/ListeEkleModal';
+import { useAuth } from '../../hooks/useAuth';
+import { brandInitials } from '../../types/item';
+import type { OzetKayit } from '../../lib/items';
 
 /** Podyumun basamakları soldan sağa: ikinci, birinci, üçüncü. */
 const BASAMAKLAR = [1, 0, 2];

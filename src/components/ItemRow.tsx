@@ -4,26 +4,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import {
-  AlanTanimi, Item, alanGorunur, alanKisa, bayrak, brandInitials, metin,
-} from '../types/item';
-
-/** Kayda ait ilk dolu metin alanı — satırın altındaki ince açıklama. */
-export function altBilgi(item: Item, alanlar: AlanTanimi[]): string {
-  for (const alan of alanlar) {
-    if (alan.tip !== 'metin' || !alanGorunur(alan, item.category_id)) continue;
-    const deger = metin(item, alan.anahtar);
-    if (deger) return deger;
-  }
-  return '';
-}
-
-/** Kayıtta işaretli bool alanların kısa adları — satır ve panellerdeki rozetler. */
-export function rozetler(item: Item, alanlar: AlanTanimi[]): string[] {
-  return alanlar
-    .filter(a => a.tip === 'bool' && bayrak(item, a.anahtar))
-    .map(alanKisa);
-}
+import { AlanTanimi, Item, altBilgi, brandInitials, rozetler } from '../types/item';
 
 /** Sıralama ile "Bir daha asla" bölümünü ayıran çizginin sıralanabilir listedeki kimliği. */
 export const ASLA_SINIRI = 'asla-siniri';

@@ -10,7 +10,7 @@ Uygulama çalışır ve **canlıda**: giriş, çok listeli sıralama, kategori v
 
 **Dağıtım** — Vercel, `main` dalından otomatik: <https://siralama-defteri.vercel.app>. Push üretimi günceller. Vercel'de `NEXT_PUBLIC_SUPABASE_URL` ve `NEXT_PUBLIC_SUPABASE_ANON_KEY` tanımlı olmalı; Supabase'in Redirect URLs listesinde üretim alan adı da bulunmalı, yoksa build geçer ama Google girişi canlıda **sessizce** başarısız olur — giriş `redirectTo` olarak `window.location.origin` kullandığı için tek kapı o liste.
 
-**Veri** — `si_lists` / `si_categories` / `si_items` şeması RLS ile kurulu. Şemada bu üç tablo, ana ekranın özetlerini hazırlayan `si_liste_ozetleri` ve paylaşılan listeyi okuyan `si_paylasilan_liste` fonksiyonları var.
+**Veri** — Supabase projesi başka uygulamalarla paylaşıldığı için her şey uygulamanın kendi şemasında: `do_siralama_defteri`. Şemada `lists` / `categories` / `items` tabloları (RLS ile), ana ekranın özetlerini hazırlayan `liste_ozetleri` ve paylaşılan listeyi okuyan `paylasilan_liste` fonksiyonları var. Tanımın tamamı `supabase/schema.sql`.
 
 **Kimlik** — Google girişi Supabase Auth üzerinden; uygulama sayfaları (`app/(uygulama)/`) `AuthGate` arkasında, asıl koruma RLS'te. Paylaşım sayfaları bu grubun dışında: oturum istemiyor.
 
@@ -18,11 +18,11 @@ Uygulama çalışır ve **canlıda**: giriş, çok listeli sıralama, kategori v
 
 Listeler ve kategoriler kayıt sayısına göre sıralı — elle sıralama diye bir iş yok. Listelerde ölçü "kaç şeyi denedim": bekleyenler sayılmıyor, "Bir daha asla" bölümündekiler sayılıyor; bir kayıt "Denedim" ile sıralamaya geçtiğinde rakam artıyor. Ray ve indeks sayıları sayfadan ayrı bir sorgudan geldiği için `useListeler`'de küçük bir haber kanalı var: sayfa bir mutasyondan sonra `listeleriTazele()` çağırıyor.
 
-Kodda listeye özel hiçbir alan adı geçmiyor: kategoriler veritabanından, ek alanlar `si_lists.alanlar` tanımından üretiliyor.
+Kodda listeye özel hiçbir alan adı geçmiyor: kategoriler veritabanından, ek alanlar `lists.alanlar` tanımından üretiliyor.
 
 Masaüstündeki sağ panel kaydın tamamını gösteriyor (not dahil, satır sonları korunuyor); sıralamadaki kayıtta "Sıralamadaki yeri" bölümü bir üstünü ve bir altını gösteriyor, onlara tıklayınca panel o kayda geçiyor; Düzenle düğmesi yalnızca değiştirmek için. Sırası olmayan kayıtta sıra rozeti yerine "Denenmemiş" ya da "Bir daha asla" yazıyor. Fotoğraf alanı aynı zamanda yükleme yeri: tıklayarak ya da dosyayı üstüne bırakarak Düzenle'yi açmadan fotoğraf eklenip değiştirilebiliyor. Fotoğraf kırpılmadan sığdırılıyor (ürün fotoğrafları çoğunlukla dikey).
 
-**Paylaşım** — Sıralama başlığındaki "Paylaş" düğmesi liste paylaşılıyorsa sistemin paylaşım menüsünü açıyor (menü yoksa bağlantıyı panoya kopyalıyor), paylaşılmıyorsa bağlantı oluşturulabilsin diye liste ayarlarını açıyor. Liste ayarlarının en üstündeki "Paylaşım" bölümü salt okunur bir bağlantı (`/p/[kod]`) oluşturuyor; alan herkes giriş yapmadan sıralamayı görüyor. Kod liste adresinden bağımsız, 16 rastgele harf-rakam (`si_lists.paylasim_kodu`, boşsa paylaşım kapalı). "Bağlantıyı yenile" yeni kod üretip eski bağlantıyı geçersiz kılıyor, "Paylaşımı kapat" kodu siliyor. Telefonda "Paylaş" sistemin paylaşım menüsünü açıyor; "Kopyala" ve "WhatsApp" her yerde var. Sayfa sunucuda çiziliyor (WhatsApp önizleme kartını hazırlarken JavaScript çalıştırmıyor) ve canlı: sıralama değiştikçe bağlantı da değişiyor. Veri tek kapıdan geliyor: `si_paylasilan_liste` (security definer) yalnızca liste adını, ek alan tanımlarını, kategorileri, sıralamayı, "Bir daha asla"yı ve sahibin Google'daki adını döndürüyor — e-posta, kullanıcı kimliği, notlar ve denenmemişler dönmüyor; tablolara anonim okuma açılmadı. Sayfada tamlayan ekli başlık ("Doğan Oğultürk'ün sıralaması", `lib/paylasim.ts` → `tamlayan`), aynı satırlar (dokunma ve sürükleme yok, kategori renkli hap) ve altta uygulamaya davet var; arama motorlarına kapalı (`noindex`). Önizleme görseli (`opengraph-image.tsx`) sahibi, liste adını ve fotoğraflarıyla ilk üçü çiziyor; yazı tipleri `src/fonts/`'ta (OFL). Fotoğraflar yalnızca uygulamanın kendi Supabase kovasındaysa gösteriliyor ve görsel için sunucuda indiriliyor (`guvenliFoto`): `fotograf_url` sahibinin yazabildiği bir alan, başka bir adres sunucuyu oraya istek atmaya yöneltirdi. Görsel motorunun çizemediği biçimler (HEIC gibi) baş harfe düşüyor. Üretimde çalışması için `supabase/008_paylasim.sql` Supabase'de çalıştırılmış olmalı.
+**Paylaşım** — Sıralama başlığındaki "Paylaş" düğmesi liste paylaşılıyorsa sistemin paylaşım menüsünü açıyor (menü yoksa bağlantıyı panoya kopyalıyor), paylaşılmıyorsa bağlantı oluşturulabilsin diye liste ayarlarını açıyor. Liste ayarlarının en üstündeki "Paylaşım" bölümü salt okunur bir bağlantı (`/p/[kod]`) oluşturuyor; alan herkes giriş yapmadan sıralamayı görüyor. Kod liste adresinden bağımsız, 16 rastgele harf-rakam (`lists.paylasim_kodu`, boşsa paylaşım kapalı). "Bağlantıyı yenile" yeni kod üretip eski bağlantıyı geçersiz kılıyor, "Paylaşımı kapat" kodu siliyor. Telefonda "Paylaş" sistemin paylaşım menüsünü açıyor; "Kopyala" ve "WhatsApp" her yerde var. Sayfa sunucuda çiziliyor (WhatsApp önizleme kartını hazırlarken JavaScript çalıştırmıyor) ve canlı: sıralama değiştikçe bağlantı da değişiyor. Veri tek kapıdan geliyor: `paylasilan_liste` (security definer) yalnızca liste adını, ek alan tanımlarını, kategorileri, sıralamayı, "Bir daha asla"yı ve sahibin Google'daki adını döndürüyor — e-posta, kullanıcı kimliği, notlar ve denenmemişler dönmüyor; tablolara anonim okuma açılmadı. Sayfada tamlayan ekli başlık ("Doğan Oğultürk'ün sıralaması", `lib/paylasim.ts` → `tamlayan`), aynı satırlar (dokunma ve sürükleme yok, kategori renkli hap) ve altta uygulamaya davet var; arama motorlarına kapalı (`noindex`). Önizleme görseli (`opengraph-image.tsx`) sahibi, liste adını ve fotoğraflarıyla ilk üçü çiziyor; yazı tipleri `src/fonts/`'ta (OFL). Fotoğraflar yalnızca uygulamanın kendi Supabase kovasındaysa gösteriliyor ve görsel için sunucuda indiriliyor (`guvenliFoto`): `fotograf_url` sahibinin yazabildiği bir alan, başka bir adres sunucuyu oraya istek atmaya yöneltirdi. Görsel motorunun çizemediği biçimler (HEIC gibi) baş harfe düşüyor.
 
 **Toplu ekleme** — Kayıt formunun ikinci sekmesi ("Toplu"). Alt alta yazılan her satır bir kayıt; sonu iki nokta ile biten satır (`Patates:`) listenin içinde bir kategori açar, altındaki satırlar oraya yazılır. Satır içi biçim de geçerli: `Cips: Doritos` satırında iki noktadan önceki kısım kategori, sonrası kayıt. İlk virgülden sonrası kaydın "Çeşit / Alt ad" değeri olur (`Doritos, Nacho`); sonraki virgüller alt adın içinde kalır, bu yüzden bir satıra birden çok kayıt yazılamıyor. Ayrıştırma `lib/toplu.ts`'te; form kaydetmeden önce sonucu önizleme olarak gösteriyor — virgül ya da iki nokta kayıt adının içinde geçtiğinde bölünme yanlış olur, kullanıcı bunu kaydetmeden görmeli. Sekme formun kipini miras alıyor: sıralamadayken kayıtlar yazıldıkları sırayla sıralamanın altına, "Denenmemiş" sekmesindeyken bekleyenlere düşüyor. Aynı kutu Yeni Liste formunda da var (kapalı doğar): listeyi ve kategorilerini tek hamlede kurmak için. Yeni Liste formunda ayrıca bir **Kategoriler** alanı var: Enter ya da virgül yazılan adı hapa çeviriyor (yapıştırılan "a, b, c" de bölünüyor), Backspace boş kutuda son hapı siliyor, büyük-küçük harf farkıyla tekrarlar atılıyor, kutuda yazılı kalıp eklenmemiş ad da sayılıyor. Liste oluşunca kategoriler önce açılıyor (sıraları ve renkleri `KATEGORI_PALET` sırasıyla), toplu metindeki aynı adlı başlıklar onlara bağlanıyor. Kategori ya da kayıt girilmişse form ayarlar popup'ı yerine doğrudan sıralamaya gidiyor. Tekrar kontrolü bilerek yok.
 
@@ -91,7 +91,7 @@ Versal kullanılmıyor: kullanıcının yazdığı adlar ve düğme metinleri ol
 - **Satır düzeni** — İşaretlemede tutamak başta, numara sonda duruyor; görsel sıra CSS `order` ile (numara solda, rozetler ve tutamak sağda). Sürükleme yalnızca tutamaktan başlıyor, satıra dokunmak seçiyor.
 - **Sürükle-bırak** — dnd-kit; satır görünümünde `verticalListSortingStrategy`, kart görünümünde `rectSortingStrategy`; satır dönüşümü `CSS.Translate`, çünkü alt bilgisi olan satır daha uzun ve ölçekleme onu ezerdi. Sıralama ve "Bir daha asla" tek sıralanabilir liste; vurgu çizgisi de listenin sürüklenemeyen bir öğesi (`ASLA_SINIRI`). Bırakınca çizginin üstü `asla = false`, altı `asla = true` oluyor ve iki taraf `sira`'yı kendi içinde 0'dan numaralıyor. Kayıt ekleme (tek ve toplu) yalnızca sıralamayı hedefliyor.
 - **Fotoğrafsız kayıt** — Yedek görsel her kayıtta aynı: sade zemin (`--surface-2`) üstünde soluk baş harfler (`brandInitials`, `types/item.ts`; Türkçe büyük harfle: "ıhlamur" → "I", "ilik" → "İ"). Kayıt başına renk bilerek yok; özellikle kart görünümünde fotoğraflı kartların arasında gürültü yapıyordu. Renk fotoğrafa kalıyor.
-- **Liste özetleri** — Ana ekranın sayıları ve ilk üçü (podyumun fotoğrafları dâhil) tek bir RPC'den geliyor (`si_liste_ozetleri`, `supabase/007_liste_ozetleri.sql`): liste başına bir satır, sayım veritabanında. Önceden istemci bütün kayıtları çekip sayıyordu ve PostgREST'in 1000 satır sınırında sayılar sessizce yanlışlaşıyordu. Fonksiyon `security invoker`, yani RLS geçerli. İlk üçün seçimi `lib/sort.ts` ile aynı kural: denenmiş, `asla` değil, `sira` artan, eşitlikte en yeni önce. RPC hata verirse indeks yine açılıyor, sayılar sıfır görünüyor ve konsola uyarı düşüyor.
+- **Liste özetleri** — Ana ekranın sayıları ve ilk üçü (podyumun fotoğrafları dâhil) tek bir RPC'den geliyor (`liste_ozetleri`, `supabase/schema.sql`): liste başına bir satır, sayım veritabanında. Önceden istemci bütün kayıtları çekip sayıyordu ve PostgREST'in 1000 satır sınırında sayılar sessizce yanlışlaşıyordu. Fonksiyon `security invoker`, yani RLS geçerli. İlk üçün seçimi `lib/sort.ts` ile aynı kural: denenmiş, `asla` değil, `sira` artan, eşitlikte en yeni önce. RPC hata verirse indeks yine açılıyor, sayılar sıfır görünüyor ve konsola uyarı düşüyor.
 - **Giriş destesi** — `AuthGate` içindeki `GirisDestesi` her adımda kartların `data-yuva` değerini kaydırıyor (`1`, `2`, `3`, `cikis`, `bekle`); konumları CSS çiziyor. Tüm kartlar aynı boyda ve aynı noktada, arkadakiler ölçekle küçülüyor — geçiş yalnızca transform, opaklık ve renk. Kartın içindeki renkler `currentColor`dan türüyor, böylece kart öne geçip beyaz metne döndüğünde içerik de onunla birlikte geçiyor. Fotoğraflar gerçek görsel değil, renkli kutucuklar (`--f`).
 - **Hesap bloğu** — Google profil fotoğrafı (`avatar_url` / `picture`) ve ad; e-posta gösterilmiyor. Fotoğraf `referrerPolicy="no-referrer"` ile yükleniyor (Google aksi hâlde 403 verebiliyor), yüklenemezse baş harfe dönüyor. Blok tek bileşen (`Hesap`), yeri ekrana göre değişiyor. Masaüstü sıralama ekranında `AuthGate` onu sayfanın kardeşi olarak rayın dibine cam bir kart olarak çiziyor. Ana ekranda sayfa kendisi üst çubuğun sağına hap olarak çiziyor (mobilde avatar + çıkış, masaüstünde ad da); `AuthGate`'in bloğu orada CSS ile gizli. Mobil sıralama ekranlarında hesap yok: altları ekleme düğmesiyle dolu.
 - **Marka işareti ve sekme simgesi** — Azalan uzunlukta üç yuvarlak çizgi, en uzunu vurgu renginde: bir sıralamanın en sade hâli, en üstteki öne çıkıyor. Arayüzde `components/Marka.tsx` (renkler temadan), sekmede `src/app/icon.svg` (aynı çizim, sabit renkler). Ayar simgesi de aynı sözlükten (üç çizgi ve tutamakları).
@@ -113,16 +113,16 @@ Versal kullanılmıyor: kullanıcının yazdığı adlar ve düğme metinleri ol
 Bunlar iş değil, bilinçli kararlar:
 
 - **Apple girişi yok** — Supabase'de hazır provider ama Apple Developer hesabı ($99/yıl) gerektiriyor. Google girişi tek yol.
-- **Liste simgesi yok** — kayıtların çoğunda zaten fotoğraf var, listenin ayrıca simge taşımasına gerek yok. `si_lists.emoji` kolonu şemada duruyor ama kod ne yazıyor ne okuyor.
-- **Liste rengi yok** — listeler renkle ayrışmıyor, uygulamanın tek vurgu rengi var. `si_lists.renk` kolonu şemada duruyor ama kod okumuyor; yeni listeler varsayılanla doğuyor.
-- **Kategori sırası elle ayarlanmaz** — kategoriler kayıt sayısına göre sıralanıyor (eşitlikte `sira`, sonra `created_at`). `si_categories.sira` yalnızca eşitlik bozucu.
-- **`si_lists.sira` arayüzde kullanılmıyor** — listeler de sıralanmış kayıt sayısına göre diziliyor.
+- **Liste simgesi yok** — kayıtların çoğunda zaten fotoğraf var, listenin ayrıca simge taşımasına gerek yok. `lists.emoji` kolonu şemada duruyor ama kod ne yazıyor ne okuyor.
+- **Liste rengi yok** — listeler renkle ayrışmıyor, uygulamanın tek vurgu rengi var. `lists.renk` kolonu şemada duruyor ama kod okumuyor; yeni listeler varsayılanla doğuyor.
+- **Kategori sırası elle ayarlanmaz** — kategoriler kayıt sayısına göre sıralanıyor (eşitlikte `sira`, sonra `created_at`). `categories.sira` yalnızca eşitlik bozucu.
+- **`lists.sira` arayüzde kullanılmıyor** — listeler de sıralanmış kayıt sayısına göre diziliyor.
 - **Alan tipini değiştirmek veriyi dönüştürmez** — Evet/Hayır'dan Metin'e çevrilen alanın eski `true/false` değerleri kayıtta kalır ama okunmaz olur.
 - **Kategori silmek kayıtları silmez** — `on delete set null` ile kayıtlar kategorisiz kalır.
 - **Toplu kategori atama ek alan değerlerine dokunmaz** — yalnızca belirli bir kategoride görünen bir alanın değeri, kayıt başka kategoriye taşınınca kayıtta kalır ama görünmez olur. Tek kayıt formu kaydederken bu değerleri temizliyor; toplu yol `ozellikler`i hiç okumadığı için temizlemiyor.
 - **Toplu işlemlerde geri alma yok** — taşımalar anında yazılıyor, silme onay penceresinden sonra kalıcı. Sıralamadaki kayıtları toplu olarak "Denenmemiş"e geri gönderme de bilerek yok: nadir bir ihtiyaç, tek kayıt formundan yapılıyor.
 - **Bölüm taşıma satır satır yazılıyor** — "Bir daha asla" / "Sıralamaya al" iki bölümün bütün kayıtlarını yeniden numaraladığı için sürükle-bırak gibi kayıt başına bir UPDATE atıyor; toplu "Denedim" yalnızca taşınanlar kadar. Kategori atama ve silme tek istek.
-- **`si_items.sira` benzersiz değil** — sürükle-bırak satırları tek tek UPDATE ettiği için ara durumlarda geçici çakışma olur.
+- **`items.sira` benzersiz değil** — sürükle-bırak satırları tek tek UPDATE ettiği için ara durumlarda geçici çakışma olur.
 - **Bekleyenlerin kendi URL'i yok** — "Denenmemiş" bir sekme; donanım geri tuşu sekmeler arasında gezmiyor, listeden çıkıyor.
 - **Filtre şeridi yalnızca kategori taşıyor** — "Tümü" + kategoriler (+ kategorisiz kayıt varken "Kategorisiz"), tek seçim: bir kategori seçmek öncekini bırakıyor, seçimi "Tümü" temizliyor. Evet/Hayır alanlarına göre ayrım şu an arayüzün hiçbir yerinde yok; yol haritasında 1. sırada.
 - **Sıralama yalnızca filtresiz görünümde ve seçim modu kapalıyken değiştirilebilir** — filtreli görünümde ve seçim modunda kartlar sürüklenemiyor; "Bir daha asla"ya taşımak da yalnızca filtresizken.
@@ -135,37 +135,36 @@ Bunlar iş değil, bilinçli kararlar:
 
 ## Veri modeli
 
-Üç tablo — liste sayısı ne olursa olsun tablo sayısı sabit. Her sıralama `si_lists` içinde **bir satır**.
+Üç tablo — liste sayısı ne olursa olsun tablo sayısı sabit. Her sıralama `lists` içinde **bir satır**. Hepsi `do_siralama_defteri` şemasında.
 
 ```
-si_lists       id, user_id, ad, slug, emoji, renk, sira, alanlar(jsonb), created_at
-               └ emoji, renk ve sira kullanılmıyor (bkz. kabul edilmiş sınırlar)
-si_categories  id, list_id, ad, renk, sira, created_at
-si_items       id, list_id, category_id, ad, alt_ad, fotograf_url,
-               sira, denendi, asla, notlar, ozellikler(jsonb), created_at
+lists       id, user_id, ad, slug, emoji, sira, created_at, alanlar(jsonb), renk, paylasim_kodu
+            └ emoji, renk ve sira kullanılmıyor (bkz. kabul edilmiş sınırlar)
+categories  id, list_id, ad, renk, sira, created_at
+items       id, list_id, category_id, ad, alt_ad, fotograf_url,
+            sira, denendi, notlar, ozellikler(jsonb), created_at, asla
 ```
 
 Kritik ayrıntılar:
 
-- **`si_lists.alanlar`** — listeye özel ek alan tanımları. Biçim:
+- **`lists.alanlar`** — listeye özel ek alan tanımları. Biçim:
   `[{anahtar, tip: 'bool'|'metin', etiket, kisa?, ipucu?, filtre?, kategori_id?}]`
   Örneğin bir içecek listesinde "Ekşi mi?" (Evet/Hayır) ya da "Satılan market" (Metin). Filtre şeridi, form ve detay paneli bu tanımdan üretiliyor.
-- **`si_items.asla`** — denenmiş ama sıralamada değil: "Bir daha asla" bölümünde. Sıralama ve bölüm `sira`'yı kendi içlerinde ayrı ayrı numaralıyor; ayrımı bu kolon yapıyor.
-- **`si_items.ozellikler`** — yukarıdaki alanların değerleri (`{"eksi": true, "market": "Migros"}`).
+- **`items.asla`** — denenmiş ama sıralamada değil: "Bir daha asla" bölümünde. Sıralama ve bölüm `sira`'yı kendi içlerinde ayrı ayrı numaralıyor; ayrımı bu kolon yapıyor.
+- **`items.ozellikler`** — yukarıdaki alanların değerleri (`{"eksi": true, "market": "Migros"}`).
 - **`category_id` nullable, `on delete set null`** — kategori silinince kayıtlar kategorisiz kalır.
-- **RLS** — üç tabloda da açık; `si_lists` doğrudan `user_id` ile, diğer ikisi liste üzerinden.
+- **RLS** — üç tabloda da açık; `lists` doğrudan `user_id` ile, diğer ikisi liste üzerinden.
 
-### Migration dosyaları
+### Şema dosyası
 
-`supabase/` altında, çalıştırıldıkları sırayla. **006'ya kadar hepsi uygulanmış durumda; `007` Supabase SQL Editor'da elle çalıştırılmalı** (çalıştırılmadan ana ekranın sayıları sıfır görünür); boş bir projede sırayla çalıştırılınca şemayı eksiksiz kurarlar. Numaralardaki boşluklar (`002`, `005`) bilinçli: o numaralar tek seferlik veri işlerine aitti, şemaya katkıları yoktu.
+`supabase/schema.sql` şemanın tek ve kalıcı tanımı: boş bir veritabanında her şeyi sıfırdan kurar, kurulu olanda tekrar çalıştırılabilir (idempotent). Değişiklikler bu dosyaya yazılıp Supabase SQL Editor'da çalıştırılıyor.
 
-| Dosya | Ne yapar |
-|---|---|
-| `001_sema.sql` | Üç tabloyu ve RLS politikalarını kurar |
-| `003_liste_alanlari.sql` | `alanlar` kolonunu ekler |
-| `004_liste_rengi.sql` | `renk` kolonunu ekler (şu an kullanılmıyor) |
-| `006_bir_daha_asla.sql` | `asla` kolonunu ekler ("Bir daha asla" bölümü) |
-| `007_liste_ozetleri.sql` | `si_liste_ozetleri()` fonksiyonu: ana ekranın sayıları ve ilk üçü |
+Kurulumda iki şey dosyanın dışında:
+
+- **Exposed schemas** — Project Settings → Data API → Exposed schemas listesinde `do_siralama_defteri` olmalı (Save'e basmayı unutma). Yoksa istemcinin her isteği `PGRST106 Invalid schema` hatası verir. "Extra search path" alanı bu iş için değil.
+- **Yetkiler açıkça veriliyor** — Supabase `public` dışındaki şemalarda `anon` / `authenticated`'a otomatik yetki vermiyor. Tablolar yalnızca `authenticated`'a açık (satırları RLS süzüyor); `anon` tablolara hiç erişemiyor, yalnızca `paylasilan_liste`'yi çağırabiliyor.
+
+Fotoğraflar `storage` şemasındaki kovada; şema dosyası ona dokunmuyor.
 
 ---
 
@@ -216,15 +215,16 @@ src/
     useIsDesktop.ts
   lib/
     supabase.ts                   istemci (PKCE, oturum kalıcılığı)
+    sema.ts                       Supabase şemasının adı — iki istemci de buna bağlanıyor
     auth.ts                       signInWithGoogle / signOut
-    items.ts                      si_* CRUD + fotoğraf
+    items.ts                      lists / categories / items CRUD + fotoğraf
     toplu.ts                      toplu giriş ayrıştırma ve kaydetme
     filtre.ts                     filtre durumu, uygulama ve sayımlar
     sort.ts                       sıralama mantığı
     slug.ts                       Türkçe slug üretimi
     hata.ts                       Supabase hata nesnelerini okunur metne çevirir
   types/item.ts                   Item, Kategori, Liste, AlanTanimi + yardımcılar
-supabase/                         migration dosyaları
+supabase/schema.sql               veritabanı şeması (do_siralama_defteri)
 ```
 
 Sekme simgesi `app/icon.svg` konvansiyonuyla geliyor; `public/` klasörü yok.

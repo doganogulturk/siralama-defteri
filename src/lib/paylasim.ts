@@ -6,7 +6,7 @@ import { AlanTanimi, Item } from '../types/item';
  * `paylasim-sunucu.ts`'te, istemcinin oturumlu istemcisinden ayrı.
  */
 
-/** Veritabanındaki kontrolle aynı biçim (008_paylasim.sql). */
+/** Veritabanındaki kontrolle aynı biçim (supabase/schema.sql). */
 export const KOD_BICIMI = /^[A-Za-z0-9]{16,64}$/;
 
 const KOD_HARFLERI = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -33,7 +33,7 @@ export const paylasimMetni = (listeAdi: string) => `${listeAdi} sıralamam`;
 export type PaylasilanKayit =
   Pick<Item, 'id' | 'category_id' | 'ad' | 'alt_ad' | 'fotograf_url' | 'ozellikler'> & { asla: boolean };
 
-/** `si_paylasilan_liste` fonksiyonunun döndürdüğü — yalnızca sayfada gösterilenler. */
+/** `paylasilan_liste` fonksiyonunun döndürdüğü — yalnızca sayfada gösterilenler. */
 export interface PaylasilanListe {
   ad: string;
   alanlar: AlanTanimi[];

@@ -95,7 +95,7 @@ function Satir({ kayit, sira, alanlar, kategori }: {
 
 /**
  * Salt okunur paylaşım sayfası. Oturum istemiyor (uygulama grubunun dışında) ve
- * sunucuda çiziliyor. Veri `si_paylasilan_liste`'den: notlar ve denenmemişler yok.
+ * sunucuda çiziliyor. Veri `paylasilan_liste`'den: notlar ve denenmemişler yok.
  */
 export default async function PaylasimSayfasi({ params }: Props) {
   const { kod } = await params;

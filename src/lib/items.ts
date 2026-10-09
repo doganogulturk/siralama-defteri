@@ -1,9 +1,9 @@
 import { supabase } from './supabase';
 import { AlanTanimi, Item, Kategori, Liste } from '../types/item';
 
-const T_LISTS = 'si_lists';
-const T_CATS = 'si_categories';
-const T_ITEMS = 'si_items';
+const T_LISTS = 'lists';
+const T_CATS = 'categories';
+const T_ITEMS = 'items';
 
 /**
  * Fotoğraflar hâlâ ilk kurulumdaki kovada. Kova adı kullanıcıya görünmüyor ve
@@ -98,11 +98,11 @@ export interface ListeSayisi {
 
 /**
  * Liste başına kayıt sayıları ve ilk üç. Sayım veritabanında
- * (`supabase/007_liste_ozetleri.sql`): kayıtları istemciye çekip saymak
+ * (`supabase/schema.sql` → `liste_ozetleri`): kayıtları istemciye çekip saymak
  * PostgREST'in 1000 satır sınırında sessizce yanlış sonuç veriyordu.
  */
 export async function getListeSayilari(): Promise<Record<string, ListeSayisi>> {
-  const { data, error } = await supabase.rpc('si_liste_ozetleri');
+  const { data, error } = await supabase.rpc('liste_ozetleri');
   if (error) throw error;
 
   return Object.fromEntries(

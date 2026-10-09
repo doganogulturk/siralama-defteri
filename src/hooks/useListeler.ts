@@ -23,7 +23,7 @@ export const siralanan = (s?: ListeSayisi): number => (s ? s.toplam - s.bekleyen
  * Listeler sıralanmış kayıt sayısına göre diziliyor: en dolu sıralama başta.
  * Ölçü toplam değil sıralanan, çünkü indekste gösterilen sayı da o — bekleyenler
  * sayılsaydı satırdaki rakamla satırların sırası birbirini tutmazdı. Böylece
- * `si_lists.sira`'yı elle yönetmek gerekmiyor — sütun şemada duruyor ama
+ * `lists.sira`'yı elle yönetmek gerekmiyor — sütun şemada duruyor ama
  * arayüzde sıralamayı artık kullanım belirliyor. Eşitlikte sort kararlı
  * olduğu için sorgudan gelen sıra (sira, created_at) korunuyor.
  */

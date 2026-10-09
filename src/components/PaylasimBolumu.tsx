@@ -15,7 +15,7 @@ interface PaylasimBolumuProps {
 /**
  * Liste ayarlarındaki salt okunur paylaşım: bağlantı oluştur, paylaş ya da
  * kopyala, yenile, kapat. Bağlantıyı alan herkes giriş yapmadan sıralamayı
- * görür; notlar ve denenmemişler görünmez (008_paylasim.sql).
+ * görür; notlar ve denenmemişler görünmez (`supabase/schema.sql` → `paylasilan_liste`).
  */
 export default function PaylasimBolumu({ liste, busy, kodKaydet }: PaylasimBolumuProps) {
   const { user } = useAuth();

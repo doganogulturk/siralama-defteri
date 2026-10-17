@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { listeleriTazele } from '../hooks/useListeler';
 import ListeEkleModal from './ListeEkleModal';
 
-const ListelerIkon = (
+export const ListelerIkon = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
        strokeWidth="2" strokeLinecap="round" aria-hidden="true">
     <path d="M4 6h16M4 12h11M4 18h6" />
@@ -23,7 +23,7 @@ const KorIkon = (
   </svg>
 );
 
-const ArtiIkon = (
+export const ArtiIkon = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
        strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
     <path d="M12 5v14M5 12h14" />

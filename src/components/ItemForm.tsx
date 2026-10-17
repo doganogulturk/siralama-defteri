@@ -36,6 +36,8 @@ interface ItemFormProps {
   onClose: () => void;
   /** Beklenir: kayıt bitene kadar Kaydet kilitli kalıyor, çift basış ikinci kayıt açmasın. */
   onSave: (entry: Item, targetIndex?: number) => Promise<void> | void;
+  /** Form hangi sekmeyle açılsın; mobil alt menüdeki "Toplu ekle" doğrudan ikinciye geçiyor. */
+  ilkSekme?: 'tek' | 'toplu';
   /** Verilirse formda "Toplu" sekmesi açılır. `denendi` formun kipinden geliyor. */
   onTopluSave?: (bloklar: TopluBlok[], denendi: boolean) => Promise<void>;
   onDelete?: () => void;
@@ -73,6 +75,7 @@ export default function ItemForm({
   initialCategoryId,
   existingItems = [],
   kayitSayisi = 0,
+  ilkSekme = 'tek',
   onClose,
   onSave,
   onTopluSave,
@@ -94,7 +97,7 @@ export default function ItemForm({
   );
   const [fotografUrl, setFotografUrl] = useState(editingItem?.fotograf_url ?? '');
   const [notlar, setNotlar] = useState(editingItem?.notlar ?? '');
-  const [sekme, setSekme] = useState<'tek' | 'toplu'>('tek');
+  const [sekme, setSekme] = useState<'tek' | 'toplu'>(ilkSekme);
   const [toplu, setToplu] = useState('');
   const [topluKaydediliyor, setTopluKaydediliyor] = useState(false);
   const [positionMode, setPositionMode] = useState<'top' | 'bottom' | 'after'>('top');

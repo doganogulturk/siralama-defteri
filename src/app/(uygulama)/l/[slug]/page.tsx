@@ -21,6 +21,7 @@ import { hataMetni } from '../../../../lib/hata';
 import { uploadFotograf, deleteFotograf } from '../../../../lib/items';
 import { useIsDesktop } from '../../../../hooks/useIsDesktop';
 import { useTac } from '../../../../hooks/useTac';
+import { ArtiIkon, ListelerIkon } from '../../../../components/MobilMenu';
 import { titret } from '../../../../lib/his';
 import FilterPanel from '../../../../components/FilterPanel';
 import {
@@ -63,6 +64,14 @@ const PaylasIkon = (
 const SatirIkon = <Ikon><path d="M4 6h16M4 12h16M4 18h16" /></Ikon>;
 
 /** Masaüstündeki Kart / Satır tercihinin tarayıcıdaki anahtarı. */
+/** Alt menüdeki "Toplu ekle": alt alta satırlar. */
+const TopluIkon = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+    <path d="M4 6h10M4 12h10M4 18h7M18 15v6M15 18h6" />
+  </svg>
+);
+
 const GORUNUM_ANAHTARI = 'siralama-defteri:gorunum';
 
 export default function ListePage() {
@@ -121,6 +130,7 @@ export default function ListePage() {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<FormMode>('siralama');
+  const [formSekmesi, setFormSekmesi] = useState<'tek' | 'toplu'>('tek');
   const [editingItem, setEditingItem] = useState<Item | null>(null);
 
   /** Liste ayarları popup'ı. Başka bir listenin ayar simgesinden ya da yeni liste
@@ -231,8 +241,9 @@ export default function ListePage() {
   };
 
   /* ── Form ────────────────────────────────────────── */
-  const openForm = (mode: FormMode, item: Item | null = null) => {
+  const openForm = (mode: FormMode, item: Item | null = null, ilk: 'tek' | 'toplu' = 'tek') => {
     setFormMode(mode);
+    setFormSekmesi(ilk);
     setEditingItem(item);
     setIsFormOpen(true);
   };
@@ -777,13 +788,40 @@ export default function ListePage() {
             )}
           </div>
         ) : (
-          <button
-            type="button"
-            className="fab"
-            onClick={() => openForm(sekme === 'sirada' ? 'istek' : 'siralama')}
-          >
-            {sekme === 'sirada' ? 'Denenmemiş kayıt ekle' : 'Kayıt ekle'}
-          </button>
+          <>
+            {/* Masaüstünde yüzen düğme; telefonda alt menü (CSS hangisinin görüneceğini seçiyor). */}
+            <button
+              type="button"
+              className="fab"
+              onClick={() => openForm(sekme === 'sirada' ? 'istek' : 'siralama')}
+            >
+              {sekme === 'sirada' ? 'Denenmemiş kayıt ekle' : 'Kayıt ekle'}
+            </button>
+            <nav className="mobil-menu" aria-label="Liste menüsü">
+              <Link href="/" className="mobil-menu-oge">
+                {ListelerIkon}
+                <span>Listelerim</span>
+              </Link>
+              <button
+                type="button"
+                className="mobil-menu-oge"
+                onClick={() => openForm(sekme === 'sirada' ? 'istek' : 'siralama')}
+                disabled={!liste}
+              >
+                {ArtiIkon}
+                <span>{sekme === 'sirada' ? 'Denenmemiş ekle' : 'Kayıt ekle'}</span>
+              </button>
+              <button
+                type="button"
+                className="mobil-menu-oge"
+                onClick={() => openForm(sekme === 'sirada' ? 'istek' : 'siralama', null, 'toplu')}
+                disabled={!liste}
+              >
+                {TopluIkon}
+                <span>Toplu ekle</span>
+              </button>
+            </nav>
+          </>
         )}
       </main>
 
@@ -842,6 +880,7 @@ export default function ListePage() {
         initialCategoryId={filtre.kategoriler.size === 1 ? [...filtre.kategoriler][0] : undefined}
         existingItems={ranked}
         kayitSayisi={items.length}
+        ilkSekme={formSekmesi}
         onClose={closeForm}
         onSave={handleSave}
         onTopluSave={handleTopluSave}

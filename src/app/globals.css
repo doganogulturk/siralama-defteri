@@ -3316,6 +3316,11 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
 .mobil-menu-oge span:last-child { white-space: nowrap; }
 /* Menünün olduğu sayfalarda içerik menünün altında kalmasın. */
 body:has(.mobil-menu) .kor-sayfa { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+@media (max-width: 1023px) {
+  /* Listede yüzen ekleme düğmesinin yerini telefonda alt menü alıyor. */
+  .list .fab { display: none; }
+}
 @media (min-width: 1024px) {
   .mobil-menu { display: none; }
 }
+.mobil-menu-oge:disabled { opacity: 0.4; }

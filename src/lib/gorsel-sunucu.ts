@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import sharp from 'sharp';
 import { guvenliFoto } from './paylasim';
 
 /*
@@ -22,8 +23,15 @@ export const RENK = {
 /** Fotoğraf indirme sınırları: yavaş ya da iri bir fotoğraf görseli bekletmesin. */
 const FOTO_SURE_MS = 2500;
 const FOTO_EN_BUYUK = 4 * 1024 * 1024;
-/** Görsel motoru (satori) yalnızca bunları çizebiliyor; HEIC ve WebP gibi biçimler baş harfe düşüyor. */
+/** Görsel motoru (satori) yalnızca bunları doğrudan çizebiliyor. */
 const FOTO_TURLERI = ['image/jpeg', 'image/png', 'image/gif'];
+/**
+ * Bunlar önce PNG'ye çevriliyor: küçültmeden (`lib/foto.ts`) önce yüklenmiş eski fotoğrafların
+ * bir kısmı WebP. HEIC çevrilemiyor (sharp'ın hazır paketinde yok), baş harfe düşüyor.
+ */
+const CEVRILEN_TURLER = ['image/webp', 'image/avif'];
+/** Çevrilen fotoğrafın uzun kenarı: görsellerde en büyük kutu 300 px, iki katı yetiyor. */
+const CEVIRI_KENAR = 600;
 
 /**
  * Fotoğrafı sunucuda indirip görsele gömüyor. Motor adresi kendisi indirseydi
@@ -36,10 +44,18 @@ export async function fotoVerisi(url?: string | null): Promise<string | null> {
   try {
     const yanit = await fetch(adres, { signal: AbortSignal.timeout(FOTO_SURE_MS), redirect: 'error' });
     const tur = yanit.headers.get('content-type')?.split(';')[0].trim() ?? '';
-    if (!yanit.ok || !FOTO_TURLERI.includes(tur)) return null;
+    const cevrilecek = CEVRILEN_TURLER.includes(tur);
+    if (!yanit.ok || (!FOTO_TURLERI.includes(tur) && !cevrilecek)) return null;
     if (Number(yanit.headers.get('content-length') ?? 0) > FOTO_EN_BUYUK) return null;
     const veri = await yanit.arrayBuffer();
     if (veri.byteLength > FOTO_EN_BUYUK) return null;
+    if (cevrilecek) {
+      const png = await sharp(Buffer.from(veri))
+        .resize(CEVIRI_KENAR, CEVIRI_KENAR, { fit: 'inside', withoutEnlargement: true })
+        .png()
+        .toBuffer();
+      return `data:image/png;base64,${png.toString('base64')}`;
+    }
     return `data:${tur};base64,${Buffer.from(veri).toString('base64')}`;
   } catch {
     return null;

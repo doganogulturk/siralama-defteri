@@ -3317,8 +3317,10 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
 /* Menünün olduğu sayfalarda içerik menünün altında kalmasın. */
 body:has(.mobil-menu) .kor-sayfa { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
 @media (max-width: 1023px) {
-  /* Listede yüzen ekleme düğmesinin yerini telefonda alt menü alıyor. */
-  .list .fab { display: none; }
+  /* Listede yüzen ekleme düğmesinin ve başlıktaki ayarların yerini telefonda alt menü alıyor. */
+  .list .fab,
+  .mobile-brand-settings.is-ayarlar { display: none; }
+  .list .mobil-menu { grid-template-columns: repeat(4, 1fr); }
 }
 @media (min-width: 1024px) {
   .mobil-menu { display: none; }

@@ -64,6 +64,15 @@ const PaylasIkon = (
 const SatirIkon = <Ikon><path d="M4 6h16M4 12h16M4 18h16" /></Ikon>;
 
 /** Masaüstündeki Kart / Satır tercihinin tarayıcıdaki anahtarı. */
+/** Liste ayarları: başlıkta (masaüstü) ve alt menüde (telefon). */
+const AyarlarIkon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="1.9" strokeLinecap="round" aria-hidden="true">
+    <path d="M3 6h7M16 6h5M3 12h3M12 12h9M3 18h9M18 18h3" />
+    <circle cx="13" cy="6" r="2.1" /><circle cx="9" cy="12" r="2.1" /><circle cx="15" cy="18" r="2.1" />
+  </svg>
+);
+
 /** Alt menüdeki "Toplu ekle": alt alta satırlar. */
 const TopluIkon = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -569,18 +578,15 @@ export default function ListePage() {
             {PaylasIkon}
             <span className="mobile-brand-settings-ad">Paylaş</span>
           </button>
+          {/* Telefonda ayarlar alt menüde; başlıkta yalnızca masaüstünde (CSS). */}
           <button
             type="button"
-            className="mobile-brand-settings"
+            className="mobile-brand-settings is-ayarlar"
             aria-label="Liste ayarları"
             onClick={() => setAyarlarAcik(true)}
             disabled={!liste}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 strokeWidth="1.9" strokeLinecap="round" aria-hidden="true">
-              <path d="M3 6h7M16 6h5M3 12h3M12 12h9M3 18h9M18 18h3" />
-              <circle cx="13" cy="6" r="2.1" /><circle cx="9" cy="12" r="2.1" /><circle cx="15" cy="18" r="2.1" />
-            </svg>
+            {AyarlarIkon}
             {/* Etiket yalnızca masaüstünde: mobil başlıkta sığmaz, adı keserdi. */}
             <span className="mobile-brand-settings-ad">Liste ayarları</span>
           </button>
@@ -819,6 +825,15 @@ export default function ListePage() {
               >
                 {TopluIkon}
                 <span>Toplu ekle</span>
+              </button>
+              <button
+                type="button"
+                className="mobil-menu-oge"
+                onClick={() => setAyarlarAcik(true)}
+                disabled={!liste}
+              >
+                {AyarlarIkon}
+                <span>Ayarlar</span>
               </button>
             </nav>
           </>

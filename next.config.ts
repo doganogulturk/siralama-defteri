@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
    */
   outputFileTracingIncludes: {
     "/p/**": ["./src/fonts/**/*"],
+    "/kor/**": ["./src/fonts/**/*"],
   },
 };
 

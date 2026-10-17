@@ -4,8 +4,9 @@ import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { KATEGORI_PALET, createKategori, createListe, getListeler } from '../lib/items';
 import { benzersizSlug, slugify } from '../lib/slug';
-import { topluAyristir, topluKaydet, topluKayitSayisi } from '../lib/toplu';
+import { topluAyristir, topluKaydet, topluKayitSayisi, topluSorun } from '../lib/toplu';
 import { hataMetni } from '../lib/hata';
+import { SINIR } from '../lib/sinirlar';
 import { Kategori } from '../types/item';
 import TopluAlan from './TopluAlan';
 import Sheet from './Sheet';
@@ -52,6 +53,7 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
   if (!isOpen) return null;
 
   const topluAdet = topluKayitSayisi(bloklar);
+  const topluEngel = topluSorun(bloklar, 0);
 
   const kategoriEkle = () => {
     setKategoriAdlari(prev => kategoriListesi(prev, kategoriGiris));
@@ -61,7 +63,7 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ad.trim() || kaydediliyor) return;
+    if (!ad.trim() || kaydediliyor || topluEngel) return;
     setKaydediliyor(true);
     try {
       const mevcut = await getListeler();
@@ -118,6 +120,7 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
             placeholder="Kola, Döner, Türk Kahvesi…"
             value={ad}
             onChange={(e) => setAd(e.target.value)}
+            maxLength={SINIR.listeAdi}
             required
             data-autofocus
           />
@@ -145,6 +148,7 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
               className="yeni-kat-giris"
               placeholder={kategoriAdlari.length > 0 ? 'Bir tane daha…' : 'Şekerli, Şekersiz…'}
               value={kategoriGiris}
+              maxLength={SINIR.kategoriAdi}
               onChange={(e) => {
                 // Virgül yazıldığı an ad hapa dönüşüyor; yapıştırılan "a, b, c" de böyle bölünüyor.
                 if (e.target.value.includes(',')) {
@@ -171,7 +175,7 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
         </div>
 
         {topluAcik ? (
-          <TopluAlan deger={toplu} onChange={setToplu} bloklar={bloklar} autoFocus />
+          <TopluAlan deger={toplu} onChange={setToplu} bloklar={bloklar} autoFocus sorun={topluEngel} />
         ) : (
           <button type="button" className="btn-quiet" onClick={() => setTopluAcik(true)}>
             Kayıtları da şimdi yaz
@@ -188,7 +192,7 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
 
         <div className="form-screen-actions">
           <button type="button" className="btn-quiet" onClick={onClose}>Vazgeç</button>
-          <button type="submit" className="btn-primary" disabled={kaydediliyor}>
+          <button type="submit" className="btn-primary" disabled={kaydediliyor || !!topluEngel}>
             {kaydediliyor
               ? 'Oluşturuluyor…'
               : topluAdet > 0 ? `Oluştur · ${topluAdet} kayıt` : 'Oluştur'}

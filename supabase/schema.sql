@@ -111,6 +111,94 @@ grant select, insert, update, delete
   on do_siralama_defteri.lists, do_siralama_defteri.categories, do_siralama_defteri.items
   to authenticated;
 
+-- ── Sınırlar ────────────────────────────────────────────────────────────────────────────────
+--
+-- Kötüye kullanıma ve farkında olmadan şişen veriye karşı (ücretsiz plan: 500 MB veritabanı). İstemci
+-- aynı değerleri src/lib/sinirlar.ts'ten okuyor; anonim anahtar herkese açık olduğu için asıl kapı burası.
+--
+-- Metin uzunlukları check constraint. `not valid`: kurulu veritabanındaki eski satırlar taranmıyor,
+-- yalnızca yeni yazılanlar denetleniyor — sınırdan uzun eski bir kayıt ancak kısaltılarak güncellenebilir.
+alter table do_siralama_defteri.lists drop constraint if exists lists_ad_uzunluk;
+alter table do_siralama_defteri.lists add constraint lists_ad_uzunluk
+  check (char_length(ad) <= 80) not valid;
+alter table do_siralama_defteri.lists drop constraint if exists lists_alanlar_boyut;
+alter table do_siralama_defteri.lists add constraint lists_alanlar_boyut
+  check (octet_length(alanlar::text) <= 8000) not valid;
+
+alter table do_siralama_defteri.categories drop constraint if exists categories_ad_uzunluk;
+alter table do_siralama_defteri.categories add constraint categories_ad_uzunluk
+  check (char_length(ad) <= 60) not valid;
+
+alter table do_siralama_defteri.items drop constraint if exists items_metin_uzunluk;
+alter table do_siralama_defteri.items add constraint items_metin_uzunluk
+  check (
+    char_length(ad) <= 120
+    and char_length(coalesce(alt_ad, '')) <= 120
+    and char_length(coalesce(notlar, '')) <= 2000
+    and char_length(coalesce(fotograf_url, '')) <= 500
+    and octet_length(ozellikler::text) <= 4000
+  ) not valid;
+
+-- Adet sınırları tetikleyiciyle: liste başına 200 kayıt, 50 kategori; kullanıcı başına 50 liste.
+-- Üst satır (liste ya da kullanıcı) `for update` ile kilitleniyor: aynı anda gelen iki ekleme sayımı
+-- birbirini görmeden geçemesin. Satır tetikleyicisi aynı komutta önce eklenen satırları gördüğü için
+-- toplu ekleme de doğru sayılıyor. Hata kodu `SDLIM` (src/lib/hata.ts mesajı olduğu gibi gösteriyor).
+create or replace function do_siralama_defteri.sinir_denetle()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+declare
+  n int;
+begin
+  -- `update of` sütun SET listesindeyse değer değişmese de tetikleniyor (kayıt formu list_id'yi her
+  -- kaydedişte gönderiyor); dolu listede düzenleme kendini sayıp reddedilmesin. Her dal yalnızca kendi
+  -- tablosunun sütununa dokunuyor: plpgsql çalışmayan dalın ifadesini çözmüyor.
+  if tg_table_name = 'items' then
+    if tg_op = 'UPDATE' and new.list_id = old.list_id then return new; end if;
+    perform 1 from do_siralama_defteri.lists where id = new.list_id for update;
+    select count(*) into n from do_siralama_defteri.items where list_id = new.list_id;
+    if n >= 200 then
+      raise exception 'Bir listede en fazla 200 kayıt olabilir.' using errcode = 'SDLIM';
+    end if;
+  elsif tg_table_name = 'categories' then
+    if tg_op = 'UPDATE' and new.list_id = old.list_id then return new; end if;
+    perform 1 from do_siralama_defteri.lists where id = new.list_id for update;
+    select count(*) into n from do_siralama_defteri.categories where list_id = new.list_id;
+    if n >= 50 then
+      raise exception 'Bir listede en fazla 50 kategori olabilir.' using errcode = 'SDLIM';
+    end if;
+  elsif tg_table_name = 'lists' then
+    if tg_op = 'UPDATE' and new.user_id = old.user_id then return new; end if;
+    perform pg_advisory_xact_lock(hashtext('do_siralama_defteri.lists:' || new.user_id::text));
+    select count(*) into n from do_siralama_defteri.lists where user_id = new.user_id;
+    if n >= 50 then
+      raise exception 'En fazla 50 liste oluşturabilirsin.' using errcode = 'SDLIM';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+-- `update of list_id`: istemci kaydı başka listeye taşımıyor, ama API'den taşıyan sınırı aşamasın.
+drop trigger if exists items_sinir on do_siralama_defteri.items;
+create trigger items_sinir
+  before insert or update of list_id on do_siralama_defteri.items
+  for each row execute function do_siralama_defteri.sinir_denetle();
+
+drop trigger if exists categories_sinir on do_siralama_defteri.categories;
+create trigger categories_sinir
+  before insert or update of list_id on do_siralama_defteri.categories
+  for each row execute function do_siralama_defteri.sinir_denetle();
+
+drop trigger if exists lists_sinir on do_siralama_defteri.lists;
+create trigger lists_sinir
+  before insert or update of user_id on do_siralama_defteri.lists
+  for each row execute function do_siralama_defteri.sinir_denetle();
+
+-- Tetikleyici fonksiyonu doğrudan çağrılamıyor; yine de PostgREST'in listesinde görünmesin.
+revoke all on function do_siralama_defteri.sinir_denetle() from public, anon, authenticated;
+
 -- ── Fonksiyonlar ────────────────────────────────────────────────────────────────────────────
 
 -- Ana ekranın liste özetleri: her liste için kayıt sayıları ve sıralamanın ilk üçü.

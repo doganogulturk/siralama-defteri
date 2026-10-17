@@ -8,6 +8,7 @@ import {
 } from '../lib/items';
 import { listeleriTazele } from '../hooks/useListeler';
 import { hataMetni } from '../lib/hata';
+import { SINIR } from '../lib/sinirlar';
 import Sheet from './Sheet';
 import PaylasimBolumu from './PaylasimBolumu';
 
@@ -185,6 +186,7 @@ export default function ListeAyarlariModal({
           value={ad}
           onChange={(e) => setAd(e.target.value)}
           onBlur={adKaydet}
+          maxLength={SINIR.listeAdi}
           onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
           aria-label="Liste adı"
         />
@@ -209,6 +211,7 @@ export default function ListeAyarlariModal({
                   className="kat-ad"
                   defaultValue={kat.ad}
                   onBlur={(e) => kategoriAdiKaydet(kat, e.target.value)}
+                  maxLength={SINIR.kategoriAdi}
                   aria-label={`${kat.ad} kategorisinin adı`}
                 />
                 <span className="kat-sayi">
@@ -242,6 +245,7 @@ export default function ListeAyarlariModal({
               placeholder="Yeni kategori adı"
               value={yeniKategori}
               onChange={(e) => setYeniKategori(e.target.value)}
+              maxLength={SINIR.kategoriAdi}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void kategoriEkle(); } }}
             />
             <button type="button" className="btn-primary" onClick={kategoriEkle} disabled={busy}>
@@ -270,6 +274,7 @@ export default function ListeAyarlariModal({
                   className="alan-ad"
                   defaultValue={alan.etiket}
                   onBlur={(e) => alanAdiKaydet(alan, e.target.value)}
+                  maxLength={SINIR.alanAdi}
                   disabled={busy}
                   aria-label={`${alan.etiket} alanının adı`}
                 />
@@ -305,6 +310,7 @@ export default function ListeAyarlariModal({
               placeholder="Alan adı"
               value={yeniAlanEtiket}
               onChange={(e) => setYeniAlanEtiket(e.target.value)}
+              maxLength={SINIR.alanAdi}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void alanEkle(); } }}
               aria-label="Yeni alanın adı"
             />

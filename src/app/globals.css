@@ -1309,6 +1309,16 @@ html:has(.sheet[open]) { overflow: hidden; }
 
 /* Toplu giriş */
 .toplu-alan { min-height: 160px; font-size: 0.96rem; line-height: 1.6; }
+.toplu-sorun {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--r-md);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
 .toplu-onizleme {
   display: flex;
   flex-direction: column;

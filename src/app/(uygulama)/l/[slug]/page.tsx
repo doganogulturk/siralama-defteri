@@ -828,6 +828,7 @@ export default function ListePage() {
         alanlar={alanlar}
         initialCategoryId={filtre.kategoriler.size === 1 ? [...filtre.kategoriler][0] : undefined}
         existingItems={ranked}
+        kayitSayisi={items.length}
         onClose={closeForm}
         onSave={handleSave}
         onTopluSave={handleTopluSave}

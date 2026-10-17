@@ -9,6 +9,8 @@ interface TopluAlanProps {
   bloklar: TopluBlok[];
   etiket?: string;
   autoFocus?: boolean;
+  /** `topluSorun`un sonucu: varsa önizlemenin üstünde uyarı, form da kaydetmiyor. */
+  sorun?: string | null;
 }
 
 /**
@@ -28,7 +30,7 @@ Doritos, Nacho`;
  * kayıt adının içinde geçtiğinde bölünme yanlış olur, kullanıcı bunu kaydetmeden görsün.
  */
 export default function TopluAlan({
-  deger, onChange, bloklar, etiket = 'Kayıtlar', autoFocus,
+  deger, onChange, bloklar, etiket = 'Kayıtlar', autoFocus, sorun,
 }: TopluAlanProps) {
   const kayit = topluKayitSayisi(bloklar);
   const kategori = bloklar.filter(b => b.kategori).length;
@@ -52,6 +54,8 @@ export default function TopluAlan({
         içinde bir kategori açar, altındaki satırlar o kategoriye yazılır. Virgülden sonrası
         kaydın çeşidi olur: <code>Doritos, Nacho</code>.
       </p>
+
+      {sorun && <p className="toplu-sorun" role="alert">{sorun}</p>}
 
       {kayit > 0 && (
         <div className="toplu-onizleme">

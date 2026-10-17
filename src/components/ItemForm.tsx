@@ -6,11 +6,12 @@ import {
   AlanTanimi, Item, Kategori, OzellikDeger, alanGorunur, alanKisa,
 } from '../types/item';
 import { uploadFotograf, deleteFotograf } from '../lib/items';
-import { TopluBlok, topluAyristir, topluKayitSayisi } from '../lib/toplu';
+import { TopluBlok, topluAyristir, topluKayitSayisi, topluSorun } from '../lib/toplu';
 import TopluAlan from './TopluAlan';
 import Sheet from './Sheet';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import { hataMetni } from '../lib/hata';
+import { SINIR } from '../lib/sinirlar';
 
 /**
  * 'siralama' — denenmiş kayıt (varsayılan akış)
@@ -30,6 +31,8 @@ interface ItemFormProps {
   initialCategoryId?: string | null;
   /** Sıralamadaki mevcut kayıtlar (sıralı) — "şunun altına" seçimi için. */
   existingItems?: Item[];
+  /** Listedeki bütün kayıtlar (bekleyenler dahil) — toplu eklemede sınır denetimi için. */
+  kayitSayisi?: number;
   onClose: () => void;
   /** Beklenir: kayıt bitene kadar Kaydet kilitli kalıyor, çift basış ikinci kayıt açmasın. */
   onSave: (entry: Item, targetIndex?: number) => Promise<void> | void;
@@ -69,6 +72,7 @@ export default function ItemForm({
   alanlar,
   initialCategoryId,
   existingItems = [],
+  kayitSayisi = 0,
   onClose,
   onSave,
   onTopluSave,
@@ -114,6 +118,7 @@ export default function ItemForm({
 
   const topluBloklar = useMemo(() => topluAyristir(toplu), [toplu]);
   const topluAdet = topluKayitSayisi(topluBloklar);
+  const topluEngel = topluSorun(topluBloklar, kayitSayisi);
 
   const setOzellik = (anahtar: string, deger: OzellikDeger) =>
     setOzellikler(prev => ({ ...prev, [anahtar]: deger }));
@@ -191,7 +196,7 @@ export default function ItemForm({
 
   const handleTopluSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!onTopluSave || topluAdet === 0 || topluKaydediliyor) return;
+    if (!onTopluSave || topluAdet === 0 || topluEngel || topluKaydediliyor) return;
     setTopluKaydediliyor(true);
     try {
       await onTopluSave(topluBloklar, !isIstek);
@@ -266,7 +271,13 @@ export default function ItemForm({
 
       {topluSekmede && (
         <form onSubmit={handleTopluSubmit} className="form-screen-body">
-          <TopluAlan deger={toplu} onChange={setToplu} bloklar={topluBloklar} autoFocus={isDesktop} />
+          <TopluAlan
+            deger={toplu}
+            onChange={setToplu}
+            bloklar={topluBloklar}
+            autoFocus={isDesktop}
+            sorun={topluEngel}
+          />
 
           <p className="field-hint">
             {isIstek
@@ -279,7 +290,7 @@ export default function ItemForm({
             <button
               type="submit"
               className="btn-primary"
-              disabled={topluKaydediliyor || topluAdet === 0}
+              disabled={topluKaydediliyor || topluAdet === 0 || !!topluEngel}
             >
               {topluKaydediliyor
                 ? 'Ekleniyor…'
@@ -341,6 +352,7 @@ export default function ItemForm({
                   placeholder="Marka ya da isim"
                   value={ad}
                   onChange={(e) => setAd(e.target.value)}
+                  maxLength={SINIR.kayitAdi}
                   required
                 />
               </label>
@@ -352,6 +364,7 @@ export default function ItemForm({
                   placeholder="Varsa çeşidi"
                   value={altAd}
                   onChange={(e) => setAltAd(e.target.value)}
+                  maxLength={SINIR.altAd}
                 />
               </label>
             </div>
@@ -394,6 +407,7 @@ export default function ItemForm({
                 placeholder={alan.ipucu ?? ''}
                 value={metinDeger(alan.anahtar)}
                 onChange={(e) => setOzellik(alan.anahtar, e.target.value)}
+                maxLength={SINIR.alanDegeri}
               />
             </label>
           ))}
@@ -406,6 +420,7 @@ export default function ItemForm({
               placeholder={isIstek ? 'Nerede gördüm, kim önerdi…' : 'Tadı, dokusu, aklında kalanlar…'}
               value={notlar}
               onChange={(e) => setNotlar(e.target.value)}
+              maxLength={SINIR.not}
             />
           </label>
 

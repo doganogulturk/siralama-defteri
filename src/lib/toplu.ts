@@ -1,5 +1,6 @@
 import { Item, Kategori, Liste } from '../types/item';
 import { KATEGORI_PALET, createItems, createKategori } from './items';
+import { SINIR } from './sinirlar';
 
 /** Toplu girişte bir satırdan çıkan kayıt. */
 export interface TopluKayit {
@@ -64,6 +65,28 @@ export function topluAyristir(metin: string): TopluBlok[] {
 /** Önizleme ve düğme durumu için: kaç kayıt oluşacak. */
 export const topluKayitSayisi = (bloklar: TopluBlok[]): number =>
   bloklar.reduce((n, b) => n + b.kayitlar.length, 0);
+
+/**
+ * Kaydetmeyi engelleyen bir sorun varsa onu anlatan cümle. Veritabanı aynı sınırları
+ * zaten uyguluyor (`lib/sinirlar.ts`); burada önizlemede, hiçbir şey yazılmadan söylemek
+ * için — yoksa kategoriler açılıp kayıtlar reddedilebiliyordu.
+ */
+export function topluSorun(bloklar: TopluBlok[], mevcutKayit: number): string | null {
+  const adet = topluKayitSayisi(bloklar);
+  const kalan = Math.max(0, SINIR.listeKayit - mevcutKayit);
+  if (adet > kalan) {
+    return kalan === 0
+      ? `Bu liste dolu: bir listede en fazla ${SINIR.listeKayit} kayıt olabilir.`
+      : `Bu listeye en fazla ${kalan} kayıt daha eklenebilir (sınır ${SINIR.listeKayit}).`;
+  }
+  const uzunKat = bloklar.find(b => b.kategori && b.kategori.length > SINIR.kategoriAdi);
+  if (uzunKat) return `“${uzunKat.kategori!.slice(0, 30)}…” kategori adı çok uzun (en fazla ${SINIR.kategoriAdi} harf).`;
+  for (const b of bloklar) {
+    const uzun = b.kayitlar.find(k => k.ad.length > SINIR.kayitAdi || (k.alt_ad?.length ?? 0) > SINIR.altAd);
+    if (uzun) return `“${uzun.ad.slice(0, 30)}…” satırı çok uzun (ad ve çeşit en fazla ${SINIR.kayitAdi} harf).`;
+  }
+  return null;
+}
 
 /** Metinde adı geçip listede karşılığı olmayan kategoriler. */
 export const eksikKategoriler = (bloklar: TopluBlok[], mevcut: Kategori[]): string[] =>

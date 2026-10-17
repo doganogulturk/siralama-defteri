@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { AlanTanimi, Item, Kategori, Liste } from '../types/item';
+import { fotoKucult } from './foto';
 
 const T_LISTS = 'lists';
 const T_CATS = 'categories';
@@ -74,10 +75,22 @@ export async function updateListe(
   return data as Liste;
 }
 
-/** Kategoriler ve öğeler cascade ile birlikte silinir; fotoğraflar kovada kalır. */
+/**
+ * Kategoriler ve öğeler cascade ile birlikte silinir. Fotoğraflar cascade'e
+ * girmiyor (kova ayrı bir servis): adresleri önceden okunup liste silindikten
+ * sonra kovadan kaldırılıyor, yoksa yer kaplayan yetim dosyalar kalıyordu.
+ */
 export async function deleteListe(id: string): Promise<void> {
+  const { data: fotolar, error: okumaHatasi } = await supabase
+    .from(T_ITEMS)
+    .select('fotograf_url')
+    .eq('list_id', id)
+    .not('fotograf_url', 'is', null);
+  if (okumaHatasi) throw okumaHatasi;
+
   const { error } = await supabase.from(T_LISTS).delete().eq('id', id);
   if (error) throw error;
+  await fotograflariSil((fotolar ?? []).map(f => f.fotograf_url as string));
 }
 
 /** Ana ekran kartındaki sıralama satırı — kaydın yalnızca gösterilen kısmı. */
@@ -212,10 +225,14 @@ export async function deleteItems(items: { id: string; fotograf_url?: string | n
   if (items.length === 0) return;
   const { error } = await supabase.from(T_ITEMS).delete().in('id', items.map(i => i.id));
   if (error) throw error;
+  await fotograflariSil(items.map(i => i.fotograf_url));
+}
 
+/** Kova başına tek istek. Silinemeyen fotoğraf işlemi bozmuyor, yalnızca uyarı. */
+async function fotograflariSil(urller: (string | null | undefined)[]): Promise<void> {
   const kovalar = new Map<string, string[]>();
-  for (const i of items) {
-    const parsed = i.fotograf_url ? kovaYolu(i.fotograf_url) : null;
+  for (const url of urller) {
+    const parsed = url ? kovaYolu(url) : null;
     if (parsed) kovalar.set(parsed.kova, [...(kovalar.get(parsed.kova) ?? []), parsed.yol]);
   }
   for (const [kova, yollar] of kovalar) {
@@ -259,11 +276,14 @@ export async function updateItemsKategori(ids: string[], categoryId: string | nu
 
 /* ── Fotoğraf ───────────────────────────────────────── */
 
+/** Fotoğraf küçültülüp yükleniyor (`lib/foto.ts`); kova yalnızca küçük JPEG kabul ediyor. */
 export async function uploadFotograf(file: File): Promise<string> {
-  const ext = file.name.split('.').pop();
-  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const blob = await fotoKucult(file);
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
 
-  const { error } = await supabase.storage.from(KOVA).upload(fileName, file, { upsert: false });
+  const { error } = await supabase.storage
+    .from(KOVA)
+    .upload(fileName, blob, { upsert: false, contentType: 'image/jpeg', cacheControl: '31536000' });
   if (error) throw error;
 
   const { data } = supabase.storage.from(KOVA).getPublicUrl(fileName);

@@ -2165,7 +2165,21 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
 .hesap-kim { display: flex; flex-direction: column; gap: 2px; }
 .hesap-kim strong { font-size: 1.05rem; font-weight: 600; }
 .hesap-kim span { font-size: 0.86rem; color: var(--mute); overflow-wrap: anywhere; }
-.hesap-cikis { align-self: flex-start; }
+.hesap-ust { display: flex; align-items: center; gap: 12px; }
+.hesap-ust .hesap-kim { flex: 1; min-width: 0; }
+.hesap-cikis {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: var(--pill);
+  background: var(--surface);
+  box-shadow: var(--hair);
+  color: var(--soft);
+  transition: color var(--t) var(--ease), background var(--t) var(--ease);
+}
+.hesap-cikis:hover { color: var(--accent-ink); background: var(--accent-soft); }
 .hesap-yasal {
   display: flex;
   flex-wrap: wrap;

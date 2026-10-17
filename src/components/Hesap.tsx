@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { signOut } from '../lib/auth';
+import HesapPenceresi from './HesapPenceresi';
 
 const CikisIkon = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -19,6 +20,7 @@ const CikisIkon = (
 export default function Hesap({ user, className }: { user: User; className: string }) {
   /** Google fotoğrafı yüklenemezse baş harfe dönülüyor. */
   const [fotoBozuk, setFotoBozuk] = useState(false);
+  const [pencere, setPencere] = useState(false);
 
   // Google hesabının adı varsa onu, yoksa e-postanın kullanıcı adı kısmını göster.
   const meta = user.user_metadata as
@@ -27,17 +29,20 @@ export default function Hesap({ user, className }: { user: User; className: stri
   const foto = meta?.avatar_url ?? meta?.picture;
 
   return (
-    // Kimlik bir metin, çıkış ayrı bir düğme: bloğa dokunmak oturumu kapatmasın.
+    // Kimlik "Hesabım"ı açan düğme, çıkış ayrı bir düğme: bloğa dokunmak oturumu kapatmasın.
     <div className={className}>
-      <span className="account-avatar" aria-hidden="true">
-        {foto && !fotoBozuk
-          // Google fotoğrafları yönlendiren sayfa bilgisi gidince 403 verebiliyor.
-          ? <img src={foto} alt="" referrerPolicy="no-referrer" onError={() => setFotoBozuk(true)} />
-          : ad.charAt(0).toLocaleUpperCase('tr')}
-      </span>
-      <span className="account-text">
-        <strong>{ad}</strong>
-      </span>
+      {/* Fotoğraf ve ad "Hesabım"ı açıyor: gizlilik, verileri silme. */}
+      <button type="button" className="account-ac" onClick={() => setPencere(true)} aria-label="Hesabım">
+        <span className="account-avatar" aria-hidden="true">
+          {foto && !fotoBozuk
+            // Google fotoğrafları yönlendiren sayfa bilgisi gidince 403 verebiliyor.
+            ? <img src={foto} alt="" referrerPolicy="no-referrer" onError={() => setFotoBozuk(true)} />
+            : ad.charAt(0).toLocaleUpperCase('tr')}
+        </span>
+        <span className="account-text">
+          <strong>{ad}</strong>
+        </span>
+      </button>
       <button
         type="button"
         className="account-out"
@@ -47,6 +52,7 @@ export default function Hesap({ user, className }: { user: User; className: stri
       >
         {CikisIkon}
       </button>
+      {pencere && <HesapPenceresi user={user} ad={ad} onClose={() => setPencere(false)} />}
     </div>
   );
 }

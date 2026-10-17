@@ -310,3 +310,31 @@ export async function deleteFotograf(url?: string | null): Promise<void> {
   const { error } = await supabase.storage.from(parsed.kova).remove([parsed.yol]);
   if (error) console.warn('Fotoğraf silinemedi:', error.message);
 }
+
+/* ── Hesap ──────────────────────────────────────────── */
+
+/**
+ * "Verilerimi sil": kullanıcının bu uygulamadaki her şeyi. Önce kovadaki bütün
+ * dosyaları (kayıtlara bağlı olmayan yetimler dahil — listeleme politikası
+ * yalnızca sahibine açık, `storage.sql`), sonra listeleri; kategoriler ve kayıtlar
+ * cascade ile gidiyor. Giriş kaydı (auth.users) silinmiyor: aynı Supabase projesi
+ * başka uygulamalarla paylaşılıyor, oradaki hesap da ona bağlı.
+ */
+export async function tumVerileriSil(): Promise<void> {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  if (!userData.user) throw new Error('Oturum bulunamadı.');
+
+  // Silindikçe sayfa kayıyor: hep baştan, dosya kalmayana kadar.
+  for (let tur = 0; tur < 20; tur++) {
+    const { data: dosyalar, error } = await supabase.storage.from(KOVA).list('', { limit: 1000 });
+    if (error) throw error;
+    const adlar = (dosyalar ?? []).filter(d => d.id).map(d => d.name);
+    if (adlar.length === 0) break;
+    const { error: e } = await supabase.storage.from(KOVA).remove(adlar);
+    if (e) throw e;
+  }
+
+  const { error } = await supabase.from(T_LISTS).delete().eq('user_id', userData.user.id);
+  if (error) throw error;
+}

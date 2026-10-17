@@ -14,7 +14,10 @@ const DESENLER = {
 
 export function titret(tur: keyof typeof DESENLER): void {
   try {
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+    // Sayfaya henüz dokunulmadıysa tarayıcı reddediyor ve konsola hata yazıyor: hiç deneme.
+    if (typeof navigator === 'undefined' || !('vibrate' in navigator)) return;
+    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
+    {
       navigator.vibrate(DESENLER[tur] as number | number[]);
     }
   } catch { /* izin yoksa ya da desteklenmiyorsa önemli değil */ }

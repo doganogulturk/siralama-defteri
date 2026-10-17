@@ -295,6 +295,9 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
         <section className="gate-son">
           <h2 className="gate-bolum-baslik">İlk listeni <em>şimdi</em> aç.</h2>
           {girisDugmesi}
+          <p className="gate-yasal">
+            Devam ederek <a href="/gizlilik">gizlilik politikasını</a> kabul etmiş olursun.
+          </p>
         </section>
       </div>
     );

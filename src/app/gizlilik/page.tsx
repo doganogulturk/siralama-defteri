@@ -1,137 +1,101 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Marka from '../../components/Marka';
-import { GIZLILIK_TARIHI, ILETISIM_EPOSTA, VERI_SORUMLUSU } from '../../lib/iletisim';
+import YasalSayfa, { Eposta } from '../../components/yasal/YasalSayfa';
+import { VERI_SORUMLUSU, YASAL_TARIH } from '../../lib/iletisim';
 
 export const metadata: Metadata = {
-  title: 'Gizlilik politikası',
-  description: 'Sıralama Defteri hangi verileri neden tutuyor, kimlerle paylaşıyor ve nasıl silinir.',
+  title: 'Gizlilik Politikası',
+  description: 'Sıralama Defteri hangi verileri neden işler, kimlerle paylaşır ve ne kadar saklar.',
 };
 
 /**
- * Gizlilik politikası ve KVKK aydınlatma metni. Oturum istemiyor (uygulama grubunun
- * dışında): giriş ekranından, Google'ın OAuth doğrulamasından ve mağaza
- * kayıtlarından bağlantı verilebilsin diye. Uygulamanın gerçekte yaptığıyla
- * birebir olmalı — veri akışı değişirse (yeni bir servis, yeni bir alan) burası da.
+ * Gizlilik politikası. Uygulamanın gerçekte yaptığıyla birebir olmalı: veri akışı
+ * değişirse (yeni bir servis, yeni bir alan) burası, KVKK metni ve tarih de değişir.
  */
 export default function GizlilikSayfasi() {
   return (
-    <div className="metin-sayfa">
-      <header className="paylasim-bar">
-        <Link href="/" className="paylasim-marka" aria-label="Sıralama Defteri ana sayfa">
-          <Marka />
-        </Link>
-      </header>
+    <YasalSayfa baslik="Gizlilik Politikası" tarih={YASAL_TARIH}>
+      <p>
+        Bu politika, Sıralama Defteri&apos;nde hangi kişisel verilerin neden işlendiğini ve bu veriler üzerindeki
+        haklarını anlatır. 6698 sayılı Kanun kapsamındaki ayrıntılar{' '}
+        <Link href="/kvkk">KVKK Aydınlatma Metni</Link>&apos;nde.
+      </p>
 
-      <main>
-        <h1 className="paylasim-baslik">Gizlilik</h1>
-        <p className="metin-tarih">Son güncelleme: {GIZLILIK_TARIHI}</p>
+      <h2>Veri sorumlusu</h2>
+      <p>
+        Sıralama Defteri&apos;ni {VERI_SORUMLUSU} geliştirir ve işletir. Gizlilikle ilgili her soru ve talep için: <Eposta />.
+      </p>
 
-        <p>
-          Sıralama Defteri, denediğin şeyleri kendi listelerinde sıralaman için bir uygulama. Bu metin
-          hangi verileri neden tuttuğumuzu, kimlerle paylaştığımızı ve onları nasıl silebileceğini
-          anlatıyor. 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamındaki aydınlatma
-          metni de budur.
-        </p>
+      <h2>Giriş yapmadan</h2>
+      <p>
+        Kör Sıralama ve paylaşılan listeleri görüntüleme giriş gerektirmez. Bu durumda sunucuda sana ait bir veri
+        tutulmaz; Kör Sıralama sonucun yalnızca paylaştığın bağlantının içinde durur.
+      </p>
 
-        <h2>Veri sorumlusu</h2>
-        <p>
-          {VERI_SORUMLUSU}. Sorular ve başvurular için:{' '}
-          <a href={`mailto:${ILETISIM_EPOSTA}`}>{ILETISIM_EPOSTA}</a>
-        </p>
+      <h2>İşlenen veriler</h2>
+      <ul>
+        <li>
+          <strong>Hesap bilgileri:</strong> Google ile girişte adın, e-posta adresin ve profil fotoğrafının adresi.
+          Google şifrene hiçbir zaman erişmeyiz.
+        </li>
+        <li>
+          <strong>Listelerin:</strong> listeler, kategoriler, kayıtlar, notlar ve sıralaman.
+        </li>
+        <li>
+          <strong>Fotoğraflar:</strong> yüklediğin fotoğraflar küçültülerek saklanır; içlerindeki konum ve cihaz bilgisi
+          yüklemeden önce silinir.
+        </li>
+        <li>
+          <strong>Teknik veriler:</strong> barındırma sağlayıcılarının güvenlik için kısa süre tuttuğu IP adresi ve
+          cihaz bilgisi gibi sunucu kayıtları.
+        </li>
+        <li>
+          <strong>Ziyaret istatistikleri:</strong> çerezsiz, anonim sayfa görüntüleme sayıları (Vercel Web Analytics).
+          Seni tanımaz, siteler arasında takip etmez; paylaşım kodları ve liste adları adresten çıkarılarak gönderilir.
+        </li>
+      </ul>
+      <p>Reklam ya da izleme çerezi kullanılmaz; verilerin satılmaz, reklam veya pazarlama için kullanılmaz.</p>
 
-        <h2>Hangi verileri tutuyoruz?</h2>
-        <ul>
-          <li>
-            <strong>Google hesabı bilgilerin:</strong> Google ile giriş yaptığında adın, e-posta adresin
-            ve profil fotoğrafının adresi. Şifren bize hiç gelmez.
-          </li>
-          <li>
-            <strong>Senin yazdıkların:</strong> listelerin, kategorilerin, kayıtların, notların, ek
-            alanların ve sıralaman.
-          </li>
-          <li>
-            <strong>Yüklediğin fotoğraflar:</strong> yüklemeden önce telefonunda küçültülür; bu sırada
-            fotoğrafın içindeki konum ve cihaz bilgisi (EXIF) silinir.
-          </li>
-          <li>
-            <strong>Anonim ziyaret istatistikleri:</strong> hangi sayfaların kaç kez açıldığı, kabaca
-            hangi ülkeden ve hangi cihaz türünden. Çerez kullanılmaz, seni tanımlayan bir bilgi tutulmaz
-            ve siteler arasında takip yapılmaz.
-          </li>
-        </ul>
-        <p>Reklam yok; verilerini satmıyoruz, reklam ya da profil çıkarma amacıyla kullanmıyoruz.</p>
+      <h2>Kimler görebilir</h2>
+      <p>
+        Listelerin yalnızca sana açıktır. Bir liste için paylaşım bağlantısı oluşturursan bağlantıyı alan herkes o
+        listenin sıralamasını, fotoğraflarını ve adını görür; notların, denenmemişlerin ve e-posta adresin görünmez.
+        Bağlantıyı istediğin an kapatabilirsin. Biri listeni &ldquo;Ben de sıralayayım&rdquo; ile kendi hesabına
+        kopyalarsa, kopya artık onundur.
+      </p>
 
-        <h2>Neden tutuyoruz?</h2>
-        <p>
-          Uygulamanın çalışması için: listelerini sana göstermek, cihazların arasında eşitlemek ve
-          paylaşmayı seçtiğin listeleri bağlantıyla açılabilir kılmak. Ziyaret istatistikleri yalnızca
-          hangi özelliklerin kullanıldığını görüp uygulamayı geliştirmek için. Hukuki sebep, KVKK
-          madde 5/2-c: hizmetin, yani kullanıcıyla kurulan ilişkinin gereği.
-        </p>
+      <h2>Hizmet sağlayıcılar</h2>
+      <table>
+        <thead>
+          <tr><th>Sağlayıcı</th><th>Ne için</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Supabase</td><td>Veritabanı, oturum açma ve fotoğraf depolama</td></tr>
+          <tr><td>Vercel</td><td>Sitenin barındırılması ve çerezsiz ziyaret istatistikleri</td></tr>
+          <tr><td>Google</td><td>Google ile giriş</td></tr>
+        </tbody>
+      </table>
+      <p>Bu sağlayıcıların sunucuları Türkiye dışındadır; bu nedenle verilerin yurt dışına aktarılır.</p>
 
-        <h2>Kimler görebilir?</h2>
-        <ul>
-          <li>
-            Listelerin varsayılan olarak <strong>yalnızca sana</strong> açık.
-          </li>
-          <li>
-            Bir liste için paylaşım bağlantısı oluşturursan bağlantıyı alan herkes giriş yapmadan o
-            listenin <strong>sıralamasını, “Bir daha asla” bölümünü, fotoğraflarını ve adını</strong>{' '}
-            görür. Notların, denenmemişlerin ve e-posta adresin görünmez. Bağlantıyı istediğin zaman
-            yenileyebilir ya da kapatabilirsin.
-          </li>
-          <li>
-            Biri paylaştığın listeyi “Ben de sıralayayım” ile kendi hesabına kopyalarsa, kopyalanan
-            kayıtlar ve fotoğraflar artık onun listesidir; senin paylaşımı kapatman o kopyayı silmez.
-          </li>
-        </ul>
+      <h2>Ne kadar saklıyoruz</h2>
+      <p>
+        Verilerin, silene kadar saklanır. Nasıl silineceği <Link href="/hesap-silme">Hesap Silme</Link> sayfasında.
+      </p>
 
-        <h2>Hizmet sağlayıcılar ve yurt dışına aktarım</h2>
-        <p>Veriler, uygulamayı çalıştıran şu servislerde tutuluyor:</p>
-        <ul>
-          <li><strong>Supabase:</strong> veritabanı, giriş ve fotoğraf depolama.</li>
-          <li><strong>Vercel:</strong> sitenin barındırılması ve anonim ziyaret istatistikleri.</li>
-          <li><strong>Google:</strong> yalnızca giriş için.</li>
-        </ul>
-        <p>
-          Bu servislerin sunucuları Türkiye dışında. Uygulamayı kullanarak verilerinin bu servislere,
-          yalnızca yukarıdaki amaçlarla aktarılmasına açık rıza vermiş olursun; rızanı geri çekmek
-          için verilerini silmen yeterli.
-        </p>
+      <h2>Hakların</h2>
+      <p>
+        Verilerine erişme, düzeltilmesini ya da silinmesini isteme ve KVKK&apos;nın 11. maddesindeki diğer hakların
+        için <Eposta /> adresine yazabilirsin; en geç 30 gün içinde yanıt verilir.
+      </p>
 
-        <h2>Verilerini silmek</h2>
-        <p>
-          Uygulamada sağ üstteki adına dokun → <strong>Hesabım</strong> → <strong>Verilerimi sil</strong>.
-          Bütün listelerin, kayıtların, fotoğrafların ve paylaşım bağlantıların hemen ve kalıcı
-          olarak silinir.
-        </p>
-        <p>
-          Giriş kaydın (ad ve e-posta) aynı altyapıyı kullanan başka uygulamalarımla ortak olduğu için
-          bu düğmeyle silinmiyor. Onun da silinmesini istersen{' '}
-          <a href={`mailto:${ILETISIM_EPOSTA}?subject=Hesap%20silme`}>{ILETISIM_EPOSTA}</a> adresine
-          yazman yeterli; en geç 30 gün içinde silinir.
-        </p>
+      <h2>Çocuklar</h2>
+      <p>
+        Sıralama Defteri çocuklara yönelik değildir. Google ile giriş yalnızca Google&apos;ın yaş koşullarını karşılayan
+        hesaplarla yapılabilir.
+      </p>
 
-        <h2>Hakların</h2>
-        <p>
-          KVKK madde 11 uyarınca verilerinin işlenip işlenmediğini öğrenme, bilgi isteme, düzeltilmesini
-          ya da silinmesini isteme, aktarıldığı tarafları bilme ve itiraz etme hakların var. Başvurunu
-          yukarıdaki e-posta adresine gönderebilirsin; en geç 30 gün içinde yanıtlanır.
-        </p>
-
-        <h2>Çocuklar</h2>
-        <p>Uygulama 13 yaşından küçükler için tasarlanmadı.</p>
-
-        <h2>Değişiklikler</h2>
-        <p>
-          Bu metin değişirse güncel hâli bu sayfada, yukarıdaki tarihle yayımlanır.
-        </p>
-      </main>
-
-      <footer className="paylasim-son">
-        <Link href="/" className="btn-quiet">Uygulamaya dön</Link>
-      </footer>
-    </div>
+      <h2>Değişiklikler</h2>
+      <p>Bu politikayı güncellediğimizde yeni hâlini bu sayfada yayımlar, üstteki tarihi değiştiririz.</p>
+    </YasalSayfa>
   );
 }

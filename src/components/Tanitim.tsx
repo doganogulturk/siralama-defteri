@@ -263,7 +263,8 @@ export default function Tanitim({ girisDugmesi }: { girisDugmesi: React.ReactNod
         </div>
         {girisDugmesi}
         <p className="gate-yasal">
-          Devam ederek <a href="/gizlilik">gizlilik politikasını</a> kabul etmiş olursun.
+          Devam ederek <a href="/kullanim-kosullari">Kullanım Koşulları</a>&apos;nı ve{' '}
+          <a href="/gizlilik">Gizlilik Politikası</a>&apos;nı kabul etmiş olursun.
         </p>
       </footer>
     </div>

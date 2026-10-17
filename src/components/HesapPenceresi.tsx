@@ -1,45 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import Sheet from './Sheet';
 import { signOut } from '../lib/auth';
-import { tumVerileriSil } from '../lib/items';
-import { hataMetni } from '../lib/hata';
-
-/** Silmeyi onaylamak için yazılacak kelime: yanlışlıkla iki dokunuşla silinmesin. */
-const ONAY = 'SİL';
+import { YASAL_SAYFALAR } from '../lib/iletisim';
 
 /**
- * "Hesabım": kim olarak giriş yapıldığı, gizlilik politikası, verileri silme ve çıkış.
- * Silme bu uygulamadaki her şeyi kaldırıyor (`tumVerileriSil`); giriş kaydı kalıyor,
- * gizlilik politikası nedenini ve onun nasıl silineceğini anlatıyor.
+ * "Hesabım": kim olarak giriş yapıldığı, çıkış ve yasal sayfalar. Verileri silme
+ * burada değil, Hesap Silme sayfasının en altında (`VeriSilmePaneli`): menüde
+ * görünmesi insanı silmeye yöneltirdi; oraya buradaki "Hesap silme" bağlantısı gidiyor.
  */
 export default function HesapPenceresi({ user, ad, onClose }: {
   user: User;
   ad: string;
   onClose: () => void;
 }) {
-  const router = useRouter();
-  const [silmeAcik, setSilmeAcik] = useState(false);
-  const [onay, setOnay] = useState('');
-  const [siliniyor, setSiliniyor] = useState(false);
-
-  const sil = async () => {
-    if (onay.trim().toLocaleUpperCase('tr') !== ONAY || siliniyor) return;
-    setSiliniyor(true);
-    try {
-      await tumVerileriSil();
-      await signOut();   // AuthGate giriş ekranına dönüyor.
-      router.replace('/');
-    } catch (e: unknown) {
-      alert('Veriler silinemedi: ' + hataMetni(e));
-      setSiliniyor(false);
-    }
-  };
-
   return (
     <Sheet onClose={onClose} className="form-screen-short" label="Hesabım">
       <header className="form-screen-header">
@@ -59,47 +36,15 @@ export default function HesapPenceresi({ user, ad, onClose }: {
           {user.email && <span>{user.email}</span>}
         </p>
 
-        <div className="hesap-islemler">
-          <Link href="/gizlilik" className="btn-quiet" onClick={onClose}>Gizlilik politikası</Link>
-          <button type="button" className="btn-quiet" onClick={() => { void signOut(); }}>Çıkış yap</button>
-        </div>
+        <button type="button" className="btn-quiet hesap-cikis" onClick={() => { void signOut(); }}>
+          Çıkış yap
+        </button>
 
-        <section className="hesap-sil">
-          {!silmeAcik ? (
-            <button type="button" className="btn-danger" onClick={() => setSilmeAcik(true)}>
-              Verilerimi sil
-            </button>
-          ) : (
-            <>
-              <p>
-                Bütün listelerin, kayıtların, fotoğrafların ve paylaşım bağlantıların <strong>kalıcı
-                olarak</strong> silinecek. Bu geri alınamaz. Onaylamak için <strong>{ONAY}</strong> yaz.
-              </p>
-              <input
-                className="field-input"
-                value={onay}
-                onChange={(e) => setOnay(e.target.value)}
-                aria-label={`Onay için ${ONAY} yaz`}
-                autoComplete="off"
-                autoCapitalize="characters"
-                data-autofocus
-              />
-              <div className="hesap-islemler">
-                <button type="button" className="btn-quiet" onClick={() => { setSilmeAcik(false); setOnay(''); }}>
-                  Vazgeç
-                </button>
-                <button
-                  type="button"
-                  className="btn-danger"
-                  onClick={sil}
-                  disabled={onay.trim().toLocaleUpperCase('tr') !== ONAY || siliniyor}
-                >
-                  {siliniyor ? 'Siliniyor…' : 'Kalıcı olarak sil'}
-                </button>
-              </div>
-            </>
-          )}
-        </section>
+        <nav className="hesap-yasal" aria-label="Yasal sayfalar">
+          {YASAL_SAYFALAR.map(s => (
+            <Link key={s.href} href={s.href} onClick={onClose}>{s.ad}</Link>
+          ))}
+        </nav>
       </div>
     </Sheet>
   );

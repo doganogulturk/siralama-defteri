@@ -7,6 +7,7 @@ import { benzersizSlug, slugify } from '../lib/slug';
 import { topluAyristir, topluKaydet, topluKayitSayisi, topluSorun } from '../lib/toplu';
 import { hataMetni } from '../lib/hata';
 import { SINIR } from '../lib/sinirlar';
+import { SABLONLAR, Sablon } from '../lib/sablonlar';
 import { Kategori } from '../types/item';
 import TopluAlan from './TopluAlan';
 import Sheet from './Sheet';
@@ -49,8 +50,19 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
   /** Liste oluşurken açılacak kategoriler — sırası kategori sırası ve renk sırası. */
   const [kategoriAdlari, setKategoriAdlari] = useState<string[]>([]);
   const [kategoriGiris, setKategoriGiris] = useState('');
+  /** Şablondan doldurulduysa kayıtlar "Denenmemiş"e düşer (`lib/sablonlar.ts`). */
+  const [sablon, setSablon] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const sablonSec = (s: Sablon) => {
+    setAd(s.ad);
+    setKategoriAdlari(s.kategoriler);
+    setKategoriGiris('');
+    setToplu(s.metin);
+    setTopluAcik(true);
+    setSablon(s.ad);
+  };
 
   const topluAdet = topluKayitSayisi(bloklar);
   const topluEngel = topluSorun(bloklar, 0);
@@ -85,13 +97,19 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
       }
       if (topluAdet > 0) {
         // Toplu metindeki başlıklar yeni kategorilerle aynı adı taşıyorsa onlara bağlanıyor.
-        await topluKaydet({ liste: olusan, kategoriler: olusanKategoriler, bloklar, baslangicSira: 0 });
+        await topluKaydet({
+          liste: olusan, kategoriler: olusanKategoriler, bloklar, baslangicSira: 0, denendi: !sablon,
+        });
       }
       onCreated?.();
       // Hiçbir şey kurulmadan doğan listede ilk iş ayarlar; kategori ya da kayıt
       // girildiyse kullanıcı doğrudan sıralamasına düşsün.
       const kuruldu = topluAdet > 0 || adlar.length > 0;
-      router.push(kuruldu ? `/l/${olusan.slug}` : `/l/${olusan.slug}?ayarlar=1`);
+      router.push(
+        !kuruldu ? `/l/${olusan.slug}?ayarlar=1`
+          : sablon && topluAdet > 0 ? `/l/${olusan.slug}?sekme=denenmemis`
+          : `/l/${olusan.slug}`,
+      );
     } catch (err: unknown) {
       alert('Liste oluşturulamadı: ' + hataMetni(err));
       setKaydediliyor(false);
@@ -112,6 +130,23 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
       </header>
 
       <form onSubmit={handleSubmit} className="form-screen-body">
+        <div className="field">
+          <span className="field-label">Hazır şablonla başla</span>
+          <div className="sablonlar">
+            {SABLONLAR.map(s => (
+              <button
+                key={s.ad}
+                type="button"
+                className={`sablon-hap${sablon === s.ad ? ' is-on' : ''}`}
+                aria-pressed={sablon === s.ad}
+                onClick={() => sablonSec(s)}
+              >
+                <span aria-hidden="true">{s.simge}</span> {s.ad}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <label className="field">
           <span className="field-label">Liste Adı *</span>
           <input
@@ -183,7 +218,9 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
         )}
 
         <p className="field-hint">
-          {topluAdet > 0
+          {topluAdet > 0 && sablon
+            ? 'Şablondaki kayıtlar “Denenmemiş” sekmesine düşer; denedikçe sıralamana alırsın. İstemediklerini şimdi silebilirsin.'
+            : topluAdet > 0
             ? 'Kayıtlar denenmiş sayılır; sıralamayı sonra sürükleyerek düzeltirsin.'
             : kategoriAdlari.length > 0
               ? 'Ek alanları istersen liste ayarlarından eklersin.'

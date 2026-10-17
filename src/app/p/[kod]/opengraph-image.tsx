@@ -1,9 +1,8 @@
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
 import { ImageResponse } from 'next/og';
 import { brandInitials } from '../../../types/item';
-import { PaylasilanKayit, guvenliFoto, tamlayan } from '../../../lib/paylasim';
+import { PaylasilanKayit, tamlayan } from '../../../lib/paylasim';
 import { paylasilanListe } from '../../../lib/paylasim-sunucu';
+import { RENK, fotoVerisi, yaziTipleri } from '../../../lib/gorsel-sunucu';
 
 /*
  * WhatsApp önizleme kartının görseli: sahibin adı, listenin adı ve fotoğraflarıyla
@@ -14,44 +13,6 @@ export const dynamic = 'force-dynamic';
 export const alt = 'Sıralamanın ilk üçü';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
-
-const RENK = {
-  zemin: '#f8f7f4',
-  yuzey: '#ffffff',
-  yuzey2: '#efede8',
-  murekkep: '#1a1512',
-  soluk: '#8a847d',
-  cizgi: '#e6e3dd',
-  vurgu: '#e64611',
-  vurguYikama: '#fcebe3',
-};
-
-/** Fotoğraf indirme sınırları: yavaş ya da iri bir fotoğraf kartı bekletmesin. */
-const FOTO_SURE_MS = 2500;
-const FOTO_EN_BUYUK = 4 * 1024 * 1024;
-/** Görsel motoru (satori) yalnızca bunları çizebiliyor; HEIC gibi biçimler baş harfe düşüyor. */
-const FOTO_TURLERI = ['image/jpeg', 'image/png', 'image/gif'];
-
-/**
- * Fotoğrafı sunucuda indirip görsele gömüyor. Motor adresi kendisi indirseydi
- * tek bir bozuk fotoğraf bütün görseli düşürürdü; burada sorunlu fotoğraf baş
- * harflere dönüyor. Yalnızca uygulamanın kendi kovasındaki adresler indiriliyor.
- */
-async function fotoVerisi(url?: string | null): Promise<string | null> {
-  const adres = guvenliFoto(url);
-  if (!adres) return null;
-  try {
-    const yanit = await fetch(adres, { signal: AbortSignal.timeout(FOTO_SURE_MS), redirect: 'error' });
-    const tur = yanit.headers.get('content-type')?.split(';')[0].trim() ?? '';
-    if (!yanit.ok || !FOTO_TURLERI.includes(tur)) return null;
-    if (Number(yanit.headers.get('content-length') ?? 0) > FOTO_EN_BUYUK) return null;
-    const veri = await yanit.arrayBuffer();
-    if (veri.byteLength > FOTO_EN_BUYUK) return null;
-    return `data:${tur};base64,${Buffer.from(veri).toString('base64')}`;
-  } catch {
-    return null;
-  }
-}
 
 function Basamak({ kayit, sira, foto }: { kayit: PaylasilanKayit; sira: number; foto: string | null }) {
   const sampiyon = sira === 1;
@@ -124,11 +85,7 @@ function Basamak({ kayit, sira, foto }: { kayit: PaylasilanKayit; sira: number; 
 
 export default async function Gorsel({ params }: { params: Promise<{ kod: string }> }) {
   const { kod } = await params;
-  const [liste, sans, serif] = await Promise.all([
-    paylasilanListe(kod),
-    readFile(join(process.cwd(), 'src/fonts/Geist-Regular.ttf')),
-    readFile(join(process.cwd(), 'src/fonts/InstrumentSerif-Regular.ttf')),
-  ]);
+  const [liste, fonts] = await Promise.all([paylasilanListe(kod), yaziTipleri()]);
 
   const ilkUc = liste ? liste.kayitlar.filter(k => !k.asla).slice(0, 3) : [];
   const fotolar = await Promise.all(ilkUc.map(k => fotoVerisi(k.fotograf_url)));
@@ -198,11 +155,7 @@ export default async function Gorsel({ params }: { params: Promise<{ kod: string
     ),
     {
       ...size,
-      // Yazı tipi verilince motorun kendi Geist'i devreden çıkıyor: ikisi birlikte.
-      fonts: [
-        { name: 'Geist', data: sans, style: 'normal', weight: 400 },
-        { name: 'Instrument Serif', data: serif, style: 'normal', weight: 400 },
-      ],
+      fonts,
     },
   );
 }

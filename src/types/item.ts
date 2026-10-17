@@ -28,6 +28,8 @@ export interface Liste {
   alanlar: AlanTanimi[];
   /** Salt okunur paylaşım bağlantısının kodu (`/p/[kod]`); boşsa liste paylaşılmıyor. */
   paylasim_kodu?: string | null;
+  /** "Ben de sıralayayım" ile kopyalandığı paylaşımın kodu — karşılaştırma bununla eşleşiyor. */
+  kaynak_kod?: string | null;
   created_at?: string;
 }
 

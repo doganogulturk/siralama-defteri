@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  /*
+   * Görsel üreten yollar yazı tiplerini çalışma anında diskten okuyor
+   * (`lib/gorsel-sunucu.ts`); izleme yolu kaçırırsa Vercel'de dosya bulunamaz.
+   */
+  outputFileTracingIncludes: {
+    "/p/**": ["./src/fonts/**/*"],
+  },
 };
 
 export default nextConfig;

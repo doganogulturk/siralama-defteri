@@ -34,6 +34,14 @@ create table if not exists do_siralama_defteri.lists (
   unique (user_id, slug)
 );
 
+-- Paylaşılan bir listeden "Ben de sıralayayım" ile kopyalanan listede kaynağın paylaşım kodu: karşılaştırma
+-- ekranı (/kiyasla/[kod]) iki listeyi bununla eşliyor. Kaynak bağlantıyı yenilerse ya da kapatırsa bağ
+-- kopar; o zaman karşılaştırma liste adına göre eşleşmeye düşer. Kurulu veritabanı için `add column`.
+alter table do_siralama_defteri.lists add column if not exists kaynak_kod text;
+alter table do_siralama_defteri.lists drop constraint if exists lists_kaynak_kod_bicim;
+alter table do_siralama_defteri.lists add constraint lists_kaynak_kod_bicim
+  check (kaynak_kod ~ '^[A-Za-z0-9]{16,64}$');
+
 -- Kategoriler: bir listenin alt kırılımları (Şekerli/Şekersiz, Yaprak/Kıyma ...)
 create table if not exists do_siralama_defteri.categories (
   id          uuid primary key default gen_random_uuid(),

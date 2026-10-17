@@ -232,6 +232,7 @@ a { color: var(--accent-ink); }
   font-variant-numeric: tabular-nums;
 }
 .mobile-summary strong { color: var(--ink); font-weight: 600; }
+.mobile-summary-link { color: var(--accent-ink); font-weight: 600; text-decoration: none; }
 
 /* Başlık, sekmeler ve filtreler kaydırmada sabit: yarı saydam cam, altındaki kayıtlar bulanık görünüyor. */
 .sticky-top {
@@ -425,6 +426,42 @@ a { color: var(--accent-ink); }
 .row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .row.is-selected { box-shadow: var(--ring), var(--shadow); }
 .row.is-dragging { box-shadow: 0 0 0 1px var(--faint), var(--shadow-lift); cursor: grabbing; transform: scale(1.01); }
+
+/* Şampiyon değişti (useTac): taç sıra numarasının üstüne iner, kart bir halka yayar. */
+.row-tac {
+  position: absolute;
+  top: -15px;
+  left: 12px;
+  z-index: 2;
+  color: var(--accent);
+  filter: drop-shadow(0 2px 4px color-mix(in oklab, var(--accent) 45%, transparent));
+  pointer-events: none;
+  animation: tac 1.6s var(--ease) both;
+}
+@keyframes tac {
+  0% { translate: 0 18px; scale: 0.2; rotate: -18deg; opacity: 0; }
+  22% { translate: 0 0; scale: 1.25; rotate: 6deg; opacity: 1; }
+  34% { scale: 1; rotate: 0deg; }
+  82% { opacity: 1; }
+  100% { translate: 0 -6px; opacity: 0; }
+}
+.row.is-taclandi { animation: tac-kart 1.1s var(--ease); }
+@keyframes tac-kart {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 55%, transparent), var(--shadow); }
+  100% { box-shadow: 0 0 0 16px transparent, var(--shadow); }
+}
+.rows-kart .row-tac { left: 50%; margin-left: -13px; }
+
+/* İlk açılışta kartlar sırayla, hafifçe yukarı kayarak geliyor; yeniden sıralamada değil
+   (bileşenler anahtarla korunuyor, animasyon yalnızca yeni doğan satırda). */
+.rows > .row { animation: pop 0.38s var(--spring) backwards; }
+.rows > .row:nth-child(2) { animation-delay: 30ms; }
+.rows > .row:nth-child(3) { animation-delay: 60ms; }
+.rows > .row:nth-child(4) { animation-delay: 90ms; }
+.rows > .row:nth-child(5) { animation-delay: 120ms; }
+.rows > .row:nth-child(6) { animation-delay: 150ms; }
+.rows > .row:nth-child(7) { animation-delay: 180ms; }
+.rows > .row:nth-child(n + 8) { animation-delay: 210ms; }
 
 .row.is-sampiyon {
   background:
@@ -2484,6 +2521,51 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   color: var(--mute);
 }
 
+/* ── Yeni liste: hazır şablonlar ── */
+.sablonlar {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.sablonlar::-webkit-scrollbar { display: none; }
+.sablon-hap {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: var(--pill);
+  background: var(--surface);
+  box-shadow: var(--hair);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  transition: background var(--t) var(--ease), color var(--t) var(--ease), transform var(--t) var(--ease);
+}
+.sablon-hap:active { transform: scale(0.96); }
+.sablon-hap.is-on { background: var(--ink); color: var(--bg); box-shadow: none; }
+
+/* ── Başlıktaki Paylaş menüsü ── */
+.paylas-menu { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
+.paylas-secenek {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--hair);
+  text-align: left;
+  transition: box-shadow var(--t) var(--ease), transform var(--t) var(--ease);
+}
+.paylas-secenek:hover { box-shadow: 0 0 0 1px var(--faint); }
+.paylas-secenek:active { transform: scale(0.98); }
+.paylas-secenek:disabled { cursor: progress; }
+.paylas-secenek strong { font-weight: 600; }
+.paylas-secenek em { font-style: normal; font-size: 0.86rem; line-height: 1.45; color: var(--mute); }
+
 /* ── Liste ayarları: paylaşım bölümü ── */
 .paylas-acik { display: flex; flex-direction: column; gap: 10px; }
 .paylas-adres {
@@ -2506,4 +2588,172 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
   .gate-kart, .gk-cizgi { transition: none; }
   .liste-card:hover, .oz-kart:hover { transform: none; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   KARŞILAŞTIRMA — "Ben de sıralayayım" (/kiyasla/[kod])
+   Paylaşım sayfasının başlığı ve satırları; altta yapışık bir onay çubuğu.
+═══════════════════════════════════════════════════════ */
+.kiyas-sayfa {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 16px calc(120px + env(safe-area-inset-bottom));
+}
+.kiyas-sayfa > .state-empty { margin-top: 48px; }
+.kiyas-bas { padding: 28px 0 14px; }
+.kiyas-soru {
+  margin-top: 18px;
+  font-family: var(--serif);
+  font-size: 1.7rem;
+  line-height: 1.1;
+}
+.kiyas-ipucu { margin-top: 6px; font-size: 0.88rem; line-height: 1.5; color: var(--mute); }
+.kiyas-ipucu strong { color: var(--ink); font-weight: 600; }
+.kiyas-alt-baslik {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.kiyas-alt-baslik span { color: var(--faint); font-variant-numeric: tabular-nums; }
+.kiyas-denemedim { margin-top: 28px; }
+.kiyas-denemedim .row { opacity: 0.62; }
+.kiyas-denemedim .row-rank { visibility: hidden; }
+
+.kiyas-cubuk {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: min(608px, calc(100% - 24px));
+  padding: 8px 8px 8px 18px;
+  border-radius: var(--pill);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  box-shadow: var(--hair), var(--shadow-lift);
+  translate: -50% 0;
+  animation: pop 0.4s var(--spring) backwards;
+}
+.kiyas-cubuk-ozet {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.86rem;
+  color: var(--mute);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.kiyas-cubuk-ozet strong { color: var(--ink); font-weight: 600; }
+
+/* Sonuç kartları: içeri sırayla kayarak giriyor. */
+.kiyas-bas-sonuc { padding-bottom: 6px; }
+.kiyas-kart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 20px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--hair), var(--shadow-sm);
+  animation: pop 0.5s var(--spring) backwards;
+}
+/* İlk section başlık, ikincisi yüzde kartı; gerisi sayaç dolarken birer birer. */
+.kiyas-kart:nth-of-type(3) { animation-delay: 1s; }
+.kiyas-kart:nth-of-type(4) { animation-delay: 1.15s; }
+.kiyas-kart:nth-of-type(n + 5) { animation-delay: 1.3s; }
+
+.kiyas-uyum { align-items: center; text-align: center; padding-top: 28px; }
+.kiyas-uyum .btn-primary { margin-top: 6px; }
+.kiyas-halka { position: relative; width: 168px; height: 168px; }
+.kiyas-halka svg { width: 100%; height: 100%; rotate: -90deg; }
+.kiyas-halka circle { fill: none; stroke-width: 9; }
+.kiyas-halka-iz { stroke: var(--tint); }
+.kiyas-halka-dolu { stroke: var(--accent); stroke-linecap: round; }
+.kiyas-halka-sayi {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--serif);
+  font-size: 3.4rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.kiyas-uyum-etiket { font-family: var(--serif); font-size: 1.8rem; line-height: 1.1; }
+.kiyas-uyum-metin { max-width: 34ch; font-size: 0.9rem; line-height: 1.5; color: var(--mute); }
+.kiyas-uyum-metin strong { color: var(--ink); font-weight: 600; }
+
+.kiyas-foto {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: var(--surface-2);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--mute);
+}
+.kiyas-foto.is-buyuk { width: 88px; height: 88px; border-radius: 20px; font-size: 1.3rem; }
+.kiyas-foto.is-bos { box-shadow: inset 0 0 0 1.5px var(--line); background: none; }
+
+.kiyas-sampiyonlar { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.kiyas-sampiyon { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.kiyas-sampiyon .kiyas-foto { margin-bottom: 6px; }
+.kiyas-sampiyon em { font-style: normal; font-size: 0.78rem; color: var(--mute); }
+.kiyas-sampiyon strong { font-weight: 600; overflow-wrap: anywhere; }
+
+.kiyas-ayriliklar { display: flex; flex-direction: column; gap: 10px; list-style: none; }
+.kiyas-ayrilik { display: flex; align-items: center; gap: 12px; }
+.kiyas-ayrilik-ad { display: flex; flex-direction: column; min-width: 0; }
+.kiyas-ayrilik-ad strong { font-weight: 600; overflow-wrap: anywhere; }
+.kiyas-ayrilik-ad em { font-style: normal; font-size: 0.84rem; color: var(--mute); }
+
+.kiyas-tablo { display: flex; flex-direction: column; }
+.kiyas-tablo-bas,
+.kiyas-tablo-satir {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 8px;
+}
+.kiyas-tablo-bas {
+  padding-bottom: 6px;
+  font-size: 0.74rem;
+  color: var(--mute);
+  text-align: center;
+}
+.kiyas-tablo-satir { padding: 8px 0; border-top: 1px solid var(--line); }
+.kiyas-tablo-ad { font-size: 0.92rem; text-align: center; overflow-wrap: anywhere; }
+.kiyas-tablo-ad em { font-style: normal; color: var(--mute); }
+.kiyas-yer {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.kiyas-yer.is-ayni { color: var(--accent-ink); }
+.kiyas-yer.is-zit { color: var(--mute); }
+.kiyas-kart .btn-quiet { align-self: flex-start; }
+
+.kiyas-son { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 28px; }
+
+/* Paylaşım sayfasının çağrısı: başlığın hemen altında, sıralamadan önce. */
+.paylasim-davet { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 18px; }
+.paylasim-davet p { font-size: 0.86rem; color: var(--mute); }
+
+@media (prefers-reduced-motion: reduce) {
+  .kiyas-kart, .kiyas-cubuk { animation: none; }
 }

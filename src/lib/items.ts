@@ -44,7 +44,9 @@ export async function getListeBySlug(slug: string): Promise<Liste | null> {
 }
 
 export async function createListe(
-  entry: { ad: string; slug: string; renk?: string; sira?: number; alanlar?: AlanTanimi[] }
+  entry: {
+    ad: string; slug: string; renk?: string; sira?: number; alanlar?: AlanTanimi[]; kaynak_kod?: string;
+  }
 ): Promise<Liste> {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError) throw userError;

@@ -135,6 +135,12 @@ export default async function PaylasimSayfasi({ params }: Props) {
               {siralama[0] && <> · Şampiyon: <strong>{siralama[0].ad}</strong></>}
             </p>
           )}
+          {siralama.length > 0 && (
+            <div className="paylasim-davet">
+              <Link href={`/kiyasla/${kod}`} className="btn-primary">Ben de sıralayayım</Link>
+              <p>Kendi sıranı yap, ne kadar uyuştuğunuzu gör.</p>
+            </div>
+          )}
         </section>
 
         {liste.kayitlar.length === 0 ? (
@@ -163,8 +169,8 @@ export default async function PaylasimSayfasi({ params }: Props) {
       </main>
 
       <footer className="paylasim-son">
-        <p>Sen de denediklerini sırala: kola, döner, kahve — ne istersen.</p>
-        <Link href="/" className="btn-quiet">Kendi sıralamanı oluştur</Link>
+        <p>Bu listeyi sen nasıl sıralardın? Kendi sıranı yap, seninkiyle karşılaştıralım.</p>
+        <Link href={`/kiyasla/${kod}`} className="btn-quiet">Ben de sıralayayım</Link>
       </footer>
     </div>
   );

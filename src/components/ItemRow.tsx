@@ -27,7 +27,15 @@ interface RowProps {
   draggable?: boolean;
   /** Toplu seçim modu: solda seçim kutusu; dokunmak kaydı seçer. */
   secimModu?: boolean;
+  /** Az önce şampiyon oldu: kısa taç anı (`useTac`). */
+  taclandi?: boolean;
 }
+
+const TacIkon = (
+  <svg width="26" height="20" viewBox="0 0 26 20" aria-hidden="true">
+    <path d="M2 6l5.5 5L13 2l5.5 9L24 6l-2.4 12H4.4z" fill="currentColor" />
+  </svg>
+);
 
 export const SecimIkon = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -37,7 +45,7 @@ export const SecimIkon = (
 );
 
 function RowShell({
-  item, alanlar, rank, asla, isSelected, onSelect, draggable, secimModu,
+  item, alanlar, rank, asla, isSelected, onSelect, draggable, secimModu, taclandi,
   handleProps, nodeRef, style, dragging,
 }: RowProps & {
   handleProps?: Record<string, unknown>;
@@ -56,7 +64,7 @@ function RowShell({
       role="button"
       tabIndex={0}
       aria-pressed={isSelected}
-      className={`row${asla ? ' is-asla' : ''}${rank === 1 && !asla ? ' is-sampiyon' : ''}${isSelected ? ' is-selected' : ''}${dragging ? ' is-dragging' : ''}${secimModu ? ' is-secim' : ''}`}
+      className={`row${asla ? ' is-asla' : ''}${rank === 1 && !asla ? ' is-sampiyon' : ''}${isSelected ? ' is-selected' : ''}${dragging ? ' is-dragging' : ''}${secimModu ? ' is-secim' : ''}${taclandi ? ' is-taclandi' : ''}`}
       onClick={() => onSelect(item)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -81,6 +89,7 @@ function RowShell({
       )}
 
       {secimModu && <span className="row-check" aria-hidden="true">{SecimIkon}</span>}
+      {taclandi && <span className="row-tac">{TacIkon}</span>}
 
       {asla ? (
         <span className="row-rank is-asla" aria-label="Bir daha asla">{AslaIkon}</span>

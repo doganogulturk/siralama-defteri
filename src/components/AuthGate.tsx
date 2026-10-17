@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { signInWithGoogle } from '../lib/auth';
+import { useRouter } from 'next/navigation';
+import { GIRIS_SONRASI, signInWithGoogle } from '../lib/auth';
 import { hataMetni } from '../lib/hata';
 import Hesap from './Hesap';
 import Marka from './Marka';
@@ -211,8 +212,23 @@ const OZELLIKLER: { baslik: string; metin: string; sahne: React.ReactNode }[] = 
  */
 export default function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Girişten dönüldü: kişi giriş ekranını hangi sayfada gördüyse oraya.
+  useEffect(() => {
+    if (!user) return;
+    let yol: string | null = null;
+    try {
+      yol = sessionStorage.getItem(GIRIS_SONRASI);
+      sessionStorage.removeItem(GIRIS_SONRASI);
+    } catch { /* depolama kapalı */ }
+    // Yalnızca site içi yol: "//başka.site" gibi bir değer dışarı yönlendirmesin.
+    if (yol && yol.startsWith('/') && !yol.startsWith('//') && yol !== window.location.pathname) {
+      router.replace(yol);
+    }
+  }, [user, router]);
 
   if (loading) {
     return <p className="state-msg">Yükleniyor…</p>;

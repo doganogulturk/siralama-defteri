@@ -20,7 +20,8 @@ import { TopluBlok, topluKaydet } from '../../../../lib/toplu';
 import { hataMetni } from '../../../../lib/hata';
 import { uploadFotograf, deleteFotograf } from '../../../../lib/items';
 import { useIsDesktop } from '../../../../hooks/useIsDesktop';
-import { paylasimAdresi, paylasimMetni } from '../../../../lib/paylasim';
+import { useTac } from '../../../../hooks/useTac';
+import { titret } from '../../../../lib/his';
 import FilterPanel from '../../../../components/FilterPanel';
 import {
   ASLA_SINIRI, AslaSiniri, DraggableRow, StaticRow, SuruklenebilirAslaSiniri,
@@ -30,6 +31,7 @@ import WishlistPanel from '../../../../components/WishlistPanel';
 import ItemForm, { FormMode } from '../../../../components/ItemForm';
 import ListeRayi from '../../../../components/ListeRayi';
 import ListeAyarlariModal from '../../../../components/ListeAyarlariModal';
+import PaylasMenusu from '../../../../components/PaylasMenusu';
 import { BosSahne } from '../../../../components/Sahne';
 import { IskeletSatirlar } from '../../../../components/Iskelet';
 
@@ -74,6 +76,7 @@ export default function ListePage() {
   } = useListStore(SLUG);
 
   const alanlar = useMemo(() => liste?.alanlar ?? [], [liste]);
+  const taclanan = useTac(ranked[0]?.id, SLUG, !loading);
 
   const [filtre, setFiltre] = useState(bosFiltre);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -121,13 +124,16 @@ export default function ListePage() {
   const [editingItem, setEditingItem] = useState<Item | null>(null);
 
   /** Liste ayarları popup'ı. Başka bir listenin ayar simgesinden ya da yeni liste
-   *  açılışından `?ayarlar=1` ile gelinirse açık doğuyor. */
+   *  açılışından `?ayarlar=1` ile gelinirse açık doğuyor. `?sekme=denenmemis`
+   *  (şablondan açılan liste: kayıtların hepsi bekleyen) ikinci sekmeyle açıyor. */
   const [ayarlarAcik, setAyarlarAcik] = useState(false);
+  const [paylasMenusu, setPaylasMenusu] = useState(false);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (!params.has('ayarlar')) return;
+    if (!params.has('ayarlar') && !params.has('sekme')) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setAyarlarAcik(true);
+    if (params.has('ayarlar')) setAyarlarAcik(true);
+    if (params.get('sekme') === 'denenmemis') setSekme('sirada');
     // Parametre adreste kalırsa yenilemede popup yeniden açılırdı.
     window.history.replaceState(null, '', window.location.pathname);
   }, []);
@@ -365,25 +371,13 @@ export default function ListePage() {
   const listeAdi = liste?.ad ?? 'Sıralama';
 
   /**
-   * Başlıktaki Paylaş: liste paylaşılıyorsa sistemin paylaşım menüsü (yoksa
-   * bağlantı panoya); paylaşılmıyorsa bağlantı oluşturulabilsin diye ayarlar.
+   * Başlıktaki Paylaş: liste paylaşılıyorsa bağlantı ya da story görseli menüsü
+   * (`PaylasMenusu`); paylaşılmıyorsa bağlantı oluşturulabilsin diye ayarlar.
    */
-  const paylas = async () => {
+  const paylas = () => {
     if (!liste) return;
     if (!liste.paylasim_kodu) { setAyarlarAcik(true); return; }
-    const url = paylasimAdresi(liste.paylasim_kodu, window.location.origin);
-    if (typeof navigator.share === 'function') {
-      try {
-        await navigator.share({ title: liste.ad, text: paylasimMetni(liste.ad), url });
-      } catch { /* Menü kapatıldı: yapılacak bir şey yok. */ }
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      setBildirim('Paylaşım bağlantısı kopyalandı');
-    } catch {
-      setAyarlarAcik(true);   // Pano kapalı: bağlantı ayarlarda seçilip kopyalanabilir.
-    }
+    setPaylasMenusu(true);
   };
 
   const listBody = (() => {
@@ -481,7 +475,12 @@ export default function ListePage() {
     }
 
     return (
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={() => titret('dokunus')}
+        onDragEnd={handleDragEnd}
+      >
         <SortableContext
           items={[...ranked.map(i => i.id), ASLA_SINIRI, ...aslaListesi.map(i => i.id)]}
           // Kartlar ızgarada: satır stratejisi yalnızca dikey yer değiştirmeyi hesaplıyor.
@@ -496,6 +495,7 @@ export default function ListePage() {
                 rank={i + 1}
                 isSelected={secili(item.id)}
                 onSelect={handleRowSelect}
+                taclandi={taclanan === item.id}
               />
             ))}
             <SuruklenebilirAslaSiniri adet={aslaListesi.length} />
@@ -584,6 +584,10 @@ export default function ListePage() {
                 {' '}· <strong>{ozetEvet}</strong> tanesi {alanKisa(ozetAlan).toLocaleLowerCase('tr')} ·{' '}
                 <strong>{total - ozetEvet}</strong> tanesi değil
               </>
+            )}
+            {/* "Ben de sıralayayım" ile kopyalanan listede kaynağıyla karşılaştırmaya kısa yol. */}
+            {liste?.kaynak_kod && (
+              <> · <Link href={`/kiyasla/${liste.kaynak_kod}`} className="mobile-summary-link">Karşılaştır</Link></>
             )}
           </p>
         )}
@@ -801,6 +805,15 @@ export default function ListePage() {
             />
           </div>
         </section>
+      )}
+
+      {paylasMenusu && liste?.paylasim_kodu && (
+        <PaylasMenusu
+          liste={liste}
+          onClose={() => setPaylasMenusu(false)}
+          onAyarlar={() => { setPaylasMenusu(false); setAyarlarAcik(true); }}
+          onBildirim={setBildirim}
+        />
       )}
 
       {ayarlarAcik && liste && (

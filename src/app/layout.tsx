@@ -35,6 +35,8 @@ export const metadata: Metadata = {
     template: "%s | Sıralama Defteri",
   },
   description: "Denediklerini kendi listelerinde sırala: kola, döner, kahve — ne istersen.",
+  // iOS'ta ana ekrana eklenince tarayıcı çubuğu olmadan açılsın (manifest: app/manifest.ts).
+  appleWebApp: { capable: true, title: "Sıralama", statusBarStyle: "default" },
 };
 
 /* Tarayıcı çubuğu sayfa zeminiyle aynı renkte; tema sistemi izliyor. */

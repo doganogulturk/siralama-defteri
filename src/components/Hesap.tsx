@@ -13,6 +13,16 @@ const CikisIkon = (
   </svg>
 );
 
+/** Google hesabının adı varsa o, yoksa e-postanın kullanıcı adı kısmı; ve profil fotoğrafı. */
+export function hesapBilgisi(user: User): { ad: string; foto?: string } {
+  const meta = user.user_metadata as
+    { full_name?: string; name?: string; avatar_url?: string; picture?: string } | undefined;
+  return {
+    ad: meta?.full_name ?? meta?.name ?? (user.email ?? '').split('@')[0] ?? 'Hesabım',
+    foto: meta?.avatar_url ?? meta?.picture,
+  };
+}
+
 /**
  * Hesap bloğu: Google fotoğrafı, ad ve çıkış. Sıralama ekranlarında `AuthGate`
  * rayın dibine, ana ekranda sayfa başlığın sağına çiziyor — yerleşim `className`den.
@@ -22,11 +32,7 @@ export default function Hesap({ user, className }: { user: User; className: stri
   const [fotoBozuk, setFotoBozuk] = useState(false);
   const [pencere, setPencere] = useState(false);
 
-  // Google hesabının adı varsa onu, yoksa e-postanın kullanıcı adı kısmını göster.
-  const meta = user.user_metadata as
-    { full_name?: string; name?: string; avatar_url?: string; picture?: string } | undefined;
-  const ad = meta?.full_name ?? meta?.name ?? (user.email ?? '').split('@')[0] ?? 'Hesabım';
-  const foto = meta?.avatar_url ?? meta?.picture;
+  const { ad, foto } = hesapBilgisi(user);
 
   return (
     // Kimlik "Hesabım"ı açan düğme, çıkış ayrı bir düğme: bloğa dokunmak oturumu kapatmasın.

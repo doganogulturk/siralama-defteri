@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Marka from '../../components/Marka';
 import { KOR_LISTELERI } from '../../lib/kor';
+import MobilMenu from '../../components/MobilMenu';
 
 export const metadata: Metadata = {
   title: 'Kör Sıralama',
@@ -38,6 +39,7 @@ export default function KorListeleri() {
           ))}
         </ul>
       </main>
+      <MobilMenu aktif="kor" />
     </div>
   );
 }

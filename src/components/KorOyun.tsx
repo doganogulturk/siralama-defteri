@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { KorListe, sonucYaz } from '../lib/kor';
 import { kiyasAnahtari, kiyasla, uyumEtiketi } from '../lib/kiyas';
 import { titret } from '../lib/his';
+import { useAuth } from '../hooks/useAuth';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 
@@ -159,6 +160,7 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
   liste: KorListe; sira: number[]; arkadas: number[] | null; onTekrar: () => void;
 }) {
   const s = sonucYaz(sira);
+  const { user } = useAuth();
   const [gorsel, setGorsel] = useState<File | null>(null);
   const [bildirim, setBildirim] = useState<string | null>(null);
 
@@ -249,9 +251,19 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
         <Link href="/kor" className="btn-quiet">Başka liste</Link>
       </div>
 
+      {/* Oturum açıksa kayıt çağrısı yerine listelere dönüş. */}
       <Link href="/" className="kor-davet">
-        <strong>Kendi listelerini kur</strong>
-        <span>Denediklerini fotoğraflarıyla sırala, arkadaşlarınla karşılaştır →</span>
+        {user ? (
+          <>
+            <strong>Listelerime dön</strong>
+            <span>Kendi sıralamalarına geri dön →</span>
+          </>
+        ) : (
+          <>
+            <strong>Kendi listelerini kur</strong>
+            <span>Denediklerini fotoğraflarıyla sırala, arkadaşlarınla karşılaştır →</span>
+          </>
+        )}
       </Link>
 
       {bildirim && <div className="toast" role="status">{bildirim}</div>}

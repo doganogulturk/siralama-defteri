@@ -11,6 +11,7 @@ import { SABLONLAR, Sablon } from '../lib/sablonlar';
 import { Kategori } from '../types/item';
 import TopluAlan from './TopluAlan';
 import Sheet from './Sheet';
+import { useIsDesktop } from '../hooks/useIsDesktop';
 
 const trAnahtar = (s: string) => s.trim().toLocaleLowerCase('tr');
 
@@ -41,6 +42,8 @@ interface ListeEkleModalProps {
  */
 export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkleModalProps) {
   const router = useRouter();
+  /** Telefonda ad alanına odaklanmak klavyeyi açıp şablonları ve formu örtüyordu. */
+  const isDesktop = useIsDesktop();
   const [ad, setAd] = useState('');
   const [kaydediliyor, setKaydediliyor] = useState(false);
   /** Toplu giriş kutusu bilerek kapalı doğuyor: liste açmanın kısa yolu kısa kalsın. */
@@ -157,7 +160,7 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
             onChange={(e) => setAd(e.target.value)}
             maxLength={SINIR.listeAdi}
             required
-            data-autofocus
+            data-autofocus={isDesktop || undefined}
           />
         </label>
 
@@ -210,7 +213,7 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
         </div>
 
         {topluAcik ? (
-          <TopluAlan deger={toplu} onChange={setToplu} bloklar={bloklar} autoFocus sorun={topluEngel} />
+          <TopluAlan deger={toplu} onChange={setToplu} bloklar={bloklar} autoFocus={isDesktop} sorun={topluEngel} />
         ) : (
           <button type="button" className="btn-quiet" onClick={() => setTopluAcik(true)}>
             Kayıtları da şimdi yaz

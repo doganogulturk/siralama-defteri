@@ -9,28 +9,32 @@ import { IskeletKartlar } from '../../components/Iskelet';
 import Link from 'next/link';
 import { useListeler, siralanan } from '../../hooks/useListeler';
 import ListeEkleModal from '../../components/ListeEkleModal';
+import MobilMenu from '../../components/MobilMenu';
 import { useAuth } from '../../hooks/useAuth';
 import { brandInitials } from '../../types/item';
 import type { OzetKayit } from '../../lib/items';
 
-/** Podyumun basamakları soldan sağa: ikinci, birinci, üçüncü. */
-const BASAMAKLAR = [1, 0, 2];
-
 /**
- * Liste kartındaki podyum: ilk üçün fotoğrafları basamak basamak, şampiyon ortada
- * ve en yüksekte. Fotoğrafsız kayıt baş harfleriyle, boş basamak kesik çizgiyle.
+ * Liste kartının vitrini: ilk üçün fotoğrafları kartın bütün yüksekliğinde, soldan
+ * sağa 1-2-3; şampiyonunki biraz daha geniş. Her panonun sol altında sıra ve ad.
+ * Sıralar renk tonuyla da ayrışıyor (CSS `data-sira`): birincinin alt gölgesi vurgu
+ * renginde, ikinci ve üçüncü giderek nötr. Fotoğrafsız kayıt baş harfleriyle, boş
+ * yer (üçten az kayıt) silik bir panoyla.
  */
-function Podyum({ ilkUc }: { ilkUc: OzetKayit[] }) {
+function Vitrin({ ilkUc }: { ilkUc: OzetKayit[] }) {
   return (
-    <span className="podyum" aria-hidden="true">
-      {BASAMAKLAR.map(n => {
+    <span className="vitrin">
+      {[0, 1, 2].map(n => {
         const k = ilkUc[n];
         return (
-          <span key={n} className={`podyum-basamak${k ? '' : ' is-bos'}`} data-sira={n + 1}>
+          <span key={n} className={`vitrin-pano${k ? '' : ' is-bos'}`} data-sira={n + 1}>
             {k?.fotograf_url
               ? <img src={k.fotograf_url} alt="" loading="lazy" />
-              : k && <b>{brandInitials(k.ad)}</b>}
-            <i>{n + 1}</i>
+              : k && <b aria-hidden="true">{brandInitials(k.ad)}</b>}
+            <span className="vitrin-ad">
+              <i>{n + 1}</i>
+              {k && <em>{k.ad}{k.alt_ad && <small> {k.alt_ad}</small>}</em>}
+            </span>
           </span>
         );
       })}
@@ -63,6 +67,7 @@ export default function ListelerPage() {
           <div className="home-head-yan">
             {/* Masaüstünde yüzen düğme gizli; ekleme üst çubuğa geçiyor. */}
             <div className="list-head-actions">
+              <Link href="/kor" className="btn-quiet">Kör Sıralama</Link>
               <button type="button" className="btn-primary" onClick={() => setFormAcik(true)}>
                 <span aria-hidden="true">+</span> Yeni liste
               </button>
@@ -112,32 +117,19 @@ export default function ListelerPage() {
                 <Link
                   key={l.id}
                   href={`/l/${l.slug}`}
-                  className={`liste-card${sampiyon ? '' : ' is-bos'}`}
+                  className={`liste-card${sampiyon ? ' has-vitrin' : ' is-bos'}`}
                 >
+                  {sampiyon && <Vitrin ilkUc={ilkUc} />}
+
                   <span className="liste-card-bas">
-                    <strong className="liste-card-ad">{l.ad}</strong>
+                    <span className="liste-card-baslik">
+                      <strong className="liste-card-ad">{l.ad}</strong>
+                      {bekleyenAdet > 0 && <em className="liste-card-bekleyen">{bekleyenAdet} denenmemiş</em>}
+                    </span>
                     <b className="liste-card-sayi" aria-label={`${adet} sıralandı`}>{adet}</b>
                   </span>
 
-                  <Podyum ilkUc={ilkUc} />
-
-                  {sampiyon ? (
-                    <ol className="liste-card-podyum">
-                      {ilkUc.map((k, n) => (
-                        <li key={k.id}>
-                          <i>{n + 1}</i>
-                          <span>
-                            {k.ad}
-                            {k.alt_ad && <small> {k.alt_ad}</small>}
-                          </span>
-                        </li>
-                      ))}
-                    </ol>
-                  ) : (
-                    <span className="liste-card-bos">Henüz sıralama yok</span>
-                  )}
-
-                  {bekleyenAdet > 0 && <em className="liste-card-bekleyen">{bekleyenAdet} denenmemiş</em>}
+                  {!sampiyon && <span className="liste-card-bos">Henüz sıralama yok</span>}
                 </Link>
               );
             })}
@@ -145,9 +137,8 @@ export default function ListelerPage() {
         )}
       </main>
 
-      <button type="button" className="fab" onClick={() => setFormAcik(true)}>
-        Yeni liste
-      </button>
+      {/* Telefonda yeni liste, Kör Sıralama ve profil alt menüde; masaüstünde üst çubukta. */}
+      <MobilMenu aktif="listeler" />
 
       <ListeEkleModal
         isOpen={formAcik}

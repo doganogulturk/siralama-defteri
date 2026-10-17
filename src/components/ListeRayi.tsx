@@ -63,6 +63,7 @@ export default function ListeRayi({ aktifSlug }: ListeRayiProps) {
         <button type="button" className="rail-add" onClick={() => setFormAcik(true)}>
           {ArtiIkon}Yeni liste
         </button>
+        <Link href="/kor" className="rail-oyun">Kör Sıralama oyna</Link>
       </aside>
 
       <ListeEkleModal isOpen={formAcik} onClose={() => setFormAcik(false)} onCreated={load} />

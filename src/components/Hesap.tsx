@@ -3,15 +3,7 @@
 
 import React, { useState } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { signOut } from '../lib/auth';
 import HesapPenceresi from './HesapPenceresi';
-
-const CikisIkon = (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
-  </svg>
-);
 
 /** Google hesabının adı varsa o, yoksa e-postanın kullanıcı adı kısmı; ve profil fotoğrafı. */
 export function hesapBilgisi(user: User): { ad: string; foto?: string } {
@@ -24,8 +16,9 @@ export function hesapBilgisi(user: User): { ad: string; foto?: string } {
 }
 
 /**
- * Hesap bloğu: Google fotoğrafı, ad ve çıkış. Sıralama ekranlarında `AuthGate`
- * rayın dibine, ana ekranda sayfa başlığın sağına çiziyor — yerleşim `className`den.
+ * Hesap bloğu: Google fotoğrafı (masaüstü rayında yanında ad). Dokununca "Hesabım"
+ * açılıyor: e-posta, gizlilik, çıkış, verileri silme. Sıralama ekranlarında `AuthGate`
+ * rayın dibine, ana ekranda üst çubuğun sağına çiziyor — yerleşim `className`den.
  */
 export default function Hesap({ user, className }: { user: User; className: string }) {
   /** Google fotoğrafı yüklenemezse baş harfe dönülüyor. */
@@ -35,9 +28,8 @@ export default function Hesap({ user, className }: { user: User; className: stri
   const { ad, foto } = hesapBilgisi(user);
 
   return (
-    // Kimlik "Hesabım"ı açan düğme, çıkış ayrı bir düğme: bloğa dokunmak oturumu kapatmasın.
+    // Çıkış burada değil, "Hesabım"ın içinde: yanlışlıkla dokunup oturumu kapatmak kolaydı.
     <div className={className}>
-      {/* Fotoğraf ve ad "Hesabım"ı açıyor: gizlilik, verileri silme. */}
       <button type="button" className="account-ac" onClick={() => setPencere(true)} aria-label="Hesabım">
         <span className="account-avatar" aria-hidden="true">
           {foto && !fotoBozuk
@@ -48,15 +40,6 @@ export default function Hesap({ user, className }: { user: User; className: stri
         <span className="account-text">
           <strong>{ad}</strong>
         </span>
-      </button>
-      <button
-        type="button"
-        className="account-out"
-        onClick={() => { void signOut(); }}
-        aria-label="Çıkış yap"
-        title="Çıkış yap"
-      >
-        {CikisIkon}
       </button>
       {pencere && <HesapPenceresi user={user} ad={ad} onClose={() => setPencere(false)} />}
     </div>

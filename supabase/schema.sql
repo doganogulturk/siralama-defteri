@@ -17,7 +17,7 @@ create table if not exists do_siralama_defteri.lists (
   user_id        uuid not null references auth.users on delete cascade,
   ad             text not null,
   slug           text not null,
-  emoji          text,                              -- kullanılmıyor (README → kabul edilmiş sınırlar)
+  emoji          text,                              -- kullanılmıyor (docs/kararlar.md)
   sira           int  not null default 0,           -- kullanılmıyor; listeler kayıt sayısına göre diziliyor
   created_at     timestamptz not null default now(),
   -- Listeye özel ek alan tanımları. Alanlar kodda sabit değil, veri olarak tutuluyor:

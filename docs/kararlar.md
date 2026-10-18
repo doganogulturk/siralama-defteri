@@ -1,0 +1,27 @@
+# Kabul edilmiş sınırlar
+
+Bunlar iş değil, bilinçli kararlar. Birini değiştirmeden önce gerekçesini oku.
+
+- **Apple girişi yok** — Supabase'de hazır provider ama Apple Developer hesabı ($99/yıl) gerektiriyor. Web'de Google girişi tek yol; iOS uygulamasında Apple 4.8 gereği zorunlu olacak ([yol haritası](yol-haritasi.md) → Mobil uygulama 3).
+- **Liste simgesi yok** — kayıtların çoğunda zaten fotoğraf var, listenin ayrıca simge taşımasına gerek yok. `lists.emoji` kolonu şemada duruyor ama kod ne yazıyor ne okuyor.
+- **Liste rengi yok** — listeler renkle ayrışmıyor, uygulamanın tek vurgu rengi var. `lists.renk` kolonu şemada duruyor ama kod okumuyor; yeni listeler varsayılanla doğuyor.
+- **Kategori sırası elle ayarlanmaz** — kategoriler kayıt sayısına göre sıralanıyor (eşitlikte `sira`, sonra `created_at`). `categories.sira` yalnızca eşitlik bozucu.
+- **`lists.sira` arayüzde kullanılmıyor** — listeler de sıralanmış kayıt sayısına göre diziliyor.
+- **Alan tipini değiştirmek veriyi dönüştürmez** — Evet/Hayır'dan Metin'e çevrilen alanın eski `true/false` değerleri kayıtta kalır ama okunmaz olur.
+- **Kategori silmek kayıtları silmez** — `on delete set null` ile kayıtlar kategorisiz kalır.
+- **Toplu kategori atama ek alan değerlerine dokunmaz** — yalnızca belirli bir kategoride görünen bir alanın değeri, kayıt başka kategoriye taşınınca kayıtta kalır ama görünmez olur. Tek kayıt formu kaydederken bu değerleri temizliyor; toplu yol `ozellikler`i hiç okumadığı için temizlemiyor.
+- **Toplu işlemlerde geri alma yok** — taşımalar anında yazılıyor, silme onay penceresinden sonra kalıcı. Sıralamadaki kayıtları toplu olarak "Denenmemiş"e geri gönderme de bilerek yok: nadir bir ihtiyaç, tek kayıt formundan yapılıyor.
+- **Bölüm taşıma satır satır yazılıyor** — "Bir daha asla" / "Sıralamaya al" iki bölümün bütün kayıtlarını yeniden numaraladığı için sürükle-bırak gibi kayıt başına bir UPDATE atıyor; toplu "Denedim" yalnızca taşınanlar kadar. Kategori atama ve silme tek istek.
+- **`items.sira` benzersiz değil** — sürükle-bırak satırları tek tek UPDATE ettiği için ara durumlarda geçici çakışma olur.
+- **Bekleyenlerin kendi URL'i yok** — "Denenmemiş" bir sekme; donanım geri tuşu sekmeler arasında gezmiyor, listeden çıkıyor.
+- **Filtre şeridi yalnızca kategori taşıyor** — "Tümü" + kategoriler (+ kategorisiz kayıt varken "Kategorisiz"), tek seçim: bir kategori seçmek öncekini bırakıyor, seçimi "Tümü" temizliyor. Evet/Hayır alanlarına göre ayrım şu an arayüzün hiçbir yerinde yok; [yol haritasında](yol-haritasi.md) Özellikler 3.
+- **Sıralama yalnızca filtresiz görünümde ve seçim modu kapalıyken değiştirilebilir** — filtreli görünümde ve seçim modunda kartlar sürüklenemiyor; "Bir daha asla"ya taşımak da yalnızca filtresizken.
+- **Liste adı değişince slug değişmez** — kayıtlı bağlantılar kırılmasın diye.
+- **Fotoğraf kovasının adı değişmeyecek** — `lib/items.ts` içindeki `KOVA` sabiti genel bir ad değil ama kullanıcıya görünmüyor. Supabase kovaları yeniden adlandırılamıyor; "adı değiştirmek" yeni kovaya kopyalamak ve tüm `fotograf_url` değerlerini güncellemek demek. Kazancı yalnızca kozmetik, riski fotoğraf kaybı. Silme işlevi kova adını URL'den okuduğu için ileride taşınırsa eski ve yeni kova bir süre yan yana çalışabilir.
+- **Tema düğmesi yok** — açık / koyu sistem ayarından geliyor. Elle seçim, ilk boyamada yanlış temanın bir an görünmemesi için `<head>`'e satır içi bir betik ve kalıcı bir tercih ister; kazancı küçük.
+- **Sınırlardan eski veriler muaf** — uzunluk kuralları `not valid` eklendi: kurulu veritabanındaki eski satırlar taranmıyor; sınırdan uzun eski bir kayıt ancak kısaltılarak güncellenebilir. Kova ayarları da yalnızca yeni yüklemeleri etkiliyor; küçültmeden önce yüklenmiş büyük fotoğraflar olduğu gibi duruyor.
+- **Sahipsiz eski dosyalar uygulamadan silinemiyor** — yükleme kuralları sıkılaşmadan önce yüklenmiş bazı dosyaların `owner_id`'si boş; silme politikası sahibine açık olduğu için uygulama onları kaldıramıyor. Eski fotoğraflar küçültülürken (18 Ekim 2026) bunlardan 24'ü kayıtsız kaldı; Supabase panelinden silinebilirler.
+- **Kayıt silinmeden fotoğraf değişince eski dosya istemcide siliniyor** — sekme o an kapanırsa dosya yetim kalabilir. Kullanıcı başına 1000 dosya sınırı yetimleri de sayıyor.
+- **Karşılaştırmada kayıtlar adla eşleşiyor** — kimlikle değil: kopyada kimlikler yeni, bağımsız iki listede zaten farklı. Adı değiştirilen kayıt eşleşmeden düşer; aynı ad + çeşitle iki kayıt varsa biri sayılır.
+- **Kopyalanan listede sahibinin notları ve denenmemişleri yok** — okuma paylaşım sayfasıyla aynı kapıdan (`paylasilan_liste`).
+- **Sunucu tarafı koruma yok** — uygulama tamamen istemci tarafında; `AuthGate` bir kapı, güvenlik RLS'te.

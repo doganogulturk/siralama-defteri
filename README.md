@@ -2,310 +2,27 @@
 
 Kişisel sıralama uygulaması: denediğin şeyleri kendi listelerinde sürükleyerek sırala, kendi kategorilerini kur, henüz denemediklerini ayrı bir sekmede tut. Çok listeli ve kullanıcı bazlı; her liste kendi kategorilerini ve ek alanlarını taşıyor.
 
----
-
-## Durum
-
-Uygulama çalışır ve **canlıda**: giriş, çok listeli sıralama, kategori ve alan yönetimi, toplu kayıt ekleme, Vitrin arayüzü (açık ve koyu tema).
-
-**Dağıtım** — Vercel, `main` dalından otomatik: <https://siralama-defteri.vercel.app>. Push üretimi günceller. Vercel'de `NEXT_PUBLIC_SUPABASE_URL` ve `NEXT_PUBLIC_SUPABASE_ANON_KEY` tanımlı olmalı; Supabase'in Redirect URLs listesinde üretim alan adı da bulunmalı, yoksa build geçer ama Google girişi canlıda **sessizce** başarısız olur — giriş `redirectTo` olarak `window.location.origin` kullandığı için tek kapı o liste.
-
-**Veri** — Supabase projesi başka uygulamalarla paylaşıldığı için her şey uygulamanın kendi şemasında: `do_siralama_defteri`. Şemada `lists` / `categories` / `items` tabloları (RLS ile), ana ekranın özetlerini hazırlayan `liste_ozetleri` ve paylaşılan listeyi okuyan `paylasilan_liste` fonksiyonları var. Tanımın tamamı `supabase/schema.sql`; fotoğraf kovasının ayarları ve politikaları `supabase/storage.sql` (ondan sonra çalıştırılır).
-
-**Kimlik** — Google girişi Supabase Auth üzerinden; uygulama sayfaları (`app/(uygulama)/`) `AuthGate` arkasında, asıl koruma RLS'te. Paylaşım sayfaları bu grubun dışında: oturum istemiyor.
-
-**Arayüz** — İki ekran: `/` liste indeksi ve `/l/[slug]` sıralama. Liste ayarları ayrı bir sayfa değil, sıralama ekranının üstünde açılan bir popup; eski `/l/[slug]/ayarlar` adresi listeye yönlendirip popup'ı açıyor. Bekleyenler de ayrı bir route değil, sıralama ekranının ikinci sekmesi ("Denenmemiş"). Masaüstünde bir kayda tıklayınca sağda detay paneli açılıyor, seçim kalkınca kapanıyor. Sol ray satırları sıralanmış kayıt sayısı + liste adı + şampiyon taşıyor; liste ayarları sıralama başlığındaki düğmeden açılıyor.
-
-Listeler ve kategoriler kayıt sayısına göre sıralı — elle sıralama diye bir iş yok. Listelerde ölçü "kaç şeyi denedim": bekleyenler sayılmıyor, "Bir daha asla" bölümündekiler sayılıyor; bir kayıt "Denedim" ile sıralamaya geçtiğinde rakam artıyor. Ray ve indeks sayıları sayfadan ayrı bir sorgudan geldiği için `useListeler`'de küçük bir haber kanalı var: sayfa bir mutasyondan sonra `listeleriTazele()` çağırıyor.
-
-Kodda listeye özel hiçbir alan adı geçmiyor: kategoriler veritabanından, ek alanlar `lists.alanlar` tanımından üretiliyor.
-
-Masaüstündeki sağ panel kaydın tamamını gösteriyor (not dahil, satır sonları korunuyor); sıralamadaki kayıtta "Sıralamadaki yeri" bölümü bir üstünü ve bir altını gösteriyor, onlara tıklayınca panel o kayda geçiyor; Düzenle düğmesi yalnızca değiştirmek için. Sırası olmayan kayıtta sıra rozeti yerine "Denenmemiş" ya da "Bir daha asla" yazıyor. Fotoğraf alanı aynı zamanda yükleme yeri: tıklayarak ya da dosyayı üstüne bırakarak Düzenle'yi açmadan fotoğraf eklenip değiştirilebiliyor. Fotoğraf kırpılmadan sığdırılıyor (ürün fotoğrafları çoğunlukla dikey).
-
-**Paylaşım** — Sıralama başlığındaki "Paylaş" düğmesi liste paylaşılıyorsa sistemin paylaşım menüsünü açıyor (menü yoksa bağlantıyı panoya kopyalıyor), paylaşılmıyorsa bağlantı oluşturulabilsin diye liste ayarlarını açıyor. Liste ayarlarının en üstündeki "Paylaşım" bölümü salt okunur bir bağlantı (`/p/[kod]`) oluşturuyor; alan herkes giriş yapmadan sıralamayı görüyor. Kod liste adresinden bağımsız, 16 rastgele harf-rakam (`lists.paylasim_kodu`, boşsa paylaşım kapalı). "Bağlantıyı yenile" yeni kod üretip eski bağlantıyı geçersiz kılıyor, "Paylaşımı kapat" kodu siliyor. Telefonda "Paylaş" sistemin paylaşım menüsünü açıyor; "Kopyala" ve "WhatsApp" her yerde var. Sayfa sunucuda çiziliyor (WhatsApp önizleme kartını hazırlarken JavaScript çalıştırmıyor) ve canlı: sıralama değiştikçe bağlantı da değişiyor. Veri tek kapıdan geliyor: `paylasilan_liste` (security definer) yalnızca liste adını, ek alan tanımlarını, kategorileri, sıralamayı, "Bir daha asla"yı ve sahibin Google'daki adını döndürüyor — e-posta, kullanıcı kimliği, notlar ve denenmemişler dönmüyor; tablolara anonim okuma açılmadı. Sayfada tamlayan ekli başlık ("Doğan Oğultürk'ün sıralaması", `lib/paylasim.ts` → `tamlayan`), aynı satırlar (dokunma ve sürükleme yok, kategori renkli hap) ve altta uygulamaya davet var; arama motorlarına kapalı (`noindex`). Önizleme görseli (`opengraph-image.tsx`) sahibi, liste adını ve fotoğraflarıyla ilk üçü çiziyor; yazı tipleri `src/fonts/`'ta (OFL). Fotoğraflar yalnızca uygulamanın kendi Supabase kovasındaysa gösteriliyor ve görsel için sunucuda indiriliyor (`guvenliFoto`): `fotograf_url` sahibinin yazabildiği bir alan, başka bir adres sunucuyu oraya istek atmaya yöneltirdi. Görsel motorunun çizemediği biçimler (HEIC gibi) baş harfe düşüyor.
-
-**Ben de sıralayayım ve karşılaştırma** — Paylaşım sayfasındaki "Ben de sıralayayım" `/kiyasla/[kod]`'a gidiyor (uygulama grubunda, giriş ister; Google'dan dönüşte kişi kaldığı sayfaya geri geliyor: `lib/auth.ts` → `GIRIS_SONRASI`, `sessionStorage` + `AuthGate`). Sayfa önce kullanıcının bu paylaşımla eşleşen listesini arıyor: `lists.kaynak_kod` bu kod olan, yoksa aynı adlı liste. Yoksa **sıralama ekranı** (`KopyaSiralama`): kayıtlar sahibinin sırasından etkilenmesin diye karışık geliyor; kişi sürükleyerek diziyor, sevmediklerini "Bir daha asla" çizgisinin altına atıyor, denemediklerine dokunup kenara ayırıyor. "Sıralamam hazır" listeyi kategorileri, ek alanları (kategoriye bağlı alanlar yeni kimliklere eşlenerek) ve kayıtlarıyla kopyalıyor (`lib/kopya.ts`); kenara ayrılanlar "Denenmemiş"e düşüyor. Fotoğraflar sahibinin kovasında kalmıyor: herkese açık adresten indirilip kullanıcının adına küçültülerek yeniden yükleniyor (dörder dörder), olmazsa kayıt fotoğrafsız kalıyor. Eşleşen liste varsa **karşılaştırma ekranı** (`KiyasEkrani`, hesap `lib/kiyas.ts`): kayıtlar adla (ad + çeşit, büyük-küçük harf farkı gözetmeden) eşleşiyor; uyum, ortak kayıtlardan kurulan her ikilide ikisinin de aynı olanı öne koyup koymadığı (Kendall). "Bir daha asla" bütün sıralamanın altında ve kendi içinde eşit sayılıyor, eşit ikililer hesaba girmiyor; üçten az ortak kayıtta yüzde yok. Ekranda sayarak dolan yüzde halkası ve adı ("Aynı damak", "Zıt kutuplar"…), iki şampiyon, en büyük üç ayrılık, ortak kayıtların yan yana sırası ve "Onda var, sende yok" (tek dokunuşla denenmemişlere ekleniyor). "Sonucu paylaş" yüzdeyi ve kaynak listenin bağlantısını gönderiyor; alan kişi de aynı döngüye giriyor. Aynı ekran ters yönde de çalışıyor: liste sahibi arkadaşının paylaştığı aynı adlı listeyi açınca kendi listesiyle karşılaştırılıyor. Kopyalanan listenin özet satırında kaynağa "Karşılaştır" kısa yolu var. Kişi kendi paylaşım bağlantısını açarsa "Bu senin listen" diyor.
-
-**Story görseli** — `/p/[kod]/hikaye` 1080×1920 PNG: şampiyon büyük ve fotoğraflı, altında 2–5, en altta "Sen nasıl sıralardın?" ve sitenin adresi. Üst ve alt ~200 px boş: Instagram'ın kendi arayüzü orayı kaplıyor. Paylaşım önizlemesiyle aynı motor ve güvenlik kuralları (`lib/gorsel-sunucu.ts`: yalnızca kendi kovadan, JPEG/PNG/GIF fotoğraf). Sıralama başlığındaki "Paylaş" liste paylaşılıyorken küçük bir menü açıyor (`PaylasMenusu`): "Bağlantıyı gönder" ve "Story görseli". Görsel menü açılınca hazırlanıyor — iOS Safari paylaşım menüsünü yalnızca dokunuşun hemen ardından açıyor; dosya paylaşabilen tarayıcıda sistemin menüsü, diğerlerinde indirme. Yazı tipleri çalışma anında diskten okunduğu için `next.config.ts` onları `/p/**` yollarının dağıtımına ekliyor.
-
-**Hareket ve dokunsal geri bildirim** — Kartlar ilk açılışta sırayla, hafifçe yukarı kayarak geliyor (yalnızca yeni doğan satır; yeniden sıralamada değil). Şampiyon değişince (`hooks/useTac.ts`) yeni birincinin sıra numarasının üstüne bir taç iniyor ve kart vurgu renginde bir halka yayıyor; ilk yükleme ve liste değişimi tetiklemiyor. Android'de sürüklemeye başlarken, şampiyon değişince ve karşılaştırma yüzdesi dolunca kısa titreşim (`lib/his.ts`; iOS Safari Vibration API'yi desteklemiyor). Hareket azaltma tercihinde animasyonlar kapalı.
-
-**Hazır şablonlar** — Yeni liste formunun en üstünde (`lib/sablonlar.ts`): Kola, Ayran, Türk Kahvesi, Cips, Çikolata, Dondurma, Döner. Şablon formu dolduruyor (ad, kategoriler, toplu metin); her şey kaydetmeden önce değiştirilebiliyor. Şablondaki kayıtlar "Denenmemiş"e düşüyor ve liste o sekmeyle açılıyor (`?sekme=denenmemis`).
-
-**Ana ekrana ekleme (PWA)** — `app/manifest.ts` + ikonlar (`/ikon/192`, `/ikon/512`, kenara kadar zeminli `/ikon/maskable`, iOS için `apple-icon`; hepsi `lib/ikon-cizim.tsx`'ten, `icon.svg` ile aynı çizim). Telefonda "Ana ekrana ekle" ile tarayıcı çubuğu olmadan açılıyor. Service worker ve çevrimdışı çalışma yok: kurulum için gerekmiyor, veriler zaten Supabase'de.
-
-**Hesap ve yasal sayfalar** — Dört sayfa, ortak iskelet (`components/yasal/YasalSayfa.tsx`), oturumsuz açılıyor ve altlarında birbirine bağlantı var: `/gizlilik` (Gizlilik Politikası), `/kvkk` (KVKK Aydınlatma Metni), `/kullanim-kosullari` ve `/hesap-silme`. Yapı ve üslup Harita Avcısı'nınkiyle aynı. Veri sorumlusu, başvuru adresi, tarih ve sayfa sırası `lib/iletisim.ts`'te; metinler uygulamanın gerçekte yaptığını anlatıyor, veri akışı değişirse (yeni bir servis, yeni bir alan) onlar da değişmeli. Sağ üstteki profil fotoğrafı "Hesabım"ı açıyor (`HesapPenceresi`): ad, e-posta, çıkış ve yasal sayfaların bağlantıları. **Verileri silme menüde değil**, Hesap Silme sayfasının en altında (`VeriSilmePaneli`; giriş yapılmamışsa görünmüyor): ne silineceği okunduktan sonra, "SİL" yazılınca çalışıyor (`items.ts` → `tumVerileriSil`): önce kovadaki bütün dosyalar (yetimler dahil; listeleme politikası yalnızca sahibine açık), sonra listeler — kategoriler ve kayıtlar cascade ile. Giriş kaydı (`auth.users`) silinmiyor: Supabase projesi başka uygulamalarla paylaşılıyor, oradaki hesaplar da aynı kayda bağlı; sayfa onun için e-postayla başvuruyu anlatıyor. Giriş ekranı Kullanım Koşulları'na ve Gizlilik Politikası'na bağlantı veriyor.
-
-**Analitik** — Vercel Web Analytics (`components/Analitik.tsx`): çerezsiz, anonim sayfa görüntüleme. Adresteki paylaşım kodu ve liste adı gönderilmeden kalıba çevriliyor (`/p/[kod]`, `/kiyasla/[kod]`, `/l/[slug]`), sorgu parçaları atılıyor. Geliştirmede hiçbir şey göndermiyor; üretimde veri, Vercel panelinde proje için Analytics açılınca akmaya başlıyor.
-
-**Açılış (tanıtım)** — Oturumsuz ziyaretçi tek ekranlık, kaydırılabilir bir tanıtım görüyor (`Tanitim.tsx`, `AuthGate` çiziyor): dört adım yatayda yan yana (CSS scroll-snap; parmakla kaydırma tarayıcının kendisi), her birinde uygulamanın arayüzünden hareketli bir sahne — dönen liste destesi, en üste çıkıp taç takan satır, dolan uyum halkası, yuvaya düşen Kör Sıralama kartı. Adımlar ~5 sn'de bir kendiliğinden ilerliyor, dokununca duruyor; sahnelerin hareketi yalnızca görünen adımda oynuyor. Altta noktalar, hep görünen "Google ile devam et" ve gizlilik satırı; üstte ve son adımda Kör Sıralama'ya giriş yapmadan "Oyna".
-
-**Kör Sıralama** — `/kor` (liste seçimi) ve `/kor/[liste]` (oyun); uygulama grubunun dışında, giriş istemiyor. On kayıt birer birer, karışık sırayla geliyor; her biri hemen boş bir sıraya konuyor ve yeri bir daha değişmiyor — sıradakinin ne olduğu bilinmiyor. Listeler `lib/kor.ts`'te: marka ya da işletme değil tür adları (Çorbalar, Kebaplar, Tatlılar, Kahvaltılıklar, Sokak lezzetleri, Meyveler, İçecekler, Şehirler, Sporlar, Günün anları), her biri tam on kayıt. Hiçbir şey kaydedilmiyor: sonuç adreste (`?s=3-0-7-…`, birinciden onuncuya kayıtların listedeki yerleri) — bu yüzden bir liste yayımlandıktan sonra kayıtlarının sırası değişmemeli, eklemek yerine yeni liste açılmalı. Sonuç ekranında sıralama, paylaşım (story görseli dosya olarak, olmazsa bağlantı) ve "Kendi listelerini kur" daveti var. Paylaşılan bağlantı sonucu taşıyor: açan kişi "Bir arkadaşın bu listeyi sıraladı" görüyor, oynayınca uyum yüzdesi (`lib/kiyas.ts`) ve her kaydın yanında arkadaşının sırası çıkıyor. Görsel `/kor/[liste]/gorsel?s=…`: story (1080×1920, on kaydın tamamı) ve `boyut=kart` ile bağlantı önizlemesi (1200×630). Karıştırma "Başla"da yapılıyor: sayfa sunucuda da çiziliyor, ilk çizimde rastgele sıra iki tarafta farklı çıkardı.
-
-**Ana ekran ve mobil menü** — Liste kartlarının zemini ilk üçün fotoğrafları (`Vitrin`, `app/(uygulama)/page.tsx`): kartın bütün yüksekliğinde soldan sağa 1-2-3, şampiyonunki biraz daha geniş; her panonun sol altında sıra ve ad. Sıralar renk tonuyla da ayrışıyor (birincinin alt geçişi vurgu renginde, ikinci ılık, üçüncü nötr); ad ve sayı üstte, açık renkli fotoğraflarda da okunsun diye koyu bir geçişin üzerinde. Fotoğrafsız kayıt baş harfleriyle, eksik sıra silik panoyla. Telefonda üst düzey ekranların (ana ekran, Kör Sıralama listeleri) altında üç eşit öğeli bir menü var (`MobilMenu`): Listelerim · Yeni liste · Kör Sıralama. Profil sağ üstte yalnızca fotoğraf; dokununca "Hesabım" açılıyor ve çıkış orada — blokta ayrı bir çıkış düğmesi yok, yanlışlıkla dokunup oturumu kapatmak kolaydı. Bir listenin içinde menü aynı görünümle ama kendi öğeleriyle: Listelerim · Kayıt ekle · Toplu ekle · Ayarlar (telefonda başlıkta yalnızca Paylaş kalıyor) (formu doğrudan Toplu sekmesinde açıyor; açık sekme "Denenmemiş"se ikisi de bekleyenlere ekliyor) — orada yüzen "Kayıt ekle" yalnızca masaüstünde, seçim modunda menünün yerini işlem çubuğu alıyor. Oyun sırasında menü yok (on yuva ekrana ancak sığıyor); oturum yoksa hiç çizilmiyor. Masaüstünde aynı işler üst çubukta ve rayda. Yeni liste formu telefonda ad alanına odaklanmıyor: klavye açılıp şablonları örtüyordu.
-
-**Toplu ekleme** — Kayıt formunun ikinci sekmesi ("Toplu"). Alt alta yazılan her satır bir kayıt; sonu iki nokta ile biten satır (`Patates:`) listenin içinde bir kategori açar, altındaki satırlar oraya yazılır. Satır içi biçim de geçerli: `Cips: Doritos` satırında iki noktadan önceki kısım kategori, sonrası kayıt. İlk virgülden sonrası kaydın "Çeşit / Alt ad" değeri olur (`Doritos, Nacho`); sonraki virgüller alt adın içinde kalır, bu yüzden bir satıra birden çok kayıt yazılamıyor. Ayrıştırma `lib/toplu.ts`'te; form kaydetmeden önce sonucu önizleme olarak gösteriyor — virgül ya da iki nokta kayıt adının içinde geçtiğinde bölünme yanlış olur, kullanıcı bunu kaydetmeden görmeli. Sekme formun kipini miras alıyor: sıralamadayken kayıtlar yazıldıkları sırayla sıralamanın altına, "Denenmemiş" sekmesindeyken bekleyenlere düşüyor. Aynı kutu Yeni Liste formunda da var (kapalı doğar): listeyi ve kategorilerini tek hamlede kurmak için. Yeni Liste formunda ayrıca bir **Kategoriler** alanı var: Enter ya da virgül yazılan adı hapa çeviriyor (yapıştırılan "a, b, c" de bölünüyor), Backspace boş kutuda son hapı siliyor, büyük-küçük harf farkıyla tekrarlar atılıyor, kutuda yazılı kalıp eklenmemiş ad da sayılıyor. Liste oluşunca kategoriler önce açılıyor (sıraları ve renkleri `KATEGORI_PALET` sırasıyla), toplu metindeki aynı adlı başlıklar onlara bağlanıyor. Kategori ya da kayıt girilmişse form ayarlar popup'ı yerine doğrudan sıralamaya gidiyor. Tekrar kontrolü bilerek yok.
-
-**Toplu işlemler** — Kategoriler sonradan açıldığında kayıtları tek tek düzenlemeden dağıtmak, birçok kaydı birden taşımak ya da silmek için. Filtre şeridinin sağındaki "Seç" düğmesi (açık sekmede kayıt varken) seçim modunu açıyor: kartların solunda seçim kutusu beliriyor, karta dokunmak kaydı seçiyor (form açılmıyor, sürükleme kapalı), ekleme düğmesinin yerine mürekkep zeminli bir işlem çubuğu geliyor. Çubuğun üst satırında seçili sayısı ve "Tümünü seç" (açık sekmede filtreye uyan kayıtlar), alt satırında sekmeye göre üç işlem var — **Sıralamam:** Kategori · Bir daha asla · Sil; **Denenmemiş:** Kategori · Denedim · Sil (Kategori düğmesi listede kategori varken). "Bir daha asla" seçili kayıtları mevcut sıralarıyla bölümün sonuna taşıyor ve iki bölümü yeniden numaralıyor; seçilenlerin hepsi zaten o bölümdeyse düğme "Sıralamaya al" oluyor ve onları sıralamanın sonuna ekliyor; karışık seçimde yalnızca sıralamadakiler taşınıyor ve iki satırın arasında bunu söyleyen bir not çıkıyor. Toplu "Denedim" bekleyenleri listede göründükleri sırayla sıralamanın sonuna ekliyor (tek kayıttaki gibi yer sormuyor). "Sil" onay penceresinden sonra kayıtları tek DELETE ile, fotoğrafları kova başına tek istekle kaldırıyor. Toplu işlemler önce yazıp sonra ekranı güncelliyor; hata olursa sayfa veriyi baştan okuyor. "Kategori" alt satırı kategori haplarına çeviriyor (geri okuyla dönülüyor); bir kategoriye basmak seçili kayıtları tek istekte (`update … in (ids)`) oraya taşıyor, seçimi temizliyor ama modu açık bırakıyor ki sıradaki grup seçilebilsin. "Kategoriden çıkar" kayıtları kategorisiz yapıyor. Filtre şeridinde kategorisiz kayıt varken kesik çizgili "Kategorisiz · n" hapı çıkıyor (`lib/filtre.ts` → `KATEGORISIZ`); liste ayarlarında da "n kayıt kategorisiz — Şimdi ata" köprüsü popup'ı kapatıp bu filtreyle seçim modunu açıyor. Seçim sekmeye ait: sekme değişince temizleniyor. Esc ya da "Bitti" modu kapatıyor. Her iki sekmede de çalışıyor.
-
-**Sınırlar** — Kötüye kullanıma ve farkında olmadan şişen veriye karşı; Supabase ücretsiz planda kalmak için. Değerler `lib/sinirlar.ts`'te, asıl kapı veritabanında (anonim anahtar tarayıcıda herkese açık, istemci kontrolü atlanabilir):
-
-| Ne | Sınır | Nerede uygulanıyor |
-|---|---|---|
-| Liste başına kayıt (bekleyenler dahil) | 200 | tetikleyici `sinir_denetle` |
-| Kullanıcı başına liste | 50 | aynı tetikleyici |
-| Liste başına kategori | 50 | aynı tetikleyici |
-| Kayıt adı / çeşit / not | 120 / 120 / 2000 harf | check constraint |
-| Liste adı / kategori adı | 80 / 60 harf | check constraint |
-| Fotoğraf dosyası | 300 KB, yalnızca JPEG | kova ayarı (`storage.sql`) |
-| Kullanıcı başına fotoğraf | 1000 | kova yükleme politikası (`foto_sayisi`) |
-
-Fotoğraflar yüklenmeden önce tarayıcıda küçültülüyor (`lib/foto.ts`): uzun kenar 1000 px, JPEG; telefon fotoğrafı tipik olarak 3–8 MB'tan ~50–200 KB'a iniyor. WebP değil, çünkü önizleme görselinin motoru (satori) WebP okuyamıyor. Sığmazsa önce kalite, sonra ölçü düşüyor. Yeniden kodlama EXIF'i (konum dahil) atıyor ve yönü piksellere işliyor. Çözülemeyen biçim (Chrome'da HEIC gibi) yüklemeden önce anlaşılır bir hatayla duruyor. Dosyalar bir yıl önbellekli sunuluyor (adları benzersiz). Liste silinince fotoğrafları da kovadan siliniyor. Arayüz sınıra çarpmadan önce söylüyor: girişlerde `maxLength`, toplu eklemede önizlemenin üstünde uyarı ve kilitli düğme (`lib/toplu.ts` → `topluSorun`). Veritabanından dönen sınır hataları (`SDLIM`, `23514`, kova hataları) `lib/hata.ts`'te Türkçeye çevriliyor.
-
----
-
-## Tasarım — Vitrin
-
-Sıralamayı bir vitrin gibi sunan, sakin ve içerik odaklı bir arayüz: nötr yüzeyler, kıl çizgisi çerçeveler, tek sıcak vurgu rengi; başlıklar ve sıra numaraları editoryal bir serif ile. Fotoğraflar ve adlar öne çıkıyor, arayüz geri çekiliyor. Açık ve koyu tema sistem ayarını izliyor. Tüm stiller `src/app/globals.css`'te; sınıf adları bileşenlerle birebir.
-
-Önceki tasarım (Koleksiyon — krem zemin, gölgeli kartlar, Bricolage Grotesque) bu kanvastan çıkmıştı: [Görünüm yönleri](https://claude.ai/code/artifact/6a56ee8e-2e9c-426e-bf8c-003156655c97). Vitrin onun yapısını (podyum, "Bir daha asla" çizgisi, tek vurgu) koruyup yüzeyi yeniledi; uyuşmazlıkta doğru kaynak koddur.
-
-### Temel değerler
-
-Renkler OKLCH; koyu tema aynı tokenları `@media (prefers-color-scheme: dark)` içinde yeniden tanımlıyor, bileşen kuralları temadan habersiz.
-
-| Token | Açık | Koyu | Kullanım |
-|---|---|---|---|
-| `--bg` | `oklch(0.975 0.004 85)` | `oklch(0.165 0.006 60)` | sayfa zemini |
-| `--bg-2` | `oklch(0.952 …)` | `oklch(0.19 …)` | masaüstü ray, giriş sahneleri |
-| `--surface` | `oklch(0.998 …)` | `oklch(0.215 …)` | kartlar, satırlar, alanlar |
-| `--surface-2` | `oklch(0.962 …)` | `oklch(0.255 …)` | fotoğraf kutuları, komşu satırları |
-| `--ink` | `oklch(0.2 0.01 60)` | `oklch(0.955 …)` | metin, birincil düğme, seçili hap |
-| `--soft` / `--mute` / `--faint` | mürekkebin %74 / %54 / %30'u | aynı | ikincil metin kademeleri |
-| `--line` / `--tint` | mürekkebin %10 / %5,5'i | %11 / %7 | kıl çizgisi, segment zemini |
-| `--accent` | `oklch(0.62 0.205 36)` | `oklch(0.68 0.185 38)` | uygulamanın tek vurgu rengi |
-| `--accent-ink` | `oklch(0.5 0.17 36)` | `oklch(0.8 0.13 42)` | vurgu tonlu zeminde okunur metin |
-| `--bar` / `--on-bar` | koyu çubuk | yükseltilmiş yüzey | seçim çubuğu, bildirim |
-| `--glass` + `--blur` | zeminin %78'i + `blur(18px) saturate(1.8)` | %72 | yapışkan başlık, cam haplar |
-| `--r-xl` / `--r-lg` / `--r-md` / `--r-sm` | `28` / `22` / `16` / `12px` | | köşe yarıçapları |
-| `--hair` / `--shadow-sm` / `--shadow` / `--shadow-lift` | | koyu temada daha derin | çerçeve ve yükseklik kademeleri |
-
-**Yazı** — İki aile, ikisi de `next/font/google` ile derleme anında indirilip uygulamayla birlikte sunuluyor (tarayıcı Google'a istek atmıyor, yüklenirken sayfa kaymıyor; `latin-ext` Türkçe harfler için şart):
-- **Geist** (değişken, `--sans`) — bütün arayüz: gövde `400`, etiketler `500`, adlar ve başlıklar `600`. Sayılarda `tabular-nums`.
-- **Instrument Serif** (`--serif`, yalnızca `400` ve italik) — yalnızca iri boyutlarda: sayfa başlıkları, liste adları, sıra numaraları, boş durum başlıkları. Giriş başlığındaki vurgulu kelime (*sırala.*) italik ve vurgu renginde.
-
-Versal kullanılmıyor: kullanıcının yazdığı adlar ve düğme metinleri olduğu gibi duruyor.
-
-**Vurgu tonları** — `--accent-soft` (%14; koyu temada %22) ve `--accent-wash` (%7; koyu temada %11) `color-mix` ile vurgudan türüyor.
-
-### Kurallar
-
-- **Yüzey kıl çizgisiyle, derinlik az gölgeyle** — kartlar ve satırlar `--hair` (1px, mürekkebin %10'u) ve çok hafif bir gölge taşıyor; üstüne gelince çizgi koyulaşıyor, yüzen öğeler (`fab`, seçim çubuğu, pencere) `--shadow-lift` ile ayrılıyor.
-- **Tek vurgu rengi** — ilk üç sıranın numarası, şampiyonun kartı, detaydaki sıra rozeti, raydaki açık listenin sayısı, liste kartındaki sayı ve "Denedim" düğmesi `--accent`. Listelerin kendi rengi yok; onları ad ve sayı ayırıyor.
-- **Şampiyon ayrışıyor** — sıralamanın 1.'si (`.row.is-sampiyon`) vurgunun hafif tonlu zemini ve vurgu tonlu çerçevesiyle; kart görünümünde numara hapı dolu vurgu renginde.
-- **Seçili durum mürekkep halka** — `--ring` (`0 0 0 2px var(--ink)`); vurgu renginde halka, şampiyonun vurgu tonlu kartında kaybolurdu. Klavye odağı vurgu renginde dış çizgi.
-- **Eylemler hap** — birincil düğme mürekkep (koyu temada açık renk), ikincil yüzey + kıl çizgisi, tehlikeli işlem vurgunun açık tonu.
-- **Seçenek grupları segment kontrolü** — sekmeler, Evet/Hayır, sıraya ekleme yeri, Kart / Satır: `--tint` zeminde, seçili parça yüzey gibi yükseliyor. Sekmeler içerik genişliğinde.
-- **Cam yalnızca kayan içeriğin üstünde** — yapışkan başlık (`.sticky-top`), kart görünümündeki numara ve tutamak hapları, fotoğraf üstündeki düğmeler yarı saydam ve bulanık. Başlık kaydırma başlayınca altına kıl çizgisi indiriyor (`animation-timeline: scroll()`, desteklemeyen tarayıcıda çizgisiz kalıyor).
-- **Hareket az ve anlamlı** — kartların sırayla yükselişi, pencerelerin yaylı girişi (`--spring`, CSS `linear()`), giriş destesinin dönüşü. Giriş hareketleri `transform` yerine `translate` / `scale` ile yazılı: öğenin kendi transform'uyla (ortalanmış düğme) çakışmıyor. `prefers-reduced-motion` hepsini kapatıyor (deste durağan kalıyor).
-- **Yükleniyor = iskelet** — "Yükleniyor…" satırı yerine içeriğin biçiminde soluk, parıldayan taslaklar (`components/Iskelet.tsx`): veri gelince yerleşim yerinde kalıyor.
-
-### Ekranlar
-
-- **Giriş** — İki katman: üst kısım hissettiriyor, alt kısım açıklıyor. En üstte marka işareti; arkada vurgu renginden yumuşak bir ışık. Yelpaze biçiminde örnek sıralama kartları, serif büyük başlık, hap biçimli Google düğmesi ve özelliklere inen bir bağlantı. Deste altı örnek listeden (her biri başka bir şey: uygulamanın tek bir şeye bağlı olmadığını söylüyor) 2,8 saniyede bir dönüyor: öndeki kart sola yukarı savrulup kayboluyor, kanatlar birer sıra öne geçiyor, arkadan yenisi giriyor. Her kart küçük bir sıralama ekranı: kategori hapları, fotoğraflı ilk üç ve vurgu çizgisinin altında bir "Bir daha asla". Masaüstünde deste solda, metin sağda. Altındaki "Neler yapabilirsin?" bölümünde altı özellik kartı var (listeler, sıralama, kategoriler, denenmemiş, bir daha asla, fotoğraf); görselleri genel ikon değil, uygulamanın arayüzünden küçük parçalar. Kartlar mobilde tek, tablette iki, masaüstünde üç sütun. Sayfanın dibinde Google düğmesi tekrar ediyor.
-- **Listelerin** — Üstte ince bir çubuk: solda marka, sağda "Yeni liste" (masaüstü) ve hesap hapı. Altında selamlama, serif iri başlık ve liste / sıralanan / denenmemiş toplamları küçük haplar olarak. Her liste bir vitrin kartı: üstte serif liste adı ve vurgu tonlu hapta sıralanan kayıt sayısı (etiketsiz; ekran okuyucu için `aria-label`); ortada ilk üçün fotoğraflarından bir **podyum** — şampiyon ortada ve en yüksekte, ikinci solda, üçüncü sağda, alt kenarları hizalı, her basamakta numara; altında ilk üçün adları ve varsa "x denenmemiş". Fotoğrafsız kayıt basamağında baş harfler, boş basamak kesik çizgili. Sıralaması olmayan liste gölgesiz ve kesik çizgili, ilk üç yerine "Henüz sıralama yok". Kategoriler bilerek gösterilmiyor: ana ekranın işi hangi listeye girileceğini hızla söylemek. Mobilde tek sütun ve podyum solda, adlar sağında; tablette iki sütun, masaüstünde sütun sayısı genişliğe göre (en az 280px'lik kartlar) ve podyum adların üstünde.
-- **Sıralama** — Yuvarlak geri ve ayar düğmeleri, ortada serif liste adı ve altında şampiyon ("Şampiyon: …"; sıralama boşsa "Henüz sıralama yok"); segment sekmeler, hap filtre şeridi (taşınca kenarlarından eriyor). Her kayıt aynı kompakt satır: solda iri serif sıra numarası (ilk üçte vurgu renginde), fotoğraf, ad ve alt bilgi, rozetler, sağda sürükleme tutamağı. Sıralamanın altında vurgu çizgisiyle ayrılan **Bir daha asla** bölümü: kart çizginin altına sürüklenince oraya geçiyor, üstüne sürüklenince sıralamaya dönüyor; bölüm kendi içinde de sürüklenerek sıralanıyor. Bu satırlarda numara yerine çarpı var, zeminleri ve fotoğrafları soluk. Bölüm boşken çizginin altında kısa bir ipucu duruyor. Ekleme düğmesi yüzen hap. Boş durumlar (liste yok, kayıt yok, denenmemiş yok) ortalı ve giriş ekranındaki özellik kartlarının küçük sahnelerini taşıyor; taslak parçalar kesik çizgili (`components/Sahne.tsx`).
-- **Masaüstü** — Solda ray: marka, "Listeler" başlığı ve sayısı, her satırda liste adının altında şampiyonu; açık liste yüzey kartı ve vurgu renkli sayı; satırlarda ayar simgesi yok. Başlıkta serif liste adı, sağında simgeli, sakin bir "Liste ayarları" hapı (sürükle-bırak sonrası ray yeniden okunuyor ki şampiyon güncel kalsın). Kayıt seçilince sağda detay kartı açılıyor ve sıralama sütunu daralıyor; seçim yokken sıralama ortalanmış 760px'lik bir sütun. Başlık şeridi dar kaldığında (detay paneli açıkken) kategori şeridi kendi satırına iniyor — ölçü sayfa değil şeridin kendisi (`@container ust-serit`).
-- **Pencereler** — Kayıt formu, yeni liste ve liste ayarları tek kabukta: yerel `<dialog>` (`components/Sheet.tsx`). `showModal()` pencereyi en üst katmana alıyor, arkadaki sayfayı etkisizleştiriyor ve Tab odağını içeride tutuyor; Esc, zemine dokunma ve kapat düğmesi aynı `onClose`'dan geçiyor. Zemine dokunma yalnızca basış da zeminde başladıysa kapatıyor: alanda başlayıp dışarıda biten metin seçimi formu kapatmasın. Açıkken arkadaki sayfa kaymıyor (`html:has(.sheet[open])`). Mobilde alttan yaylı açılan panel (tutamaklı), masaüstünde ortalanmış kutu; zemin bulanık. Kaydet çubuğu gövdenin dibine yapışık. React'in `autoFocus`'u pencere açılmadan çalışıp boşa gittiği için ilk odaklanacak alan `data-autofocus` ile işaretleniyor.
-- **Liste ayarları** — Aynı kabukta (mobilde alttan panel, masaüstünde 600px kutu). Başlık düzenlenebilir serif liste adı; altında kategoriler ve ek alanlar kartları, en altta yalnızca "Listeyi sil" düğmesi (neyin silineceğini onay penceresi söylüyor). Açıklama satırı yok; değişiklikler anında kaydediliyor. Başlıktaki ayar düğmesi pencereyi yerinde açıyor; yeni liste açılışı `?ayarlar=1` ile gidiyor, sayfa parametreyi okuyup adresten siliyor.
-
-### Uygulama ayrıntıları
-
-- **Kart görünümü** — Masaüstünde kayıtlar varsayılan olarak ızgarada kart: fotoğraf üstte ve kırpılmadan sığdırılıyor, sıra numarası fotoğrafın sol üstünde cam hap (ilk üçte vurgu renginde, şampiyonda dolu vurgu), tutamak üstüne gelince sağ üstte beliriyor. İşaretleme satırla aynı (`ItemRow`, `WishlistPanel`); yerleşimi `.rows-kart` / `.wish-kart` sınıfları değiştiriyor. Sıralamam ve Denenmemiş aynı görünümde. Filtre şeridinin sağındaki Kart / Satır geçişi tercihi `localStorage`'da tutuyor (`siralama-defteri:gorunum`). Sütunlar `auto-fill, minmax(196px, 1fr)`: detay paneli kapalıyken sütun en fazla 1080px'e genişliyor (geniş ekranda 5 kart yan yana), açıkken 2. "Bir daha asla" çizgisi ızgarada tam genişlikte ayraç. Mobil hep satır. Açık temada kart ve detay fotoğrafları `mix-blend-mode: multiply` ile kutunun zeminine karışıyor: beyaz fonlu ürün fotoğrafı kenarda şerit bırakmıyor.
-- **Satır düzeni** — İşaretlemede tutamak başta, numara sonda duruyor; görsel sıra CSS `order` ile (numara solda, rozetler ve tutamak sağda). Sürükleme yalnızca tutamaktan başlıyor, satıra dokunmak seçiyor.
-- **Sürükle-bırak** — dnd-kit; satır görünümünde `verticalListSortingStrategy`, kart görünümünde `rectSortingStrategy`; satır dönüşümü `CSS.Translate`, çünkü alt bilgisi olan satır daha uzun ve ölçekleme onu ezerdi. Sıralama ve "Bir daha asla" tek sıralanabilir liste; vurgu çizgisi de listenin sürüklenemeyen bir öğesi (`ASLA_SINIRI`). Bırakınca çizginin üstü `asla = false`, altı `asla = true` oluyor ve iki taraf `sira`'yı kendi içinde 0'dan numaralıyor. Kayıt ekleme (tek ve toplu) yalnızca sıralamayı hedefliyor.
-- **Fotoğrafsız kayıt** — Yedek görsel her kayıtta aynı: sade zemin (`--surface-2`) üstünde soluk baş harfler (`brandInitials`, `types/item.ts`; Türkçe büyük harfle: "ıhlamur" → "I", "ilik" → "İ"). Kayıt başına renk bilerek yok; özellikle kart görünümünde fotoğraflı kartların arasında gürültü yapıyordu. Renk fotoğrafa kalıyor.
-- **Liste özetleri** — Ana ekranın sayıları ve ilk üçü (podyumun fotoğrafları dâhil) tek bir RPC'den geliyor (`liste_ozetleri`, `supabase/schema.sql`): liste başına bir satır, sayım veritabanında. Önceden istemci bütün kayıtları çekip sayıyordu ve PostgREST'in 1000 satır sınırında sayılar sessizce yanlışlaşıyordu. Fonksiyon `security invoker`, yani RLS geçerli. İlk üçün seçimi `lib/sort.ts` ile aynı kural: denenmiş, `asla` değil, `sira` artan, eşitlikte en yeni önce. RPC hata verirse indeks yine açılıyor, sayılar sıfır görünüyor ve konsola uyarı düşüyor.
-- **Giriş destesi** — `AuthGate` içindeki `GirisDestesi` her adımda kartların `data-yuva` değerini kaydırıyor (`1`, `2`, `3`, `cikis`, `bekle`); konumları CSS çiziyor. Tüm kartlar aynı boyda ve aynı noktada, arkadakiler ölçekle küçülüyor — geçiş yalnızca transform, opaklık ve renk. Kartın içindeki renkler `currentColor`dan türüyor, böylece kart öne geçip beyaz metne döndüğünde içerik de onunla birlikte geçiyor. Fotoğraflar gerçek görsel değil, renkli kutucuklar (`--f`).
-- **Hesap bloğu** — Google profil fotoğrafı (`avatar_url` / `picture`) ve ad; e-posta gösterilmiyor. Fotoğraf `referrerPolicy="no-referrer"` ile yükleniyor (Google aksi hâlde 403 verebiliyor), yüklenemezse baş harfe dönüyor. Blok tek bileşen (`Hesap`), yeri ekrana göre değişiyor. Masaüstü sıralama ekranında `AuthGate` onu sayfanın kardeşi olarak rayın dibine cam bir kart olarak çiziyor. Ana ekranda sayfa kendisi üst çubuğun sağına hap olarak çiziyor (mobilde avatar + çıkış, masaüstünde ad da); `AuthGate`'in bloğu orada CSS ile gizli. Mobil sıralama ekranlarında hesap yok: altları ekleme düğmesiyle dolu.
-- **Marka işareti ve sekme simgesi** — Azalan uzunlukta üç yuvarlak çizgi, en uzunu vurgu renginde: bir sıralamanın en sade hâli, en üstteki öne çıkıyor. Arayüzde `components/Marka.tsx` (renkler temadan), sekmede `src/app/icon.svg` (aynı çizim, sabit renkler). Ayar simgesi de aynı sözlükten (üç çizgi ve tutamakları).
-- **Tarayıcı çubuğu** — `layout.tsx`'teki `viewport` dışa aktarımı `color-scheme: light dark` ve temaya göre iki `theme-color` veriyor: mobil tarayıcının çubuğu sayfa zeminiyle aynı renkte.
-
----
-
-## Yol haritası
-
-Üç grup: yayına çıkış için panellerde (Vercel, Supabase, Google Cloud) yapılacaklar, mobil uygulamaya (App Store / Play Store) geçiş ve sıradaki özellikler. Gruplar kendi içinde öncelik sırasında.
-
-### Yayına çıkış (panellerde yapılacaklar)
-
-| # | İş | Not |
-|---|---|---|
-| 1 | **Domain** | Satın al, Vercel'e bağla; Supabase → Authentication → URL Configuration → Redirect URLs'e ekle. Eklenmezse Google girişi yeni domainde **sessizce** bozulur (giriş `redirectTo` olarak `window.location.origin` kullanıyor). `metadataBase`, story ve Kör Sıralama görsellerindeki adres domaine kendiliğinden geçer. |
-| 2 | **Google giriş ekranının markası** | Google Cloud Console → OAuth onay ekranı: uygulama adı, logo, gizlilik politikası (`/gizlilik`) ve koşullar (`/kullanim-kosullari`) adresleri, domain doğrulaması. Doğrulanmamışken ekranda "…supabase.co'ya devam et" yazar. Google sağlayıcısı Supabase projesine bağlı ve proje başka uygulamalarla paylaşıldığı için onay ekranı onlarla ortak — ad ikisini de kapsamalı. |
-| 3 | **Sahipsiz eski fotoğraflar** | Kovada (`ayran`) `owner_id`'si boş, hiçbir kayda bağlı olmayan 24 dosya (eski fotoğraflar küçültülürken, 18 Ekim 2026). Uygulama silemiyor; Supabase → Storage'dan silinebilir. |
-| 4 | **Gerçek cihazda deneme** | Başka bir hesapla "Ben de sıralayayım" ve karşılaştırma, story'yi Instagram'a paylaşma, Kör Sıralama bağlantısının WhatsApp önizlemesi ve arkadaş modu, ana ekrana ekleme (PWA). |
-
-### Mobil uygulama (Capacitor, App Store / Play Store)
-
-Apple Developer hesabı onaylanınca. Harita Avcısı aynı yoldan geçti (Capacitor, yerel geri tuşu, titreşim, paylaşım, sistem tarayıcısı); çözümleri oradan uyarlanabilir.
-
-| # | İş | Not |
-|---|---|---|
-| 1 | **Mimari kararı** *(önce bu)* | Harita Avcısı statik paket (`output: "export"`); Sıralama Defteri sunucu istiyor (paylaşım sayfası, story/önizleme/Kör Sıralama görselleri, ikonlar). Siteyi açan bir kabuk Apple'da **4.2 Asgari İşlevsellik**'ten reddedilmeye açık. Doğru yol: uygulama ekranları statik pakette, görseller ve paylaşım sayfaları Vercel'de; uygulama onları tam adresle çağırır. Diğer maddelerin çoğu bu karara bağlı. |
-| 2 | **Hesabın tamamen silinmesi** | Apple 5.1.1(v) ve Google Play verilerin değil **hesabın** silinmesini istiyor. "Verilerimi sil" giriş kaydını (`auth.users`) bırakıyor, çünkü Supabase projesi başka uygulamalarla paylaşılıyor. Seçenekler: Sıralama Defteri'ni kendi Supabase projesine taşımak (o zaman bir Edge Function kaydı silebilir) ya da paylaşılan projede yalnızca bu uygulamaya ait bir hesap kavramı kurmak. |
-| 3 | **Apple ile giriş** | Apple 4.8: Google ile giriş varsa gizliliği koruyan ikinci bir seçenek (pratikte Sign in with Apple) zorunlu. Supabase'de hazır sağlayıcı; Apple Developer hesabı gerekiyor. "Kabul edilmiş sınırlar"daki "Apple girişi yok" maddesi iOS için geçersizleşiyor. |
-| 4 | **Google girişi sistem tarayıcısında** | Google gömülü web görünümünde girişi engelliyor (`disallowed_useragent`). Giriş sistem tarayıcısında açılmalı (`@capacitor/browser` / ASWebAuthenticationSession), derin bağlantıyla uygulamaya dönmeli; dönüş adresi Supabase Redirect URLs'e eklenmeli. |
-| 5 | **Kullanıcı içeriği: bildir ve engelle** | Apple 1.2: paylaşılan listelerde (fotoğraflar dahil) uygunsuz içeriği bildirme, kötüye kullananı engelleme ve iletişim bilgisi gerekiyor. Şu an yalnızca iletişim var; paylaşım ve karşılaştırma sayfalarına "Bildir" ve bir inceleme yolu. |
-| 6 | **Android geri tuşu** | Açık pencereler (formlar, liste ayarları, Hesabım, paylaşım menüsü) geri tuşuyla kapanmalı. "Denenmemiş" sekmesinin adresi yok — geri tuşu listeden çıkıyor; sekme adrese yazılmalı (bkz. kabul edilmiş sınırlar). Harita Avcısı'ndaki `NativeBackButton` uyarlanabilir. |
-| 7 | **Her ekranda görünür geri yolu** | iOS'ta donanım geri tuşu yok. Liste, oyun ve yasal sayfalarda var; **`/kiyasla` ve paylaşılan liste (`/p/[kod]`)** yalnızca logo taşıyor, geri ok eklenmeli. *(Küçük iş, sitede de işe yarar.)* |
-| 8 | **`viewport-fit=cover`** | Alt menü ve yüzen düğme `env(safe-area-inset-*)` kullanıyor ama `layout.tsx`'teki viewport'ta `viewportFit: 'cover'` yok; iPhone'da çentik/ana ekran çizgisi boşlukları sıfır kalıyor. *(Küçük iş, sitede de işe yarar.)* |
-| 9 | **Bağlantıların uygulamada açılması** | `/p/…`, `/kiyasla/…` ve `/kor/…?s=` uygulama yüklüyse uygulamada açılmalı: domaine `apple-app-site-association` (Universal Links) ve `assetlinks.json` (App Links). Domain gerekiyor. |
-| 10 | **Analitik uygulamada kapalı** | Harita Avcısı'ndaki gibi `Capacitor.isNativePlatform()` ise `Analitik` hiç yüklenmesin; mağaza beyanlarında "analitik yok" denebilsin. Gizlilik ve KVKK metinlerine "yalnızca web sitesinde" notu. |
-| 11 | **Yerel özellikler** | 4.2'ye karşı da kalkan: titreşim (`@capacitor/haptics`; iOS Safari Vibration API'yi desteklemiyor, `lib/his.ts`), sistemin paylaşım menüsü (`@capacitor/share`; story dosyası), kamera ile fotoğraf. |
-| 12 | **Mağaza formları** | App Store gizlilik etiketi ve Play "Veri güvenliği": ad, e-posta, fotoğraflar, kullanıcı içeriği. Yaş derecelendirmesinde "kullanıcıların oluşturduğu içerik". iOS'ta kamera ve fotoğraf arşivi izin metinleri (Türkçe). Mağaza kaydına `/gizlilik` ve `/hesap-silme` adresleri. |
-| 13 | **Alt menüdeki "Yeni liste"** *(not)* | Apple'ın tasarım rehberi alt sekme çubuğunu gezinme için öneriyor, eylem için değil. Reddedilme sebebi değil; uygulamaya geçerken yeniden bakılabilir. |
-
-### Özellikler
-
-| # | İş | Not |
-|---|---|---|
-| 1 | **Şablon + herkesin ortalaması** | "Türk yemeklerinde herkesle %64 uyumlusun": Kör Sıralama sonuçlarının anonim olarak toplandığı bir tablo ve ortalama hesabı. Kullanıcı sayısı artınca anlam kazanır. |
-| 2 | **Tadım modu** | Yiyecek-içecek listelerinde isimlerin gizlenip harflerle tadıldığı kör tadım: hazırlayan eşleşmeyi görür, tadan harfleri sıralar, sonda isimler açılır ve bilinçli sıralamayla karşılaştırılır. |
-| 3 | **Ek alan filtresine bir yer bul** *(ayrıntılandırılacak)* | Evet/Hayır alanlarına göre filtreleme şeritte yok: sıralamanın hemen üstünü kalabalıklaştırıyordu. Mantık `lib/filtre.ts`'te duruyor, `FilterPanel`'in `stack` düzeni de hâlâ çiziyor; eksik olan yalnızca ona giden bir kapı. |
-| 4 | **"Hangisi?" ile yerleştirme** *(ertelendi)* | Yeni kaydı "Denedim" deyince ikili sorularla (ikili arama, ~log₂n soru) yerine oturtmak. Bütün listeyi ikili karşılaştırmayla baştan sıralamaktan çok daha ucuz. |
-| 5 | **Konum alanı** *(ertelendi)* | Ek alanlara "Konum" tipi: yazılı adres ya da Maps bağlantısı, "Şu anki konumum", "Yol tarifi" (`google.com/maps/search/?api=1&query=…`). Paylaşım sayfasında yalnızca yazılı adres, koordinat değil. Places API kullanılmayacak (ücretli). |
-| 6 | **Görsel arama** *(ertelendi)* | Ücretsiz görsel arama API'si yok; dış adres saklamak (kırılan bağlantı, telif, önizleme görselinin güvenlik kuralı) sorunlu. Ucuz hâli: "Görsel ara" Google Görseller'i kayıt adıyla açar, fotoğraf alanı panodan yapıştırmayı kabul eder; görsel küçültülüp kendi kovamıza girer. |
-| 7 | **Ana ekrana ekleme ipucu** *(ertelendi)* | iOS Safari kurulum önerisini kendisi göstermiyor: ana ekranda kapatılabilir bir "Paylaş → Ana Ekrana Ekle" kartı. Mobil uygulama çıkınca gereksizleşir. |
-
-### Kabul edilmiş sınırlar
-
-Bunlar iş değil, bilinçli kararlar:
-
-- **Apple girişi yok** — Supabase'de hazır provider ama Apple Developer hesabı ($99/yıl) gerektiriyor. Web'de Google girişi tek yol; iOS uygulamasında Apple 4.8 gereği zorunlu olacak (yol haritası → Mobil uygulama 3).
-- **Liste simgesi yok** — kayıtların çoğunda zaten fotoğraf var, listenin ayrıca simge taşımasına gerek yok. `lists.emoji` kolonu şemada duruyor ama kod ne yazıyor ne okuyor.
-- **Liste rengi yok** — listeler renkle ayrışmıyor, uygulamanın tek vurgu rengi var. `lists.renk` kolonu şemada duruyor ama kod okumuyor; yeni listeler varsayılanla doğuyor.
-- **Kategori sırası elle ayarlanmaz** — kategoriler kayıt sayısına göre sıralanıyor (eşitlikte `sira`, sonra `created_at`). `categories.sira` yalnızca eşitlik bozucu.
-- **`lists.sira` arayüzde kullanılmıyor** — listeler de sıralanmış kayıt sayısına göre diziliyor.
-- **Alan tipini değiştirmek veriyi dönüştürmez** — Evet/Hayır'dan Metin'e çevrilen alanın eski `true/false` değerleri kayıtta kalır ama okunmaz olur.
-- **Kategori silmek kayıtları silmez** — `on delete set null` ile kayıtlar kategorisiz kalır.
-- **Toplu kategori atama ek alan değerlerine dokunmaz** — yalnızca belirli bir kategoride görünen bir alanın değeri, kayıt başka kategoriye taşınınca kayıtta kalır ama görünmez olur. Tek kayıt formu kaydederken bu değerleri temizliyor; toplu yol `ozellikler`i hiç okumadığı için temizlemiyor.
-- **Toplu işlemlerde geri alma yok** — taşımalar anında yazılıyor, silme onay penceresinden sonra kalıcı. Sıralamadaki kayıtları toplu olarak "Denenmemiş"e geri gönderme de bilerek yok: nadir bir ihtiyaç, tek kayıt formundan yapılıyor.
-- **Bölüm taşıma satır satır yazılıyor** — "Bir daha asla" / "Sıralamaya al" iki bölümün bütün kayıtlarını yeniden numaraladığı için sürükle-bırak gibi kayıt başına bir UPDATE atıyor; toplu "Denedim" yalnızca taşınanlar kadar. Kategori atama ve silme tek istek.
-- **`items.sira` benzersiz değil** — sürükle-bırak satırları tek tek UPDATE ettiği için ara durumlarda geçici çakışma olur.
-- **Bekleyenlerin kendi URL'i yok** — "Denenmemiş" bir sekme; donanım geri tuşu sekmeler arasında gezmiyor, listeden çıkıyor.
-- **Filtre şeridi yalnızca kategori taşıyor** — "Tümü" + kategoriler (+ kategorisiz kayıt varken "Kategorisiz"), tek seçim: bir kategori seçmek öncekini bırakıyor, seçimi "Tümü" temizliyor. Evet/Hayır alanlarına göre ayrım şu an arayüzün hiçbir yerinde yok; yol haritasında 1. sırada.
-- **Sıralama yalnızca filtresiz görünümde ve seçim modu kapalıyken değiştirilebilir** — filtreli görünümde ve seçim modunda kartlar sürüklenemiyor; "Bir daha asla"ya taşımak da yalnızca filtresizken.
-- **Liste adı değişince slug değişmez** — kayıtlı bağlantılar kırılmasın diye.
-- **Fotoğraf kovasının adı değişmeyecek** — `lib/items.ts` içindeki `KOVA` sabiti genel bir ad değil ama kullanıcıya görünmüyor. Supabase kovaları yeniden adlandırılamıyor; "adı değiştirmek" yeni kovaya kopyalamak ve tüm `fotograf_url` değerlerini güncellemek demek. Kazancı yalnızca kozmetik, riski fotoğraf kaybı. Silme işlevi kova adını URL'den okuduğu için ileride taşınırsa eski ve yeni kova bir süre yan yana çalışabilir.
-- **Tema düğmesi yok** — açık / koyu sistem ayarından geliyor. Elle seçim, ilk boyamada yanlış temanın bir an görünmemesi için `<head>`'e satır içi bir betik ve kalıcı bir tercih ister; kazancı küçük.
-- **Sınırlardan eski veriler muaf** — uzunluk kuralları `not valid` eklendi: kurulu veritabanındaki eski satırlar taranmıyor; sınırdan uzun eski bir kayıt ancak kısaltılarak güncellenebilir. Kova ayarları da yalnızca yeni yüklemeleri etkiliyor; küçültmeden önce yüklenmiş büyük fotoğraflar olduğu gibi duruyor.
-- **Sahipsiz eski dosyalar uygulamadan silinemiyor** — yükleme kuralları sıkılaşmadan önce yüklenmiş bazı dosyaların `owner_id`'si boş; silme politikası sahibine açık olduğu için uygulama onları kaldıramıyor. Eski fotoğraflar küçültülürken (18 Ekim 2026) bunlardan 24'ü kayıtsız kaldı; Supabase panelinden silinebilirler.
-- **Kayıt silinmeden fotoğraf değişince eski dosya istemcide siliniyor** — sekme o an kapanırsa dosya yetim kalabilir. Kullanıcı başına 1000 dosya sınırı yetimleri de sayıyor.
-- **Karşılaştırmada kayıtlar adla eşleşiyor** — kimlikle değil: kopyada kimlikler yeni, bağımsız iki listede zaten farklı. Adı değiştirilen kayıt eşleşmeden düşer; aynı ad + çeşitle iki kayıt varsa biri sayılır.
-- **Kopyalanan listede sahibinin notları ve denenmemişleri yok** — okuma paylaşım sayfasıyla aynı kapıdan (`paylasilan_liste`).
-- **Sunucu tarafı koruma yok** — uygulama tamamen istemci tarafında; `AuthGate` bir kapı, güvenlik RLS'te.
-
----
-
-## Veri modeli
-
-Üç tablo — liste sayısı ne olursa olsun tablo sayısı sabit. Her sıralama `lists` içinde **bir satır**. Hepsi `do_siralama_defteri` şemasında.
-
-```
-lists       id, user_id, ad, slug, emoji, sira, created_at, alanlar(jsonb), renk, paylasim_kodu, kaynak_kod
-            └ emoji, renk ve sira kullanılmıyor (bkz. kabul edilmiş sınırlar)
-categories  id, list_id, ad, renk, sira, created_at
-items       id, list_id, category_id, ad, alt_ad, fotograf_url,
-            sira, denendi, notlar, ozellikler(jsonb), created_at, asla
-```
-
-Kritik ayrıntılar:
-
-- **`lists.kaynak_kod`** — "Ben de sıralayayım" ile kopyalanan listede kaynağın paylaşım kodu; karşılaştırma iki listeyi bununla eşliyor. Kaynak bağlantısını yenilerse ya da kapatırsa bağ kopuyor, eşleşme liste adına düşüyor.
-- **`lists.alanlar`** — listeye özel ek alan tanımları. Biçim:
-  `[{anahtar, tip: 'bool'|'metin', etiket, kisa?, ipucu?, filtre?, kategori_id?}]`
-  Örneğin bir içecek listesinde "Ekşi mi?" (Evet/Hayır) ya da "Satılan market" (Metin). Filtre şeridi, form ve detay paneli bu tanımdan üretiliyor.
-- **`items.asla`** — denenmiş ama sıralamada değil: "Bir daha asla" bölümünde. Sıralama ve bölüm `sira`'yı kendi içlerinde ayrı ayrı numaralıyor; ayrımı bu kolon yapıyor.
-- **`items.ozellikler`** — yukarıdaki alanların değerleri (`{"eksi": true, "market": "Migros"}`).
-- **`category_id` nullable, `on delete set null`** — kategori silinince kayıtlar kategorisiz kalır.
-- **RLS** — üç tabloda da açık; `lists` doğrudan `user_id` ile, diğer ikisi liste üzerinden.
-
-### Şema dosyası
-
-`supabase/schema.sql` şemanın tek ve kalıcı tanımı: boş bir veritabanında her şeyi sıfırdan kurar, kurulu olanda tekrar çalıştırılabilir (idempotent). Değişiklikler bu dosyaya yazılıp Supabase SQL Editor'da çalıştırılıyor.
-
-Kurulumda iki şey dosyanın dışında:
-
-- **Exposed schemas** — Project Settings → Data API → Exposed schemas listesinde `do_siralama_defteri` olmalı (Save'e basmayı unutma). Yoksa istemcinin her isteği `PGRST106 Invalid schema` hatası verir. "Extra search path" alanı bu iş için değil.
-- **Yetkiler açıkça veriliyor** — Supabase `public` dışındaki şemalarda `anon` / `authenticated`'a otomatik yetki vermiyor. Tablolar yalnızca `authenticated`'a açık (satırları RLS süzüyor); `anon` tablolara hiç erişemiyor, yalnızca `paylasilan_liste`'yi çağırabiliyor.
-
-Fotoğraflar `storage` şemasındaki kovada; şema dosyası ona dokunmuyor.
-
----
-
-## Kimlik doğrulama
-
-Google girişi, Supabase Auth üzerinden. Uygulama tamamen istemci tarafında çalıştığı için `@supabase/ssr` ve proxy (Next 16'da `middleware` bu ada taşındı) kullanılmıyor: oturum tarayıcıda tutuluyor, asıl koruma RLS'te.
-
-Kurulum notları:
-- Google Cloud'da OAuth client → Authorized redirect URI: `https://<proje-ref>.supabase.co/auth/v1/callback`
-- Authorized domain olarak `supabase.co` kabul edilmiyor, **proje kodlu tam hâli** girilmeli
-- Supabase → Authentication → URL Configuration → Redirect URLs'e hem `http://localhost:3000/**` hem üretim adresi eklenmiş olmalı
-- Site URL örtük olarak izinli yönlendirme sayılıyor: Redirect URLs'te olmayan bir adres yalnızca Site URL olduğu için çalışıyor olabilir — alan adı değiştirirken bu sıralamayı bozmamak gerek
-
----
-
-## Proje yapısı
-
-```
-src/
-  app/
-    layout.tsx                    kök düzen: yazı tipleri (next/font), viewport/tema rengi, AuthGate
-    page.tsx                      liste indeksi (Listelerin)
-    globals.css                   tüm stiller — Vitrin tasarım sistemi (açık/koyu tema tokenları)
-    icon.svg                      sekme simgesi — azalan üç çizgi, en uzunu vurgu renginde
-    l/[slug]/
-      page.tsx                    sıralama ekranı — sekmeler, detay paneli, ayarlar popup'ı
-      ayarlar/page.tsx            eski adres: listeye yönlendirip ayarlar popup'ını açar
-  components/
-    AuthGate.tsx                  giriş ekranı + hesap bloğu (kimlik + çıkış)
-    ItemRow.tsx                   sıralama kartı (statik + sürüklenebilir)
-    ItemForm.tsx                  kayıt ekleme/düzenleme formu (tek + toplu sekmeleri)
-    TopluAlan.tsx                 toplu giriş kutusu ve ayrıştırma önizlemesi
-    ListeRayi.tsx                 masaüstü sol ray (künye + liste indeksi + şampiyon)
-    ListeEkleModal.tsx            yeni liste formu (ana ekran ve raydan açılır)
-    FilterPanel.tsx               veri güdümlü filtre şeridi
-    DetailPane.tsx                masaüstü detay paneli — yalnızca bir kayıt seçiliyken
-    ListeAyarlariModal.tsx        liste ayarları popup'ı (ad, kategoriler, ek alanlar, silme)
-    WishlistPanel.tsx             "Denenmemiş" sekmesinin kartları
-    Hesap.tsx                     hesap bloğu (avatar, ad, çıkış) — ray dibi ve ana ekran üst çubuğu
-    Sahne.tsx                     küçük arayüz sahneleri — giriş özellikleri ve boş durumlar
-    Sheet.tsx                     pencere kabuğu — yerel <dialog>, formlar ve liste ayarları
-    Marka.tsx                     marka işareti ve ad — ana ekran, ray, giriş
-    Iskelet.tsx                   yükleniyor taslakları — liste kartları ve sıralama satırları
-  hooks/
-    useAuth.ts                    oturum durumu
-    useListStore.ts               bir listenin tüm verisi (liste + kategoriler + öğeler)
-    useListeler.ts                liste indeksi + kayıt sayıları, sayıya göre sıralı
-    useIsDesktop.ts
-  lib/
-    supabase.ts                   istemci (PKCE, oturum kalıcılığı)
-    sema.ts                       Supabase şemasının adı — iki istemci de buna bağlanıyor
-    auth.ts                       signInWithGoogle / signOut
-    items.ts                      lists / categories / items CRUD + fotoğraf
-    toplu.ts                      toplu giriş ayrıştırma ve kaydetme
-    filtre.ts                     filtre durumu, uygulama ve sayımlar
-    sort.ts                       sıralama mantığı
-    slug.ts                       Türkçe slug üretimi
-    hata.ts                       Supabase hata nesnelerini okunur metne çevirir
-  types/item.ts                   Item, Kategori, Liste, AlanTanimi + yardımcılar
-supabase/schema.sql               veritabanı şeması (do_siralama_defteri)
-```
-
-Sekme simgesi `app/icon.svg` konvansiyonuyla geliyor; `public/` klasörü yok.
-
----
+Canlı: <https://siralama-defteri.vercel.app>
+
+## Neler var
+
+- **Sıralama** — sürükle-bırak, kart ve satır görünümü, sıralamanın altında "Bir daha asla" bölümü, ayrı "Denenmemiş" sekmesi.
+- **Listeye özel yapı** — kategoriler ve ek alanlar (Evet/Hayır, Metin) veriden üretiliyor; kodda listeye özel alan adı yok.
+- **Toplu ekleme ve toplu işlemler** — satır satır yazarak kayıt ve kategori açma; seçim modunda kategori atama, taşıma, silme.
+- **Paylaşım** — giriş istemeyen salt okunur bağlantı (`/p/[kod]`), WhatsApp önizleme görseli, Instagram story görseli.
+- **Ben de sıralayayım ve karşılaştırma** — paylaşılan listeyi kendi sıranla kopyala, uyum yüzdesini gör (Kendall).
+- **Kör Sıralama** — girişsiz oyun: on kayıt birer birer gelir, yeri bir daha değişmez (`/kor`).
+- **Hazır şablonlar, PWA, açık/koyu tema, yasal sayfalar ve veri silme.**
+
+Ayrıntılar ve gerekçeler `docs/` altında:
+
+| Belge | İçerik |
+|---|---|
+| [Özellikler](docs/ozellikler.md) | Her özelliğin nasıl çalıştığı ve neden öyle |
+| [Mimari](docs/mimari.md) | Veri modeli, RLS, şema dosyası, kimlik, sınırlar |
+| [Tasarım — Vitrin](docs/tasarim.md) | Tokenlar, kurallar, ekranlar |
+| [Yol haritası](docs/yol-haritasi.md) | Yayına çıkış, mobil uygulama, sıradaki özellikler |
+| [Kabul edilmiş sınırlar](docs/kararlar.md) | Bilinçli kararlar — değiştirmeden önce oku |
 
 ## Çalıştırma
 
@@ -321,14 +38,34 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-Üretim build'i:
+`npm run build` yazı tiplerini (`next/font/google`) derleme anında indiriyor; ağ erişimi olmayan ortamda derleme bu adımda durur. Çalışan uygulama Google'a istek atmıyor.
 
-```bash
-npm run build
+## Kurulum
+
+**Veritabanı** — Supabase projesi başka uygulamalarla paylaşıldığı için her şey `do_siralama_defteri` şemasında. Supabase SQL Editor'da sırayla `supabase/schema.sql` ve `supabase/storage.sql` çalıştırılır (ikisi de idempotent). Ardından Project Settings → Data API → **Exposed schemas** listesine `do_siralama_defteri` eklenir; yoksa her istek `PGRST106 Invalid schema` verir.
+
+**Google girişi** — Supabase Auth üzerinden:
+- Google Cloud'da OAuth client → Authorized redirect URI: `https://<proje-ref>.supabase.co/auth/v1/callback`
+- Authorized domain olarak `supabase.co` kabul edilmiyor, proje kodlu tam hâli girilmeli.
+- Supabase → Authentication → URL Configuration → Redirect URLs'e hem `http://localhost:3000/**` hem üretim adresi eklenmeli. Site URL örtük olarak izinli sayılıyor: alan adı değiştirirken buna dikkat.
+
+**Dağıtım** — Vercel, `main` dalından otomatik; push üretimi günceller. Vercel'de iki ortam değişkeni tanımlı olmalı. Üretim alan adı Redirect URLs'te yoksa build geçer ama Google girişi canlıda **sessizce** başarısız olur (giriş `redirectTo` olarak `window.location.origin` kullanıyor).
+
+## Proje yapısı
+
+```
+src/app/(uygulama)/   giriş isteyen ekranlar (AuthGate arkasında): liste indeksi, /l/[slug], /kiyasla/[kod]
+src/app/p/[kod]/      paylaşım sayfası, önizleme ve story görselleri (sunucuda çizilir)
+src/app/kor/          Kör Sıralama ve görselleri
+src/app/…             yasal sayfalar, ikonlar, manifest, globals.css (tüm stiller)
+src/components/       arayüz bileşenleri
+src/hooks/            oturum, liste verisi, liste indeksi
+src/lib/              Supabase erişimi (items.ts), saf mantık (sort, toplu, kiyas, filtre…), sunucu görsel yardımcıları
+supabase/             şema ve kova politikaları
 ```
 
-`next build` yazı tiplerini (`next/font/google`) derleme anında Google Fonts'tan indirip uygulamaya gömüyor; ağ erişimi olmayan bir ortamda derleme bu adımda durur. Çalışan uygulama Google'a istek atmıyor.
+Güvenlik RLS'te: uygulama istemci tarafında çalışıyor, `AuthGate` yalnızca bir kapı.
 
 ## Teknolojiler
 
-Next.js 16.3.7 · React 19.3 · TypeScript 6 · Supabase (Postgres + Auth + Storage) · dnd-kit · Geist ve Instrument Serif (`next/font`)
+Next.js 16 · React 19 · TypeScript 6 · Supabase (Postgres + Auth + Storage) · dnd-kit · Vercel · Geist ve Instrument Serif

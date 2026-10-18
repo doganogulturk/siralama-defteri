@@ -38,6 +38,16 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
+Denetimler — her push ve PR'da GitHub Actions'ta da çalışıyor (`.github/workflows/denetim.yml`):
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+```
+
+Testler (Vitest) `src/lib`'teki saf mantığı kapsıyor: toplu giriş ayrıştırma, karşılaştırma (Kendall), Kör Sıralama sonucu, slug, filtre, paylaşım yardımcıları ve sıralama yazımı.
+
 `npm run build` yazı tiplerini (`next/font/google`) derleme anında indiriyor; ağ erişimi olmayan ortamda derleme bu adımda durur. Çalışan uygulama Google'a istek atmıyor.
 
 ## Kurulum
@@ -58,8 +68,8 @@ src/app/(uygulama)/   giriş isteyen ekranlar (AuthGate arkasında): liste indek
 src/app/p/[kod]/      paylaşım sayfası, önizleme ve story görselleri (sunucuda çizilir)
 src/app/kor/          Kör Sıralama ve görselleri
 src/app/…             yasal sayfalar, ikonlar, manifest, globals.css (tüm stiller)
-src/components/       arayüz bileşenleri
-src/hooks/            oturum, liste verisi, liste indeksi
+src/components/       arayüz bileşenleri; liste/ sıralama ekranının parçaları
+src/hooks/            oturum, liste verisi, liste indeksi, seçim modu, görünüm tercihi
 src/lib/              Supabase erişimi (items.ts), saf mantık (sort, toplu, kiyas, filtre…), sunucu görsel yardımcıları
 supabase/             şema ve kova politikaları
 ```

@@ -10,6 +10,7 @@ import {
 import { sortSirali, sortIstekListesi } from '../lib/sort';
 import { hataMetni } from '../lib/hata';
 import { listeleriTazele } from './useListeler';
+import { uyar } from '../lib/pencere';
 
 /** Sıralamadaki kayıt: denenmiş ve "Bir daha asla" bölümünde değil. */
 const siralamada = (i: Item) => i.denendi && !i.asla;
@@ -90,7 +91,7 @@ export function useListStore(slug: string) {
       // Şampiyon değişmiş olabilir: ray ve ana ekran ilk üçü yeniden okusun.
       listeleriTazele();
     } catch (e: unknown) {
-      alert('Sıralama kaydedilemedi: ' + hataMetni(e));
+      void uyar('Sıralama kaydedilemedi: ' + hataMetni(e));
     } finally {
       setIsSaving(false);
     }

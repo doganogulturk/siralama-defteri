@@ -15,6 +15,7 @@ import { hataMetni } from '../lib/hata';
 import { titret } from '../lib/his';
 import { useTac } from '../hooks/useTac';
 import { Item, Liste } from '../types/item';
+import { uyar } from '../lib/pencere';
 
 /** Satır bileşeni `Item` bekliyor; paylaşılan kaydın gösterilen kısmı yetiyor. */
 export const kayittanItem = (k: PaylasilanKayit): Item => ({
@@ -101,7 +102,7 @@ export default function KopyaSiralama({ kod, kaynak, onBitti }: {
       titret('basari');
       onBitti(liste);
     } catch (e: unknown) {
-      alert('Liste oluşturulamadı: ' + hataMetni(e));
+      void uyar('Liste oluşturulamadı: ' + hataMetni(e));
       setKaydediliyor(false);
       setIlerleme(null);
     }

@@ -1,4 +1,5 @@
 import { AlanTanimi, Item } from '../types/item';
+import { KOVA } from './kova';
 
 /*
  * Salt okunur paylaşım: hem sunucudaki paylaşım sayfası hem istemcideki ayarlar
@@ -70,7 +71,8 @@ export const paylasimBasligi = (liste: Pick<PaylasilanListe, 'ad' | 'sahip'>) =>
  * Kayıttaki fotoğraf adresi yalnızca uygulamanın kendi kovasındaysa kullanılıyor.
  * `fotograf_url`'i sahibi API'den istediği gibi yazabilir: başka bir adres
  * paylaşım sayfasında ziyaretçinin tarayıcısını, önizleme görselinde sunucuyu
- * oraya istek atmaya yöneltirdi.
+ * oraya istek atmaya yöneltirdi. Supabase projesi başka uygulamalarla paylaşıldığı
+ * için yalnızca adres kökü yetmiyor: onların herkese açık kovaları da aynı kökte.
  */
 export function guvenliFoto(url?: string | null): string | null {
   const taban = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -79,7 +81,7 @@ export function guvenliFoto(url?: string | null): string | null {
     // URL ayrıştırması "../" parçalarını çözüyor: yol kontrolü atlatılamıyor.
     const adres = new URL(url);
     return adres.origin === new URL(taban).origin
-      && adres.pathname.startsWith('/storage/v1/object/public/')
+      && adres.pathname.startsWith(`/storage/v1/object/public/${KOVA}/`)
       ? adres.href
       : null;
   } catch {

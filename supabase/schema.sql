@@ -57,13 +57,14 @@ create table if not exists do_siralama_defteri.categories (
 create table if not exists do_siralama_defteri.items (
   id           uuid primary key default gen_random_uuid(),
   list_id      uuid not null references do_siralama_defteri.lists on delete cascade,
-  -- Kategori silinince öğe silinmesin, kategorisiz kalsın.
-  category_id  uuid references do_siralama_defteri.categories on delete set null,
+  -- Kategori silinince öğe silinmesin, kategorisiz kalsın. Yabancı anahtar aşağıda, bileşik:
+  -- kategori kaydın kendi listesinden olmalı.
+  category_id  uuid,
   ad           text not null,
   alt_ad       text,
   fotograf_url text,
-  -- sira'ya unique konmadı: sürükle-bırak satırları tek tek UPDATE ettiği için
-  -- ara durumlarda geçici çakışma oluşur.
+  -- sira'ya unique konmadı: unique kısıt tek UPDATE içinde de satır satır denetleniyor,
+  -- iki kaydın yer değiştirmesi ara durumda çakışırdı.
   sira         int  not null default 0,
   denendi      boolean not null default true,
   notlar       text,
@@ -78,8 +79,26 @@ create table if not exists do_siralama_defteri.items (
 
 create index if not exists items_list_sira_idx      on do_siralama_defteri.items (list_id, sira);
 create index if not exists categories_list_sira_idx on do_siralama_defteri.categories (list_id, sira);
+-- Kategori silinirken kayıtları `set null` için bulmak: indeks olmadan tablo baştan sona taranır.
+create index if not exists items_category_idx       on do_siralama_defteri.items (category_id);
+
+-- Kaydın kategorisi kendi listesinden olmalı. RLS yalnızca `items.list_id`'ye bakıyor; tek kolonlu
+-- anahtarla bir kayıt başka bir listenin, hatta başka bir kullanıcının kategorisini gösterebiliyordu.
+-- `set null (category_id)`: kategori silinince yalnızca kategori boşalıyor, list_id yerinde kalıyor
+-- (Postgres 15+). `not valid`: kurulu veritabanındaki eski satırlar taranmıyor, yeni yazılanlar denetleniyor.
+-- Sıra önemli: yabancı anahtarlar düşmeden, onların dayandığı unique kısıt düşürülemiyor.
+alter table do_siralama_defteri.items drop constraint if exists items_category_id_fkey;
+alter table do_siralama_defteri.items drop constraint if exists items_kategori_ayni_liste;
+alter table do_siralama_defteri.categories drop constraint if exists categories_id_list_key;
+alter table do_siralama_defteri.categories add constraint categories_id_list_key unique (id, list_id);
+alter table do_siralama_defteri.items add constraint items_kategori_ayni_liste
+  foreign key (category_id, list_id)
+  references do_siralama_defteri.categories (id, list_id)
+  on delete set null (category_id)
+  not valid;
 
 -- ── RLS: lists doğrudan user_id ile, diğer ikisi liste üzerinden ───────────────────────────────
+-- `(select auth.uid())`: Postgres değeri satır başına değil sorgu başına bir kez hesaplıyor.
 
 alter table do_siralama_defteri.lists      enable row level security;
 alter table do_siralama_defteri.categories enable row level security;
@@ -88,27 +107,27 @@ alter table do_siralama_defteri.items      enable row level security;
 drop policy if exists "kendi listeleri" on do_siralama_defteri.lists;
 create policy "kendi listeleri" on do_siralama_defteri.lists
   for all to authenticated
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
 
 drop policy if exists "kendi kategorileri" on do_siralama_defteri.categories;
 create policy "kendi kategorileri" on do_siralama_defteri.categories
   for all to authenticated
   using (exists (
-    select 1 from do_siralama_defteri.lists l where l.id = categories.list_id and l.user_id = auth.uid()
+    select 1 from do_siralama_defteri.lists l where l.id = categories.list_id and l.user_id = (select auth.uid())
   ))
   with check (exists (
-    select 1 from do_siralama_defteri.lists l where l.id = categories.list_id and l.user_id = auth.uid()
+    select 1 from do_siralama_defteri.lists l where l.id = categories.list_id and l.user_id = (select auth.uid())
   ));
 
 drop policy if exists "kendi ogeleri" on do_siralama_defteri.items;
 create policy "kendi ogeleri" on do_siralama_defteri.items
   for all to authenticated
   using (exists (
-    select 1 from do_siralama_defteri.lists l where l.id = items.list_id and l.user_id = auth.uid()
+    select 1 from do_siralama_defteri.lists l where l.id = items.list_id and l.user_id = (select auth.uid())
   ))
   with check (exists (
-    select 1 from do_siralama_defteri.lists l where l.id = items.list_id and l.user_id = auth.uid()
+    select 1 from do_siralama_defteri.lists l where l.id = items.list_id and l.user_id = (select auth.uid())
   ));
 
 -- Tablolar yalnızca giriş yapmış kullanıcıya açık; satırları RLS süzüyor. Anonim ziyaretçi (paylaşım
@@ -260,6 +279,27 @@ $$;
 
 revoke all on function do_siralama_defteri.liste_ozetleri() from public, anon;
 grant execute on function do_siralama_defteri.liste_ozetleri() to authenticated;
+
+-- Sürükle-bırak ve bölüm taşımalarının yazıldığı yer: bütün değişiklikler tek komutta, yani tek
+-- transaction'da — yarısı yazılıp yarısı kalmış bir sıralama olmuyor ve istemci kayıt başına bir
+-- istek atmıyor. Biçim: [{id, sira, asla?, denendi?}]; verilmeyen kolon olduğu gibi kalıyor.
+-- security invoker: RLS geçerli, kullanıcı yalnızca kendi kayıtlarını değiştirebiliyor.
+create or replace function do_siralama_defteri.siralamayi_yaz(degisiklikler jsonb)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $$
+  update do_siralama_defteri.items i
+     set sira    = (d ->> 'sira')::int,
+         asla    = coalesce((d ->> 'asla')::boolean, i.asla),
+         denendi = coalesce((d ->> 'denendi')::boolean, i.denendi)
+    from jsonb_array_elements(degisiklikler) d
+   where i.id = (d ->> 'id')::uuid;
+$$;
+
+revoke all on function do_siralama_defteri.siralamayi_yaz(jsonb) from public, anon;
+grant execute on function do_siralama_defteri.siralamayi_yaz(jsonb) to authenticated;
 
 -- Paylaşılan listenin okunduğu tek kapı. Tablolara anonim okuma açılmıyor; bunun yerine bu fonksiyon
 -- tabloları sahibinin yetkisiyle okuyup yalnızca sayfada gösterilecek alanları döndürüyor:

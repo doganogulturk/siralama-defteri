@@ -6,6 +6,7 @@ import { signOut } from '../../lib/auth';
 import { tumVerileriSil } from '../../lib/items';
 import { hataMetni } from '../../lib/hata';
 import { hesapBilgisi } from '../Hesap';
+import { uyar } from '../../lib/pencere';
 
 /** Silmeyi onaylamak için yazılacak kelime: yanlışlıkla iki dokunuşla silinmesin. */
 const ONAY = 'SİL';
@@ -40,7 +41,7 @@ export default function VeriSilmePaneli() {
       await signOut();
       setSilindi(true);
     } catch (e: unknown) {
-      alert('Veriler silinemedi: ' + hataMetni(e));
+      void uyar('Veriler silinemedi: ' + hataMetni(e));
       setSiliniyor(false);
     }
   };

@@ -11,6 +11,7 @@ import { hataMetni } from '../lib/hata';
 import { SINIR } from '../lib/sinirlar';
 import Sheet from './Sheet';
 import PaylasimBolumu from './PaylasimBolumu';
+import { uyar, onayla } from '../lib/pencere';
 
 const KaldirIkon = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -66,7 +67,7 @@ export default function ListeAyarlariModal({
       // Raydaki ve ana ekrandaki ad ile sayılar da değişmiş olabilir.
       listeleriTazele();
     } catch (e: unknown) {
-      alert('İşlem başarısız: ' + hataMetni(e));
+      void uyar('İşlem başarısız: ' + hataMetni(e));
     } finally {
       setBusy(false);
     }
@@ -102,12 +103,12 @@ export default function ListeAyarlariModal({
     return calistir(() => updateKategori(kat.id, { ad: temiz }));
   };
 
-  const kategoriSil = (kat: Kategori) => {
+  const kategoriSil = async (kat: Kategori) => {
     const adet = items.filter(i => i.category_id === kat.id).length;
     const uyari = adet > 0
       ? `“${kat.ad}” kategorisini silmek istiyor musun? ${adet} kayıt kategorisiz kalacak (kayıtlar silinmez).`
       : `“${kat.ad}” kategorisini silmek istiyor musun?`;
-    if (!window.confirm(uyari)) return;
+    if (!(await onayla({ metin: uyari, onay: 'Sil', tehlikeli: true }))) return;
     return calistir(() => deleteKategori(kat.id));
   };
 
@@ -151,8 +152,12 @@ export default function ListeAyarlariModal({
     });
   };
 
-  const alanSil = (alan: AlanTanimi) => {
-    if (!window.confirm(`“${alan.etiket}” alanı kaldırılsın mı? Kayıtlardaki değerler görünmez olur.`)) return;
+  const alanSil = async (alan: AlanTanimi) => {
+    if (!(await onayla({
+      metin: `“${alan.etiket}” alanı kaldırılsın mı? Kayıtlardaki değerler görünmez olur.`,
+      onay: 'Kaldır',
+      tehlikeli: true,
+    }))) return;
     return calistir(() =>
       updateListe(liste.id, { alanlar: alanlar.filter(a => a.anahtar !== alan.anahtar) })
     );
@@ -161,16 +166,18 @@ export default function ListeAyarlariModal({
   /* ── Silme ────────────────────────────────────────── */
   // Ortak yoldan geçmiyor: silinen listeyi baştan okumaya çalışmanın anlamı yok.
   const listeSil = async () => {
-    if (!window.confirm(
-      `“${liste.ad}” listesi ve içindeki ${toplam} kayıt kalıcı olarak silinecek. Emin misin?`
-    )) return;
+    if (!(await onayla({
+      metin: `“${liste.ad}” listesi ve içindeki ${toplam} kayıt kalıcı olarak silinecek. Emin misin?`,
+      onay: 'Listeyi sil',
+      tehlikeli: true,
+    }))) return;
     setBusy(true);
     try {
       await deleteListe(liste.id);
       listeleriTazele();
       router.push('/');
     } catch (e: unknown) {
-      alert('Liste silinemedi: ' + hataMetni(e));
+      void uyar('Liste silinemedi: ' + hataMetni(e));
       setBusy(false);
     }
   };

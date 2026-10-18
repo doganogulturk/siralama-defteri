@@ -118,6 +118,13 @@ export default async function PaylasimSayfasi({ params }: Props) {
   return (
     <div className="paylasim">
       <header className="paylasim-bar">
+        {/* iOS'ta donanım geri tuşu yok: her ekranda görünür bir geri yolu. */}
+        <Link href="/" className="mobile-brand-back" aria-label="Ana sayfa">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M15 5l-7 7 7 7" />
+          </svg>
+        </Link>
         <Link href="/" className="paylasim-marka" aria-label="Sıralama Defteri ana sayfa">
           <Marka />
         </Link>

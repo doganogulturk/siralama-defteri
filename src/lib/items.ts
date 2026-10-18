@@ -1,17 +1,11 @@
 import { supabase } from './supabase';
 import { AlanTanimi, Item, Kategori, Liste } from '../types/item';
 import { fotoKucult } from './foto';
+import { KOVA } from './kova';
 
 const T_LISTS = 'lists';
 const T_CATS = 'categories';
 const T_ITEMS = 'items';
-
-/**
- * Fotoğraflar hâlâ ilk kurulumdaki kovada. Kova adı kullanıcıya görünmüyor ve
- * Supabase kovaları yeniden adlandırılamıyor; yeni bir kovaya geçilirse eski
- * URL'lerin çalışmaya devam etmesi için `kovaYolu` adı sabitten türetmiyor.
- */
-const KOVA = 'ayran';
 
 /** Yeni kategorilere sırayla atanan renkler — ayarlar ekranı ve toplu ekleme aynı sırayı kullanır. */
 export const KATEGORI_PALET = [
@@ -247,10 +241,30 @@ async function fotograflariSil(urller: (string | null | undefined)[]): Promise<v
  * `asla` verilirse o da yazılıyor — kayıt sıralama ile "Bir daha asla" arasında yer
  * değiştirdiğinde. `denendi` toplu "Denedim"de: bekleyen kayıt sıralamaya girerken.
  */
-export async function updateItemsSira(
-  updates: { id: string; sira: number; asla?: boolean; denendi?: boolean }[]
-): Promise<void> {
-  if (updates.length === 0) return;
+type SiraDegisikligi = { id: string; sira: number; asla?: boolean; denendi?: boolean };
+
+/**
+ * Sıra yazımları sırayla gidiyor: arka arkaya iki sürükle-bırakta eskisinin isteği
+ * yenisinden sonra varıp onun üstüne yazmasın. Hata zinciri koparmıyor.
+ */
+let siraKuyrugu: Promise<unknown> = Promise.resolve();
+
+/**
+ * Sıralama değişikliklerini tek istekte, tek transaction'da yazar (`siralamayi_yaz`):
+ * ya hepsi ya hiçbiri. Fonksiyon veritabanında henüz yoksa (PGRST202) satır satır yola düşer.
+ */
+export function updateItemsSira(updates: SiraDegisikligi[]): Promise<void> {
+  if (updates.length === 0) return Promise.resolve();
+  const is = siraKuyrugu.then(() => siraYaz(updates));
+  siraKuyrugu = is.catch(() => {});
+  return is;
+}
+
+async function siraYaz(updates: SiraDegisikligi[]): Promise<void> {
+  const { error } = await supabase.rpc('siralamayi_yaz', { degisiklikler: updates });
+  if (!error) return;
+  if (error.code !== 'PGRST202') throw error;
+
   // Tek upsert değil: Postgres, ON CONFLICT bir UPDATE'e yönlense bile NOT NULL
   // kolonları INSERT değerlerine göre doğruluyor; çıplak {id, sira} yükü 23502
   // veriyor. Satır satır UPDATE diğer kolonlara hiç dokunmadığı için sorun çıkmıyor.

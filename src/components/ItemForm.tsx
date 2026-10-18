@@ -12,6 +12,7 @@ import Sheet from './Sheet';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import { hataMetni } from '../lib/hata';
 import { SINIR } from '../lib/sinirlar';
+import { uyar } from '../lib/pencere';
 
 /**
  * 'siralama' — denenmiş kayıt (varsayılan akış)
@@ -205,14 +206,14 @@ export default function ItemForm({
       await onTopluSave(topluBloklar, !isIstek);
       onClose();
     } catch (err: unknown) {
-      alert('Kayıtlar eklenemedi: ' + hataMetni(err));
+      void uyar('Kayıtlar eklenemedi: ' + hataMetni(err));
       setTopluKaydediliyor(false);
     }
   };
 
   const handleImageFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      alert('Lütfen geçerli bir resim dosyası seçin.');
+      void uyar('Lütfen geçerli bir resim dosyası seçin.');
       return;
     }
     setUploading(true);
@@ -224,7 +225,7 @@ export default function ItemForm({
         void deleteFotograf(previousUrl);
       }
     } catch (err: unknown) {
-      alert('Fotoğraf yüklenirken hata oluştu: ' + hataMetni(err));
+      void uyar('Fotoğraf yüklenirken hata oluştu: ' + hataMetni(err));
     } finally {
       setUploading(false);
     }

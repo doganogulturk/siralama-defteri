@@ -58,6 +58,13 @@ export default function KiyaslaSayfasi() {
   return (
     <div className="kiyas-sayfa">
       <header className="paylasim-bar kiyas-bar">
+        {/* iOS'ta donanım geri tuşu yok: her ekranda görünür bir geri yolu. Gelinen yer paylaşım sayfası. */}
+        <Link href={`/p/${kod}`} className="mobile-brand-back" aria-label="Paylaşılan listeye dön">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M15 5l-7 7 7 7" />
+          </svg>
+        </Link>
         <Link href="/" className="paylasim-marka" aria-label="Listelerim">
           <Marka />
         </Link>

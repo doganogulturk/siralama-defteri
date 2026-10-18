@@ -12,6 +12,7 @@ import { Kategori } from '../types/item';
 import TopluAlan from './TopluAlan';
 import Sheet from './Sheet';
 import { useIsDesktop } from '../hooks/useIsDesktop';
+import { uyar } from '../lib/pencere';
 
 const trAnahtar = (s: string) => s.trim().toLocaleLowerCase('tr');
 
@@ -114,7 +115,7 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
           : `/l/${olusan.slug}`,
       );
     } catch (err: unknown) {
-      alert('Liste oluşturulamadı: ' + hataMetni(err));
+      void uyar('Liste oluşturulamadı: ' + hataMetni(err));
       setKaydediliyor(false);
     }
   };

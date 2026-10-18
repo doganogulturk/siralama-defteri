@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import Analitik from "../components/Analitik";
+import Pencereler from "../components/Pencereler";
 
 /*
  * Yazı tipleri derleme anında indirilip uygulamayla birlikte sunuluyor: tarayıcı
@@ -40,8 +41,14 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "Sıralama", statusBarStyle: "default" },
 };
 
-/* Tarayıcı çubuğu sayfa zeminiyle aynı renkte; tema sistemi izliyor. */
+/*
+ * Tarayıcı çubuğu sayfa zeminiyle aynı renkte; tema sistemi izliyor.
+ * `viewportFit: cover`: sayfa çentiğin ve ana ekran çizgisinin altına uzanıyor; alt menü ve
+ * yüzen düğme `env(safe-area-inset-*)` ile kendilerini içeri alıyor. Bu olmadan iPhone'da o
+ * değerler hep 0.
+ */
 export const viewport: Viewport = {
+  viewportFit: "cover",
   colorScheme: "light dark",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f8f7f4" },
@@ -58,6 +65,7 @@ export default function RootLayout({
     <html lang="tr" className={`${geist.variable} ${instrumentSerif.variable}`}>
       <body>
         {children}
+        <Pencereler />
         <Analitik />
       </body>
     </html>

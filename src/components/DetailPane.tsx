@@ -6,6 +6,7 @@ import {
   AlanTanimi, Item, Kategori, alanGorunur, alanKisa, bayrak, kategoriBul, metin,
 } from '../types/item';
 import { hataMetni } from '../lib/hata';
+import { uyar } from '../lib/pencere';
 
 const KameraIkon = (
   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -50,14 +51,14 @@ export default function DetailPane({
   const dosyaSec = async (file?: File) => {
     if (!file || yukleniyor) return;
     if (!file.type.startsWith('image/')) {
-      alert('Lütfen bir resim dosyası seç.');
+      void uyar('Lütfen bir resim dosyası seç.');
       return;
     }
     setYukleniyor(true);
     try {
       await onFotograf(item, file);
     } catch (e: unknown) {
-      alert('Fotoğraf yüklenemedi: ' + hataMetni(e));
+      void uyar('Fotoğraf yüklenemedi: ' + hataMetni(e));
     } finally {
       setYukleniyor(false);
     }

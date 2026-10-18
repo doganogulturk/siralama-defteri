@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Liste } from '../types/item';
 import { kodUret, paylasimAdresi, paylasimMetni } from '../lib/paylasim';
 import { useAuth } from '../hooks/useAuth';
+import { onayla } from '../lib/pencere';
 
 interface PaylasimBolumuProps {
   liste: Liste;
@@ -57,13 +58,20 @@ export default function PaylasimBolumu({ liste, busy, kodKaydet }: PaylasimBolum
     }
   };
 
-  const yenile = () => {
-    if (!window.confirm('Yeni bir bağlantı oluşturulacak; eski bağlantı artık açılmayacak. Devam edilsin mi?')) return;
+  const yenile = async () => {
+    if (!(await onayla({
+      metin: 'Yeni bir bağlantı oluşturulacak; eski bağlantı artık açılmayacak. Devam edilsin mi?',
+      onay: 'Yenile',
+    }))) return;
     return kodKaydet(kodUret());
   };
 
-  const kapat = () => {
-    if (!window.confirm('Paylaşım kapatılsın mı? Bağlantıyı alanlar listeyi artık göremeyecek.')) return;
+  const kapat = async () => {
+    if (!(await onayla({
+      metin: 'Paylaşım kapatılsın mı? Bağlantıyı alanlar listeyi artık göremeyecek.',
+      onay: 'Kapat',
+      tehlikeli: true,
+    }))) return;
     return kodKaydet(null);
   };
 

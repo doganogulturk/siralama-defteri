@@ -3,30 +3,22 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import {
-  DndContext, closestCenter, PointerSensor, KeyboardSensor,
-  useSensor, useSensors, DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  SortableContext, verticalListSortingStrategy, rectSortingStrategy, arrayMove, sortableKeyboardCoordinates,
-} from '@dnd-kit/sortable';
 import { Item, alanKisa, bayrak, filtreAlanlari } from '../../../../types/item';
 import {
   KATEGORISIZ, bosFiltre, filtreBos, filtreUygula, kategoriSayilari, bayrakSayilari,
 } from '../../../../lib/filtre';
 import { useListStore } from '../../../../hooks/useListStore';
 import { listeleriTazele } from '../../../../hooks/useListeler';
+import { useGorunum } from '../../../../hooks/useGorunum';
+import { useBildirim } from '../../../../hooks/useBildirim';
+import { useSecim } from '../../../../hooks/useSecim';
 import { TopluBlok, topluKaydet } from '../../../../lib/toplu';
 import { hataMetni } from '../../../../lib/hata';
 import { uploadFotograf, deleteFotograf } from '../../../../lib/items';
 import { useIsDesktop } from '../../../../hooks/useIsDesktop';
 import { useTac } from '../../../../hooks/useTac';
 import { ArtiIkon, ListelerIkon } from '../../../../components/MobilMenu';
-import { titret } from '../../../../lib/his';
 import FilterPanel from '../../../../components/FilterPanel';
-import {
-  ASLA_SINIRI, AslaSiniri, DraggableRow, StaticRow, SuruklenebilirAslaSiniri,
-} from '../../../../components/ItemRow';
 import DetailPane from '../../../../components/DetailPane';
 import WishlistPanel from '../../../../components/WishlistPanel';
 import ItemForm, { FormMode } from '../../../../components/ItemForm';
@@ -35,63 +27,23 @@ import ListeAyarlariModal from '../../../../components/ListeAyarlariModal';
 import PaylasMenusu from '../../../../components/PaylasMenusu';
 import { BosSahne } from '../../../../components/Sahne';
 import { IskeletSatirlar } from '../../../../components/Iskelet';
-
-/* İşlem çubuğunun simgeleri — uygulamanın çizgi simgeleriyle aynı kalınlıkta. */
-const Ikon = ({ children }: { children: React.ReactNode }) => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    {children}
-  </svg>
-);
-const KategoriIkon = <Ikon><path d="M3 12V4h8l10 10-8 8z" /><circle cx="7.5" cy="8.5" r="1.3" /></Ikon>;
-const AslaIkon = <Ikon><circle cx="12" cy="12" r="9" /><path d="M9 9l6 6M15 9l-6 6" /></Ikon>;
-const GeriAlIkon = <Ikon><path d="M9 14L4 9l5-5" /><path d="M4 9h11a5 5 0 0 1 0 10h-3" /></Ikon>;
-const DenedimIkon = <Ikon><path d="M5 12.5l4.5 4.5L19 7.5" /></Ikon>;
-const SilIkon = <Ikon><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" /></Ikon>;
-const GeriIkon = <Ikon><path d="M15 5l-7 7 7 7" /></Ikon>;
-const KartIkon = (
-  <Ikon>
-    <rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" />
-    <rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" />
-  </Ikon>
-);
-const PaylasIkon = (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M12 15V3M7.5 7.5L12 3l4.5 4.5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />
-  </svg>
-);
-const SatirIkon = <Ikon><path d="M4 6h16M4 12h16M4 18h16" /></Ikon>;
-
-/** Masaüstündeki Kart / Satır tercihinin tarayıcıdaki anahtarı. */
-/** Liste ayarları: başlıkta (masaüstü) ve alt menüde (telefon). */
-const AyarlarIkon = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       strokeWidth="1.9" strokeLinecap="round" aria-hidden="true">
-    <path d="M3 6h7M16 6h5M3 12h3M12 12h9M3 18h9M18 18h3" />
-    <circle cx="13" cy="6" r="2.1" /><circle cx="9" cy="12" r="2.1" /><circle cx="15" cy="18" r="2.1" />
-  </svg>
-);
-
-/** Alt menüdeki "Toplu ekle": alt alta satırlar. */
-const TopluIkon = (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-    <path d="M4 6h10M4 12h10M4 18h7M18 15v6M15 18h6" />
-  </svg>
-);
-
-const GORUNUM_ANAHTARI = 'siralama-defteri:gorunum';
+import SiralamaListesi from '../../../../components/liste/SiralamaListesi';
+import SecimCubugu from '../../../../components/liste/SecimCubugu';
+import {
+  AyarlarIkon, KartIkon, PaylasIkon, SatirIkon, TopluIkon,
+} from '../../../../components/liste/Ikonlar';
+import { uyar, onayla } from '../../../../lib/pencere';
 
 export default function ListePage() {
   const isDesktop = useIsDesktop();
   const SLUG = String(useParams().slug ?? '');
+  const magaza = useListStore(SLUG);
   const {
     liste, kategoriler, items,
     denenenler: ranked, aslaListesi, istekListesi,
     loading, error, isSaving,
-    load, saveEntry, removeEntry, reorder, kategoriAta, bolumDegistir, denendiYap, topluSil,
-  } = useListStore(SLUG);
+    load, saveEntry, removeEntry, reorder,
+  } = magaza;
 
   const alanlar = useMemo(() => liste?.alanlar ?? [], [liste]);
   const taclanan = useTac(ranked[0]?.id, SLUG, !loading);
@@ -101,41 +53,8 @@ export default function ListePage() {
   /** Bekleyenler ayrı bir route değil, aynı sayfanın ikinci sekmesi. */
   const [sekme, setSekme] = useState<'siralama' | 'sirada'>('siralama');
 
-  /**
-   * Masaüstünde kayıtlar kart ya da satır; tercih tarayıcıda hatırlanıyor. Mobil hep
-   * satır: dar ekranda kart tek sütuna düşüp ekrana 2–3 kayıt sığdırırdı.
-   */
-  const [gorunum, setGorunum] = useState<'kart' | 'satir'>('kart');
-  useEffect(() => {
-    try {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (window.localStorage.getItem(GORUNUM_ANAHTARI) === 'satir') setGorunum('satir');
-    } catch { /* depolama kapalı: varsayılan kart */ }
-  }, []);
-  const gorunumSec = (next: 'kart' | 'satir') => {
-    setGorunum(next);
-    try { window.localStorage.setItem(GORUNUM_ANAHTARI, next); } catch { /* yok say */ }
-  };
-  const kartGorunum = isDesktop && gorunum === 'kart';
-
-  /** Toplu kategori atama: null kapalı; açıkken seçili kayıtların id'leri. */
-  const [secim, setSecim] = useState<Set<string> | null>(null);
-  const [atamaSuruyor, setAtamaSuruyor] = useState(false);
-  /** Çubuğun alt satırı: ana işlemler ya da "Kategori"ye basınca açılan kategori hapları. */
-  const [cubukKip, setCubukKip] = useState<'islemler' | 'kategori'>('islemler');
-  /** Kısa süreli geri bildirim ("7 kayıt Yaz kategorisine taşındı"). */
-  const [bildirim, setBildirim] = useState<string | null>(null);
-  useEffect(() => {
-    if (!bildirim) return;
-    const id = window.setTimeout(() => setBildirim(null), 2600);
-    return () => window.clearTimeout(id);
-  }, [bildirim]);
-  useEffect(() => {
-    if (!secim) return;
-    const kapat = (e: KeyboardEvent) => { if (e.key === 'Escape') setSecim(null); };
-    window.addEventListener('keydown', kapat);
-    return () => window.removeEventListener('keydown', kapat);
-  }, [secim]);
+  const { gorunum, gorunumSec, kart: kartGorunum } = useGorunum(isDesktop);
+  const [bildirim, setBildirim] = useBildirim();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<FormMode>('siralama');
@@ -156,11 +75,6 @@ export default function ListePage() {
     // Parametre adreste kalırsa yenilemede popup yeniden açılırdı.
     window.history.replaceState(null, '', window.location.pathname);
   }, []);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
 
   /* ── Derived data ────────────────────────────────── */
   const visible = useMemo(() => filtreUygula(ranked, filtre), [ranked, filtre]);
@@ -196,25 +110,14 @@ export default function ListePage() {
 
   /** Seçim modunda "Tümünü seç"in kapsamı: açık sekmede filtreye uyan kayıtlar. */
   const gorunenKayitlar = sekme === 'sirada' ? gorunenIstek : [...visible, ...visibleAsla];
-  const hepsiSecili = !!secim && gorunenKayitlar.length > 0 && gorunenKayitlar.every(i => secim.has(i.id));
-  const seciliKayitlar = secim ? items.filter(i => secim.has(i.id)) : [];
-  /** Bölüm düğmesinin yönü: seçilenlerin hepsi zaten "Bir daha asla"daysa "Sıralamaya al". */
-  const aslaSecili = seciliKayitlar.filter(i => i.denendi && i.asla);
-  const siraliSecili = seciliKayitlar.filter(i => i.denendi && !i.asla);
-  const sadeceAsla = siraliSecili.length === 0 && aslaSecili.length > 0;
+  const secimModu = useSecim({ magaza, gorunenKayitlar, bildir: setBildirim });
+  const { secim } = secimModu;
   /** Açık sekmede kategorisi olmayan kayıtlar — filtre şeridindeki "Kategorisiz" hapının sayısı. */
   const kategorisizAdet = (sekme === 'sirada' ? istekListesi : denenenTum).filter(i => !i.category_id).length;
   const secili = (id: string) => (secim ? secim.has(id) : selectedId === id);
 
   const handleRowSelect = (item: Item) => {
-    if (secim) {
-      setSecim(prev => {
-        const next = new Set(prev);
-        if (next.has(item.id)) next.delete(item.id); else next.add(item.id);
-        return next;
-      });
-      return;
-    }
+    if (secim) { secimModu.degistir(item.id); return; }
     if (isDesktop) setSelectedId(prev => (prev === item.id ? null : item.id));
     else openForm(item.denendi ? 'siralama' : 'istek', item);
   };
@@ -223,30 +126,7 @@ export default function ListePage() {
     setSekme(next);
     setSelectedId(null);
     // Seçim sekmeye ait: diğer sekmedeki görünmeyen kayıtlar yanlışlıkla taşınmasın.
-    setSecim(prev => (prev ? new Set() : null));
-  };
-
-  /**
-   * Sıralama ve "Bir daha asla" tek sürüklenebilir liste; aradaki kırmızı çizgi de
-   * listenin bir öğesi. Bırakınca çizginin üstü sıralama, altı bölüm oluyor ve
-   * iki taraf kendi içinde 0'dan numaralanıyor.
-   */
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const dizi: (Item | typeof ASLA_SINIRI)[] = [...ranked, ASLA_SINIRI, ...aslaListesi];
-    const kimlik = (x: Item | typeof ASLA_SINIRI) => (x === ASLA_SINIRI ? x : x.id);
-    const from = dizi.findIndex(x => kimlik(x) === active.id);
-    const to = dizi.findIndex(x => kimlik(x) === over.id);
-    if (from === -1 || to === -1) return;
-    const yeni = arrayMove(dizi, from, to);
-    const sinir = yeni.indexOf(ASLA_SINIRI);
-    const ust = yeni.slice(0, sinir) as Item[];
-    const alt = yeni.slice(sinir + 1) as Item[];
-    reorder([
-      ...ust.map((item, idx) => ({ ...item, sira: idx, asla: false })),
-      ...alt.map((item, idx) => ({ ...item, sira: idx, asla: true })),
-    ]);
+    secimModu.temizle();
   };
 
   /* ── Form ────────────────────────────────────────── */
@@ -267,7 +147,7 @@ export default function ListePage() {
       listeleriTazele();
       closeForm();
     } catch (e: unknown) {
-      alert('Hata: ' + hataMetni(e));
+      void uyar('Hata: ' + hataMetni(e));
     }
   };
 
@@ -296,75 +176,19 @@ export default function ListePage() {
   };
 
   const handleDelete = async (item: Item) => {
-    if (!window.confirm(`“${item.ad}” kaydını silmek istediğinize emin misiniz?`)) return;
+    if (!(await onayla({ metin: `“${item.ad}” kaydı silinsin mi?`, onay: 'Sil', tehlikeli: true }))) return;
     try {
       await removeEntry(item);
       listeleriTazele();
       setSelectedId(prev => (prev === item.id ? null : prev));
       closeForm();
     } catch (e: unknown) {
-      alert('Silme sırasında hata oluştu: ' + hataMetni(e));
+      void uyar('Silme sırasında hata oluştu: ' + hataMetni(e));
     }
   };
 
-  /* ── Toplu kategori atama ────────────────────────── */
-  const secimAc = () => { setSelectedId(null); setCubukKip('islemler'); setSecim(new Set()); };
-  const tumunuSec = () => setSecim(hepsiSecili ? new Set() : new Set(gorunenKayitlar.map(i => i.id)));
-
-  /** Toplu işlemlerin ortak yolu. Seçim temizleniyor ama mod açık kalıyor ki sıradaki grup seçilebilsin. */
-  const islemYap = async (fn: () => Promise<void>, mesaj: string) => {
-    if (atamaSuruyor) return;
-    setAtamaSuruyor(true);
-    try {
-      await fn();
-      setBildirim(mesaj);
-      setSecim(new Set());
-      setCubukKip('islemler');
-    } catch (e: unknown) {
-      alert('İşlem tamamlanamadı: ' + hataMetni(e));
-      // Satır satır yazılan işlemlerde bir kısmı geçmiş olabilir: ekranı veritabanıyla eşitle.
-      void load();
-    } finally {
-      setAtamaSuruyor(false);
-    }
-  };
-
-  const kategoriyeTasi = (categoryId: string | null) => {
-    if (!secim?.size) return;
-    const ids = [...secim];
-    const ad = categoryId ? kategoriler.find(k => k.id === categoryId)?.ad : null;
-    void islemYap(
-      () => kategoriAta(ids, categoryId),
-      ad ? `${ids.length} kayıt “${ad}” kategorisine taşındı` : `${ids.length} kayıt kategoriden çıkarıldı`
-    );
-  };
-
-  /** Sıralamam sekmesi: seçilenleri "Bir daha asla"ya taşır; hepsi zaten oradaysa sıralamaya geri alır. */
-  const bolumIslemi = () => {
-    const aslaya = !sadeceAsla;
-    const hedef = aslaya ? siraliSecili : aslaSecili;
-    if (hedef.length === 0) return;
-    void islemYap(
-      () => bolumDegistir(hedef.map(i => i.id), aslaya),
-      aslaya ? `${hedef.length} kayıt Bir daha asla'ya taşındı` : `${hedef.length} kayıt sıralamaya alındı`
-    );
-  };
-
-  /** Denenmemiş sekmesi: seçilenler sıralamanın sonuna. Yerleri sonra sürükleyerek düzeltiliyor. */
-  const denedimToplu = () => {
-    if (!secim?.size) return;
-    const ids = [...secim];
-    void islemYap(() => denendiYap(ids), `${ids.length} kayıt sıralamanın sonuna eklendi`);
-  };
-
-  const silToplu = () => {
-    if (seciliKayitlar.length === 0) return;
-    const adet = seciliKayitlar.length;
-    const fotolu = seciliKayitlar.some(i => i.fotograf_url);
-    if (!window.confirm(`${adet} kayıt${fotolu ? ' ve fotoğrafları' : ''} kalıcı olarak silinecek. Emin misin?`)) return;
-    const ids = seciliKayitlar.map(i => i.id);
-    void islemYap(() => topluSil(ids), `${adet} kayıt silindi`);
-  };
+  /* ── Seçim modu ──────────────────────────────────── */
+  const secimAc = () => { setSelectedId(null); secimModu.ac(); };
 
   /** Liste ayarlarındaki "Şimdi ata" köprüsü: kategorisiz kayıtları süzüp seçim modunu açar. */
   const kategorisizAta = () => {
@@ -458,85 +282,22 @@ export default function ListePage() {
       );
     }
 
-    // Seçim modunda da sürükleme yok: dokunmak seçmek demek, iki hareket karışmasın.
-    if (!canReorder || secim) {
-      return (
-        <div className={kartGorunum ? 'rows rows-kart' : 'rows'}>
-          {visible.map((item) => (
-            <StaticRow
-              key={item.id}
-              item={item}
-              alanlar={alanlar}
-              rank={ranked.findIndex(r => r.id === item.id) + 1}
-              secimModu={!!secim}
-              isSelected={secili(item.id)}
-              onSelect={handleRowSelect}
-            />
-          ))}
-          {visibleAsla.length > 0 && (
-            <>
-              <AslaSiniri adet={aslaListesi.length} />
-              {visibleAsla.map((item) => (
-                <StaticRow
-                  key={item.id}
-                  item={item}
-                  alanlar={alanlar}
-                  rank={0}
-                  asla
-                  secimModu={!!secim}
-                  isSelected={secili(item.id)}
-                  onSelect={handleRowSelect}
-                />
-              ))}
-            </>
-          )}
-        </div>
-      );
-    }
-
     return (
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={() => titret('dokunus')}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={[...ranked.map(i => i.id), ASLA_SINIRI, ...aslaListesi.map(i => i.id)]}
-          // Kartlar ızgarada: satır stratejisi yalnızca dikey yer değiştirmeyi hesaplıyor.
-          strategy={kartGorunum ? rectSortingStrategy : verticalListSortingStrategy}
-        >
-          <div className={kartGorunum ? 'rows rows-kart' : 'rows'}>
-            {ranked.map((item, i) => (
-              <DraggableRow
-                key={item.id}
-                item={item}
-                alanlar={alanlar}
-                rank={i + 1}
-                isSelected={secili(item.id)}
-                onSelect={handleRowSelect}
-                taclandi={taclanan === item.id}
-              />
-            ))}
-            <SuruklenebilirAslaSiniri adet={aslaListesi.length} />
-            {/* Bölüm boşken çizgi yine duruyor ki kartlar altına bırakılabilsin. */}
-            {aslaListesi.length === 0 && (
-              <p className="asla-bos">Bir daha asla dediklerini bu çizginin altına sürükle.</p>
-            )}
-            {aslaListesi.map((item) => (
-              <DraggableRow
-                key={item.id}
-                item={item}
-                alanlar={alanlar}
-                rank={0}
-                asla
-                isSelected={secili(item.id)}
-                onSelect={handleRowSelect}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+      <SiralamaListesi
+        ranked={ranked}
+        aslaListesi={aslaListesi}
+        gorunen={visible}
+        gorunenAsla={visibleAsla}
+        alanlar={alanlar}
+        kart={kartGorunum}
+        // Seçim modunda da sürükleme yok: dokunmak seçmek demek, iki hareket karışmasın.
+        suruklenebilir={canReorder && !secim}
+        secimModu={!!secim}
+        secili={secili}
+        onSelect={handleRowSelect}
+        taclanan={taclanan}
+        onReorder={reorder}
+      />
     );
   })();
 
@@ -665,7 +426,7 @@ export default function ListePage() {
                 type="button"
                 className={`secim-ac${secim ? ' is-on' : ''}`}
                 aria-pressed={!!secim}
-                onClick={() => (secim ? setSecim(null) : secimAc())}
+                onClick={() => (secim ? secimModu.kapat() : secimAc())}
               >
                 {secim ? 'Bitti' : 'Seç'}
               </button>
@@ -691,108 +452,7 @@ export default function ListePage() {
         {/* Mobilde ekranın dibinde sabit bant, masaüstünde orta sütunun dibi.
             Seçim modunda ekleme düğmesinin yerini işlem çubuğu alıyor. */}
         {secim ? (
-          <div className="secim-cubugu" role="toolbar" aria-label="Seçili kayıtlar">
-            <div className="secim-cubugu-ust">
-              <strong aria-live="polite">
-                {secim.size > 0 ? `${secim.size} seçili` : 'Kayıtlara dokunarak seç'}
-              </strong>
-              <button
-                type="button"
-                className="secim-link"
-                onClick={tumunuSec}
-                disabled={gorunenKayitlar.length === 0}
-              >
-                {hepsiSecili ? 'Seçimi temizle' : 'Tümünü seç'}
-              </button>
-              <button type="button" className="secim-kapat" onClick={() => setSecim(null)} aria-label="Seçimi bitir">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
-                  <path d="M6 6l12 12M18 6L6 18" />
-                </svg>
-              </button>
-            </div>
-            {/* Karışık seçimde "Bir daha asla" yalnızca sıralamadakileri taşıyor — söylenmeli. */}
-            {sekme === 'siralama' && cubukKip === 'islemler' && aslaSecili.length > 0 && siraliSecili.length > 0 && (
-              <p className="secim-not">
-                {aslaSecili.length} tanesi zaten Bir daha asla&apos;da; yalnızca diğer {siraliSecili.length} taşınır.
-              </p>
-            )}
-            {cubukKip === 'kategori' ? (
-              <div className="secim-islemler">
-                <button
-                  type="button"
-                  className="secim-geri"
-                  onClick={() => setCubukKip('islemler')}
-                  aria-label="İşlemlere dön"
-                >
-                  {GeriIkon}
-                </button>
-                <div className="secim-kategoriler">
-                  {kategoriler.map(kat => (
-                    <button
-                      key={kat.id}
-                      type="button"
-                      className="secim-kat"
-                      style={{ '--kat': kat.renk } as React.CSSProperties}
-                      disabled={secim.size === 0 || atamaSuruyor}
-                      onClick={() => kategoriyeTasi(kat.id)}
-                    >
-                      <i aria-hidden="true" />{kat.ad}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    className="secim-kat is-kaldir"
-                    disabled={secim.size === 0 || atamaSuruyor}
-                    onClick={() => kategoriyeTasi(null)}
-                  >
-                    Kategoriden çıkar
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="secim-islemler">
-                {kategoriler.length > 0 && (
-                  <button
-                    type="button"
-                    className="secim-islem"
-                    disabled={secim.size === 0 || atamaSuruyor}
-                    onClick={() => setCubukKip('kategori')}
-                  >
-                    {KategoriIkon}<span>Kategori</span>
-                  </button>
-                )}
-                {sekme === 'sirada' ? (
-                  <button
-                    type="button"
-                    className="secim-islem is-vurgu"
-                    disabled={secim.size === 0 || atamaSuruyor}
-                    onClick={denedimToplu}
-                  >
-                    {DenedimIkon}<span>Denedim</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="secim-islem"
-                    disabled={secim.size === 0 || atamaSuruyor}
-                    onClick={bolumIslemi}
-                  >
-                    {sadeceAsla ? GeriAlIkon : AslaIkon}
-                    <span>{sadeceAsla ? 'Sıralamaya al' : 'Bir daha asla'}</span>
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="secim-islem is-tehlike"
-                  disabled={secim.size === 0 || atamaSuruyor}
-                  onClick={silToplu}
-                >
-                  {SilIkon}<span>Sil</span>
-                </button>
-              </div>
-            )}
-          </div>
+          <SecimCubugu s={secimModu} sekme={sekme} kategoriler={kategoriler} />
         ) : (
           <>
             {/* Masaüstünde yüzen düğme; telefonda alt menü (CSS hangisinin görüneceğini seçiyor). */}
@@ -880,8 +540,8 @@ export default function ListePage() {
         />
       )}
 
-      {isSaving || atamaSuruyor
-        ? <div className="toast">{atamaSuruyor ? 'Uygulanıyor…' : 'Sıralama kaydediliyor…'}</div>
+      {isSaving || secimModu.atamaSuruyor
+        ? <div className="toast">{secimModu.atamaSuruyor ? 'Uygulanıyor…' : 'Sıralama kaydediliyor…'}</div>
         : bildirim && <div className="toast" role="status">{bildirim}</div>}
 
       <ItemForm

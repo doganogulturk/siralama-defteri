@@ -10,6 +10,7 @@ import { sortSirali } from '../lib/sort';
 import { hataMetni } from '../lib/hata';
 import { titret } from '../lib/his';
 import { Item, Kategori, Liste, brandInitials } from '../types/item';
+import { uyar } from '../lib/pencere';
 
 /** Sıralama ekranındaki kuralla: denenmiş, "Bir daha asla"da olmayanlar sırayla 1'den. */
 function benimKayitlarim(items: Item[]): KiyasKayit[] {
@@ -146,7 +147,7 @@ export default function KiyasEkrani({ kod, kaynak, liste, items, kategoriler, on
       setBildirim(`${n} kayıt denenmemişlerine eklendi`);
       onDegisti();
     } catch (e: unknown) {
-      alert('Eklenemedi: ' + hataMetni(e));
+      void uyar('Eklenemedi: ' + hataMetni(e));
     } finally {
       setEkleniyor(false);
     }

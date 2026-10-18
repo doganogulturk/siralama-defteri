@@ -106,6 +106,9 @@ body {
   font-size: 15px;
   line-height: 1.5;
   font-feature-settings: "ss01", "cv11";
+  /* viewport-fit=cover: yatay telefonda içerik çentiğin altına girmesin; zemin yine kenara uzanıyor. */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
 input, select, textarea { font: inherit; color: inherit; }
@@ -1080,7 +1083,32 @@ a { color: var(--accent-ink); }
   animation: fade 0.2s var(--ease);
 }
 /* Pencere açıkken arkadaki sayfa kaymasın. */
-html:has(.sheet[open]) { overflow: hidden; }
+html:has(.sheet[open]), html:has(.onay[open]) { overflow: hidden; }
+
+/* Uyarı ve onay penceresi (`Pencereler.tsx`): tarayıcının alert/confirm'ünün yerine. Her ekranda
+   ortalanmış küçük kutu; açık bir formun üstünde de açılabiliyor. */
+.onay {
+  width: min(400px, calc(100vw - 32px));
+  max-width: none;
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-lift);
+  animation: pop 0.28s var(--spring);
+}
+.onay::backdrop {
+  background: oklch(0.15 0.01 60 / 0.38);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: fade 0.2s var(--ease);
+}
+.onay-kutu { display: flex; flex-direction: column; gap: 20px; padding: 24px 22px 20px; }
+.onay-metin { font-size: 1rem; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
+.onay-dugmeler { display: flex; gap: 10px; }
+.onay-dugmeler > * { flex: 1; min-height: 46px; }
 
 .form-screen {
   position: relative;
@@ -2502,7 +2530,7 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   margin: 0 auto;
   padding: 0 16px calc(48px + env(safe-area-inset-bottom));
 }
-.paylasim-bar { display: flex; align-items: center; padding: 16px 0 0; }
+.paylasim-bar { display: flex; align-items: center; gap: 12px; padding: 16px 0 0; }
 .paylasim-marka { text-decoration: none; border-radius: 10px; }
 .paylasim-bas { padding: 36px 0 18px; }
 .paylasim-sahip { font-size: 1rem; color: var(--mute); }

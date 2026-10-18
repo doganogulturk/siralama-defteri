@@ -4,7 +4,7 @@ Veri, kimlik ve sınırlar: Supabase şeması, RLS, giriş akışı ve kötüye 
 
 ## Veri
 
-Supabase projesi başka uygulamalarla paylaşıldığı için her şey uygulamanın kendi şemasında: `do_siralama_defteri`. Şemada `lists` / `categories` / `items` tabloları (RLS ile), ana ekranın özetlerini hazırlayan `liste_ozetleri` ve paylaşılan listeyi okuyan `paylasilan_liste` fonksiyonları var. Tanımın tamamı `supabase/schema.sql`; fotoğraf kovasının ayarları ve politikaları `supabase/storage.sql` (ondan sonra çalıştırılır).
+Supabase projesi başka uygulamalarla paylaşıldığı için her şey uygulamanın kendi şemasında: `do_siralama_defteri`. Şemada `lists` / `categories` / `items` tabloları (RLS ile), ana ekranın özetlerini hazırlayan `liste_ozetleri`, sıralama değişikliklerini tek transaction'da yazan `siralamayi_yaz` ve paylaşılan listeyi okuyan `paylasilan_liste` fonksiyonları var. Tanımın tamamı `supabase/schema.sql`; fotoğraf kovasının ayarları ve politikaları `supabase/storage.sql` (ondan sonra çalıştırılır).
 
 ## Kimlik
 
@@ -48,8 +48,8 @@ Kritik ayrıntılar:
   Örneğin bir içecek listesinde "Ekşi mi?" (Evet/Hayır) ya da "Satılan market" (Metin). Filtre şeridi, form ve detay paneli bu tanımdan üretiliyor.
 - **`items.asla`** — denenmiş ama sıralamada değil: "Bir daha asla" bölümünde. Sıralama ve bölüm `sira`'yı kendi içlerinde ayrı ayrı numaralıyor; ayrımı bu kolon yapıyor.
 - **`items.ozellikler`** — yukarıdaki alanların değerleri (`{"eksi": true, "market": "Migros"}`).
-- **`category_id` nullable, `on delete set null`** — kategori silinince kayıtlar kategorisiz kalır.
-- **RLS** — üç tabloda da açık; `lists` doğrudan `user_id` ile, diğer ikisi liste üzerinden.
+- **`category_id` nullable, bileşik yabancı anahtar** — `(category_id, list_id)` → `categories (id, list_id)`: kaydın kategorisi kendi listesinden olmak zorunda (RLS yalnızca `list_id`'ye bakıyor). `on delete set null (category_id)`: kategori silinince kayıt kategorisiz kalır, listesi değişmez. Kurulu veritabanında `not valid` eklendi; eski satırlar taranmadı.
+- **RLS** — üç tabloda da açık; `lists` doğrudan `user_id` ile, diğer ikisi liste üzerinden. Politikalar `auth.uid()`'yi `(select auth.uid())` olarak çağırıyor: değer satır başına değil sorgu başına bir kez hesaplanıyor.
 
 ### Şema dosyası
 

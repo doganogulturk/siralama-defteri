@@ -9,6 +9,8 @@
  * İstekler sıraya giriyor; ekranda bir seferde tek pencere (`components/Pencereler.tsx`).
  */
 
+import { messages } from './i18n';
+
 export interface PencereIstegi {
   tur: 'uyari' | 'onay';
   metin: string;
@@ -48,8 +50,8 @@ const ekle = (istek: Omit<PencereIstegi, 'coz'>) =>
 
 /** Bilgi ya da hata: tek düğmeli pencere. Kapanınca çözülüyor. */
 export const uyar = (metin: string): Promise<void> =>
-  ekle({ tur: 'uyari', metin, onay: 'Tamam', tehlikeli: false }).then(() => undefined);
+  ekle({ tur: 'uyari', metin, onay: messages().genel.tamam, tehlikeli: false }).then(() => undefined);
 
 /** Evet/hayır sorusu: onaylanırsa true, vazgeçilirse (Esc, zemin, Vazgeç) false. */
 export const onayla = (o: { metin: string; onay?: string; tehlikeli?: boolean }): Promise<boolean> =>
-  ekle({ tur: 'onay', metin: o.metin, onay: o.onay ?? 'Tamam', tehlikeli: o.tehlikeli ?? false });
+  ekle({ tur: 'onay', metin: o.metin, onay: o.onay ?? messages().genel.tamam, tehlikeli: o.tehlikeli ?? false });

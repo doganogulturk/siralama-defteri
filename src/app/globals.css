@@ -2218,6 +2218,26 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
 }
 .hesap-yasal a { color: var(--mute); text-decoration: none; }
 .hesap-yasal a:hover { color: var(--ink); text-decoration: underline; }
+
+/* Dil seçici: Türkçe / English. Giriş ekranının üst çubuğunda, Hesabım'da ve yasal sayfalarda. */
+.dil-secici {
+  display: inline-flex;
+  flex: none;
+  padding: 3px;
+  border-radius: var(--pill);
+  background: var(--tint);
+}
+.dil-secici button {
+  padding: 5px 11px;
+  border-radius: var(--pill);
+  color: var(--mute);
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: color var(--t) var(--ease), background var(--t) var(--ease);
+}
+.dil-secici button:hover { color: var(--ink); }
+.dil-secici button.is-on { background: var(--surface); box-shadow: var(--hair); color: var(--ink); }
+.hesap-dil { align-self: flex-start; }
 .account-text { display: none; flex-direction: column; min-width: 0; line-height: 1.2; }
 .account-text strong { font-size: 0.9rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -2840,8 +2860,18 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   line-height: 1.15;
 }
 .metin-tarih { margin-top: 8px; font-size: 0.82rem; color: var(--mute) !important; }
-.metin-bar { justify-content: space-between; }
-.metin-don { color: var(--accent-ink); font-size: 0.88rem; font-weight: 600; text-decoration: none; }
+.metin-bar { justify-content: space-between; gap: 12px; }
+.metin-dil { margin-left: auto; }
+.metin-ceviri {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: var(--r-sm);
+  background: var(--accent-wash);
+  font-size: 0.86rem;
+  color: var(--soft);
+}
+.metin-ceviri-don { color: var(--accent-ink); font-weight: 600; text-decoration: underline; }
+.metin-don { color: var(--accent-ink); font-size: 0.88rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
 .metin { padding-top: 8px; }
 .metin > p,
 .metin li,
@@ -3132,6 +3162,8 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   margin: 0 auto;
   padding: calc(14px + env(safe-area-inset-top)) 20px 0;
 }
+.tn-bar { gap: 10px; }
+.tn-dil { margin-left: auto; }
 .tn-oyna {
   padding: 8px 14px;
   border-radius: var(--pill);

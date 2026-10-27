@@ -7,14 +7,15 @@ import { benzersizSlug, slugify } from '../lib/slug';
 import { topluAyristir, topluKaydet, topluKayitSayisi, topluSorun } from '../lib/toplu';
 import { hataMetni } from '../lib/hata';
 import { SINIR } from '../lib/sinirlar';
-import { SABLONLAR, Sablon } from '../lib/sablonlar';
+import { sablonlar, Sablon } from '../lib/sablonlar';
 import { Kategori } from '../types/item';
 import TopluAlan from './TopluAlan';
 import Sheet from './Sheet';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import { uyar } from '../lib/pencere';
+import { dilEtiketi, messages } from '../lib/i18n';
 
-const trAnahtar = (s: string) => s.trim().toLocaleLowerCase('tr');
+const trAnahtar = (s: string) => s.trim().toLocaleLowerCase(dilEtiketi());
 
 /**
  * Eklenmiş kategori adlarına kutudaki metni katar. Metin virgülle ayrılmış birden
@@ -58,6 +59,8 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
   const [sablon, setSablon] = useState<string | null>(null);
 
   if (!isOpen) return null;
+  const m = messages();
+  const t = m.yeniListe;
 
   const sablonSec = (s: Sablon) => {
     setAd(s.ad);
@@ -115,7 +118,7 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
           : `/l/${olusan.slug}`,
       );
     } catch (err: unknown) {
-      void uyar('Liste oluşturulamadı: ' + hataMetni(err));
+      void uyar(t.olusturulamadi(hataMetni(err)));
       setKaydediliyor(false);
     }
   };
@@ -123,21 +126,21 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
   return (
     <Sheet onClose={onClose} className="form-screen-short">
       <header className="form-screen-header">
-        <button type="button" className="form-screen-back" onClick={onClose} aria-label="Kapat">
+        <button type="button" className="form-screen-back" onClick={onClose} aria-label={m.genel.kapat}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         </button>
-        <h2 className="form-screen-title">Yeni Liste</h2>
+        <h2 className="form-screen-title">{t.baslik}</h2>
         <span className="form-screen-header-spacer" />
       </header>
 
       <form onSubmit={handleSubmit} className="form-screen-body">
         <div className="field">
-          <span className="field-label">Hazır şablonla başla</span>
+          <span className="field-label">{t.sablonla}</span>
           <div className="sablonlar">
-            {SABLONLAR.map(s => (
+            {sablonlar().map(s => (
               <button
                 key={s.ad}
                 type="button"
@@ -152,11 +155,11 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
         </div>
 
         <label className="field">
-          <span className="field-label">Liste Adı *</span>
+          <span className="field-label">{t.listeAdi}</span>
           <input
             type="text"
             className="field-input"
-            placeholder="Kola, Döner, Türk Kahvesi…"
+            placeholder={t.listeAdiIpucu}
             value={ad}
             onChange={(e) => setAd(e.target.value)}
             maxLength={SINIR.listeAdi}
@@ -166,7 +169,7 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
         </label>
 
         <div className="field">
-          <span className="field-label">Kategoriler</span>
+          <span className="field-label">{t.kategoriler}</span>
           {/* Haplar ve giriş aynı kutuda: Enter ya da virgül adı hapa çeviriyor. */}
           <div className="yeni-kat">
             {kategoriAdlari.map((kategoriAdi, i) => (
@@ -176,7 +179,7 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
                 <button
                   type="button"
                   onClick={() => kategoriCikar(kategoriAdi)}
-                  aria-label={`${kategoriAdi} kategorisini çıkar`}
+                  aria-label={t.kategoriyiCikar(kategoriAdi)}
                 >
                   ×
                 </button>
@@ -185,7 +188,7 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
             <input
               type="text"
               className="yeni-kat-giris"
-              placeholder={kategoriAdlari.length > 0 ? 'Bir tane daha…' : 'Şekerli, Şekersiz…'}
+              placeholder={kategoriAdlari.length > 0 ? t.birDaha : t.kategoriIpucu}
               value={kategoriGiris}
               maxLength={SINIR.kategoriAdi}
               onChange={(e) => {
@@ -207,36 +210,36 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
                 }
               }}
               onBlur={() => { if (kategoriGiris.trim()) kategoriEkle(); }}
-              aria-label="Yeni kategori adı"
+              aria-label={t.yeniKategoriAdi}
             />
           </div>
-          <p className="field-hint">İsteğe bağlı. Enter ya da virgülle ekle; sonra liste ayarlarından da değiştirebilirsin.</p>
+          <p className="field-hint">{t.kategoriAciklama}</p>
         </div>
 
         {topluAcik ? (
           <TopluAlan deger={toplu} onChange={setToplu} bloklar={bloklar} autoFocus={isDesktop} sorun={topluEngel} />
         ) : (
           <button type="button" className="btn-quiet" onClick={() => setTopluAcik(true)}>
-            Kayıtları da şimdi yaz
+            {t.kayitlariYaz}
           </button>
         )}
 
         <p className="field-hint">
           {topluAdet > 0 && sablon
-            ? 'Şablondaki kayıtlar “Denenmemiş” sekmesine düşer; denedikçe sıralamana alırsın. İstemediklerini şimdi silebilirsin.'
+            ? t.sablonIpucu
             : topluAdet > 0
-            ? 'Kayıtlar denenmiş sayılır; sıralamayı sonra sürükleyerek düzeltirsin.'
+            ? t.topluIpucu
             : kategoriAdlari.length > 0
-              ? 'Ek alanları istersen liste ayarlarından eklersin.'
-              : 'Ek alanları bir sonraki adımda, liste ayarlarında tanımlayacaksın.'}
+              ? t.alanIpucu
+              : t.sonrakiAdimIpucu}
         </p>
 
         <div className="form-screen-actions">
-          <button type="button" className="btn-quiet" onClick={onClose}>Vazgeç</button>
+          <button type="button" className="btn-quiet" onClick={onClose}>{m.genel.vazgec}</button>
           <button type="submit" className="btn-primary" disabled={kaydediliyor || !!topluEngel}>
             {kaydediliyor
-              ? 'Oluşturuluyor…'
-              : topluAdet > 0 ? `Oluştur · ${topluAdet} kayıt` : 'Oluştur'}
+              ? t.olusturuluyor
+              : topluAdet > 0 ? t.olusturAdet(topluAdet) : t.olustur}
           </button>
         </div>
       </form>

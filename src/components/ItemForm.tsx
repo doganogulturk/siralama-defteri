@@ -13,6 +13,7 @@ import { useIsDesktop } from '../hooks/useIsDesktop';
 import { hataMetni } from '../lib/hata';
 import { SINIR } from '../lib/sinirlar';
 import { uyar } from '../lib/pencere';
+import { messages } from '../lib/i18n';
 
 /**
  * 'siralama' — denenmiş kayıt (varsayılan akış)
@@ -83,6 +84,8 @@ export default function ItemForm({
   onDelete,
 }: ItemFormProps) {
   const isDesktop = useIsDesktop();
+  const m = messages();
+  const f = m.form;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const adRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -206,14 +209,14 @@ export default function ItemForm({
       await onTopluSave(topluBloklar, !isIstek);
       onClose();
     } catch (err: unknown) {
-      void uyar('Kayıtlar eklenemedi: ' + hataMetni(err));
+      void uyar(f.eklenemedi(hataMetni(err)));
       setTopluKaydediliyor(false);
     }
   };
 
   const handleImageFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      void uyar('Lütfen geçerli bir resim dosyası seçin.');
+      void uyar(f.gecersizResim);
       return;
     }
     setUploading(true);
@@ -225,7 +228,7 @@ export default function ItemForm({
         void deleteFotograf(previousUrl);
       }
     } catch (err: unknown) {
-      void uyar('Fotoğraf yüklenirken hata oluştu: ' + hataMetni(err));
+      void uyar(f.fotoHatasi(hataMetni(err)));
     } finally {
       setUploading(false);
     }
@@ -241,26 +244,26 @@ export default function ItemForm({
     // Esc ve zemine dokunma da handleClose'dan geçiyor: yüklenip kaydedilmeyen fotoğraf silinsin.
     <Sheet onClose={handleClose}>
       <header className="form-screen-header">
-        <button type="button" className="form-screen-back" onClick={handleClose} aria-label="Kapat">
+        <button type="button" className="form-screen-back" onClick={handleClose} aria-label={m.genel.kapat}>
           {KapatIkon}
         </button>
         <h2 className="form-screen-title">
-          {isDonusum ? 'Denedim!' : editingItem ? 'Kaydı Düzenle' : isIstek ? 'Listeye Ekle' : `Kayıt Ekle · ${listeAdi}`}
+          {isDonusum ? f.denedim : editingItem ? f.duzenle : isIstek ? f.listeyeEkle : f.kayitEkle(listeAdi)}
         </h2>
         {editingItem && onDelete ? (
-          <button type="button" className="form-screen-delete" onClick={onDelete} aria-label="Sil">{SilIkon}</button>
+          <button type="button" className="form-screen-delete" onClick={onDelete} aria-label={m.genel.sil}>{SilIkon}</button>
         ) : <span className="form-screen-header-spacer" />}
       </header>
 
       {topluVar && (
-        <nav className="tabs" aria-label="Ekleme biçimi">
+        <nav className="tabs" aria-label={f.eklemeBicimi}>
           <button
             type="button"
             className={`tab${sekme === 'tek' ? ' is-on' : ''}`}
             aria-current={sekme === 'tek' ? 'true' : undefined}
             onClick={() => setSekme('tek')}
           >
-            Tek kayıt
+            {f.tekKayit}
           </button>
           <button
             type="button"
@@ -268,7 +271,7 @@ export default function ItemForm({
             aria-current={sekme === 'toplu' ? 'true' : undefined}
             onClick={() => setSekme('toplu')}
           >
-            Toplu
+            {f.toplu}
           </button>
         </nav>
       )}
@@ -285,20 +288,20 @@ export default function ItemForm({
 
           <p className="field-hint">
             {isIstek
-              ? 'Kayıtlar bekleyenlere düşer; denedikçe tek tek sıralamaya alırsın.'
-              : 'Kayıtlar yazdığın sırayla sıralamanın altına eklenir; yerlerini sonra sürükleyerek düzeltirsin.'}
+              ? f.topluIstekIpucu
+              : f.topluIpucu}
           </p>
 
           <div className="form-screen-actions">
-            <button type="button" className="btn-quiet" onClick={handleClose}>Vazgeç</button>
+            <button type="button" className="btn-quiet" onClick={handleClose}>{m.genel.vazgec}</button>
             <button
               type="submit"
               className="btn-primary"
               disabled={topluKaydediliyor || topluAdet === 0 || !!topluEngel}
             >
               {topluKaydediliyor
-                ? 'Ekleniyor…'
-                : topluAdet > 0 ? `${topluAdet} Kaydı Ekle` : 'Ekle'}
+                ? f.ekleniyor
+                : topluAdet > 0 ? f.adetEkle(topluAdet) : f.ekle}
             </button>
           </div>
         </form>
@@ -317,13 +320,13 @@ export default function ItemForm({
             >
               {uploading ? (
                 <div className="photo-drop-state">
-                  <span className="photo-drop-title">Yükleniyor…</span>
+                  <span className="photo-drop-title">{m.genel.yukleniyor}</span>
                 </div>
               ) : fotografUrl ? (
                 <>
                   <img src={fotografUrl} className="photo-drop-img" alt="" />
                   <div className="photo-drop-overlay">
-                    <span className="photo-drop-change">Değiştir</span>
+                    <span className="photo-drop-change">{f.degistir}</span>
                     <button
                       type="button"
                       className="photo-drop-remove"
@@ -335,25 +338,25 @@ export default function ItemForm({
                         setFotografUrl('');
                       }}
                     >
-                      Kaldır
+                      {f.kaldir}
                     </button>
                   </div>
                 </>
               ) : (
                 <div className="photo-drop-placeholder">
                   <span className="photo-drop-icon">{KameraIkon}</span>
-                  <span className="photo-drop-title">Fotoğraf</span>
+                  <span className="photo-drop-title">{f.fotograf}</span>
                 </div>
               )}
             </div>
             <div className="form-kimlik-alanlar">
               <label className="field">
-                <span className="field-label">Ad *</span>
+                <span className="field-label">{f.ad}</span>
                 <input
                   ref={adRef}
                   type="text"
                   className="field-input"
-                  placeholder="Marka ya da isim"
+                  placeholder={f.adIpucu}
                   value={ad}
                   onChange={(e) => setAd(e.target.value)}
                   maxLength={SINIR.kayitAdi}
@@ -361,11 +364,11 @@ export default function ItemForm({
                 />
               </label>
               <label className="field">
-                <span className="field-label">Çeşit / Alt Ad</span>
+                <span className="field-label">{f.altAd}</span>
                 <input
                   type="text"
                   className="field-input"
-                  placeholder="Varsa çeşidi"
+                  placeholder={f.altAdIpucu}
                   value={altAd}
                   onChange={(e) => setAltAd(e.target.value)}
                   maxLength={SINIR.altAd}
@@ -384,7 +387,7 @@ export default function ItemForm({
 
           {kategoriler.length > 0 && (
             <div className="field">
-              <span className="field-label">Kategori</span>
+              <span className="field-label">{f.kategori}</span>
               <div className="kategori-picker">
                 {kategoriler.map((kat) => (
                   <button
@@ -417,11 +420,11 @@ export default function ItemForm({
           ))}
 
           <label className="field">
-            <span className="field-label">Not</span>
+            <span className="field-label">{f.not}</span>
             <textarea
               className="field-input field-textarea"
               rows={2}
-              placeholder={isIstek ? 'Nerede gördüm, kim önerdi…' : 'Tadı, dokusu, aklında kalanlar…'}
+              placeholder={isIstek ? f.notIstekIpucu : f.notIpucu}
               value={notlar}
               onChange={(e) => setNotlar(e.target.value)}
               maxLength={SINIR.not}
@@ -436,7 +439,7 @@ export default function ItemForm({
                   <span className="field-label">{alan.etiket}</span>
                   {isIstek && (
                     <p className="field-hint">
-                      Biliyorsan şimdi işaretle; denedikten sonra da değiştirebilirsin.
+                      {f.bayrakIstekIpucu}
                     </p>
                   )}
                 </div>
@@ -448,7 +451,7 @@ export default function ItemForm({
                     onClick={() => setOzellik(alan.anahtar, true)}
                     aria-pressed={acik}
                   >
-                    Evet
+                    {f.evet}
                   </button>
                   <button
                     type="button"
@@ -456,7 +459,7 @@ export default function ItemForm({
                     onClick={() => setOzellik(alan.anahtar, false)}
                     aria-pressed={!acik}
                   >
-                    Hayır
+                    {f.hayir}
                   </button>
                 </div>
               </div>
@@ -465,29 +468,29 @@ export default function ItemForm({
 
           {showPosition && (
             <div className="field">
-              <span className="field-label">Listeye Ekleneceği Yer</span>
-              <p className="field-hint">Sonrasında listeden sürükleyerek sırasını değiştirebilirsin.</p>
+              <span className="field-label">{f.yer}</span>
+              <p className="field-hint">{f.yerIpucu}</p>
               <div className="position-toggle">
                 <button
                   type="button"
                   className={positionMode === 'top' ? 'selected' : ''}
                   onClick={() => setPositionMode('top')}
                 >
-                  En Üste
+                  {f.enUste}
                 </button>
                 <button
                   type="button"
                   className={positionMode === 'bottom' ? 'selected' : ''}
                   onClick={() => setPositionMode('bottom')}
                 >
-                  En Alta
+                  {f.enAlta}
                 </button>
                 <button
                   type="button"
                   className={positionMode === 'after' ? 'selected' : ''}
                   onClick={() => setPositionMode('after')}
                 >
-                  Şunun Altına
+                  {f.sununAltina}
                 </button>
               </div>
 
@@ -496,7 +499,7 @@ export default function ItemForm({
                   className="field-select field-fade-in"
                   value={afterItemId}
                   onChange={(e) => setAfterItemId(e.target.value)}
-                  aria-label="Hangi kaydın altına eklensin"
+                  aria-label={f.hangiKaydinAltina}
                 >
                   {existingItems.map((item, idx) => (
                     <option key={item.id} value={item.id}>
@@ -509,15 +512,15 @@ export default function ItemForm({
           )}
 
           <div className="form-screen-actions">
-            <button type="button" className="btn-quiet" onClick={handleClose}>Vazgeç</button>
+            <button type="button" className="btn-quiet" onClick={handleClose}>{m.genel.vazgec}</button>
             <button type="submit" className="btn-primary" disabled={uploading || kaydediliyor}>
               {uploading
-                ? 'Yükleniyor…'
-                : kaydediliyor ? 'Kaydediliyor…'
-                : isDonusum ? 'Sıralamaya Ekle'
-                : editingItem ? 'Güncelle'
-                : isIstek ? 'Listeme Ekle'
-                : 'Kaydet'}
+                ? m.genel.yukleniyor
+                : kaydediliyor ? m.genel.kaydediliyor
+                : isDonusum ? f.siralamayaEkle
+                : editingItem ? f.guncelle
+                : isIstek ? f.listemeEkle
+                : m.genel.kaydet}
             </button>
           </div>
         </form>

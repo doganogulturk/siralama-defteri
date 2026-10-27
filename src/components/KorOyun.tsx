@@ -2,7 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { KorListe, sonucYaz } from '../lib/kor';
+import { KorListe, korListesi, sonucYaz } from '../lib/kor';
+import { DIL_PARAMETRE, messages, simdikiDil } from '../lib/i18n';
 import { kiyasAnahtari, kiyasla, uyumEtiketi } from '../lib/kiyas';
 import { titret } from '../lib/his';
 import { useAuth } from '../hooks/useAuth';
@@ -32,7 +33,9 @@ const kiyasKayitlari = (liste: KorListe, sira: number[]) =>
  * Karıştırma "Başla"da yapılıyor, ilk çizimde değil: sayfa sunucuda da çiziliyor,
  * rastgele bir sıra iki tarafta farklı çıkardı.
  */
-export default function KorOyun({ liste, arkadas }: { liste: KorListe; arkadas: number[] | null }) {
+export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: number[] | null }) {
+  const liste = korListesi(slug)!;
+  const t = messages().kor;
   const n = liste.kayitlar.length;
   const [asama, setAsama] = useState<Asama>('giris');
   const [gelis, setGelis] = useState<number[]>([]);
@@ -77,7 +80,7 @@ export default function KorOyun({ liste, arkadas }: { liste: KorListe; arkadas: 
   return (
     <div className="kor" style={{ '--kor': liste.renk } as React.CSSProperties}>
       <header className="kor-bar">
-        <Link href="/kor" className="mobile-brand-back" aria-label="Listeler">
+        <Link href="/kor" className="mobile-brand-back" aria-label={t.listeler}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 5l-7 7 7 7" />
@@ -85,7 +88,7 @@ export default function KorOyun({ liste, arkadas }: { liste: KorListe; arkadas: 
         </Link>
         {/* Girişte liste adı ortada büyük; başlıkta tekrarlanmasın. */}
         <span className="kor-bar-ad">
-          <em>Kör Sıralama</em>
+          <em>{t.ad}</em>
           {asama !== 'giris' && <strong>{liste.simge} {liste.ad}</strong>}
         </span>
         <span className="kor-bar-sayac" aria-live="polite">
@@ -102,13 +105,13 @@ export default function KorOyun({ liste, arkadas }: { liste: KorListe; arkadas: 
           <div className="kor-sahne">
             {/* Anahtar her adımda değişiyor: kart yeniden doğup giriş animasyonunu oynatıyor. */}
             <div key={adim} className={`kor-kart${kilit ? ' is-gidiyor' : ''}`}>
-              <span className="kor-kart-no">{adim + 1}. kayıt</span>
+              <span className="kor-kart-no">{t.kacinciKayit(adim + 1)}</span>
               <strong>{liste.kayitlar[gelis[adim]]}</strong>
             </div>
-            <p className="kor-soru">Kaçıncı sıraya koyuyorsun?</p>
+            <p className="kor-soru">{t.soru}</p>
           </div>
 
-          <ol className="kor-yuvalar" aria-label="Sıralama">
+          <ol className="kor-yuvalar" aria-label={t.siralama}>
             {yuvalar.map((k, i) => (
               <li key={i}>
                 <button
@@ -116,7 +119,7 @@ export default function KorOyun({ liste, arkadas }: { liste: KorListe; arkadas: 
                   className={`kor-yuva${k !== null ? ' is-dolu' : ''}${yeniYuva === i ? ' is-yeni' : ''}${i === 0 ? ' is-bir' : ''}`}
                   onClick={() => yerlestir(i)}
                   disabled={k !== null || kilit}
-                  aria-label={k !== null ? `${i + 1}. ${liste.kayitlar[k]}` : `${i + 1}. sıraya koy`}
+                  aria-label={k !== null ? `${i + 1}. ${liste.kayitlar[k]}` : t.siraya(i + 1)}
                 >
                   <i>{i + 1}</i>
                   <span>{k !== null ? liste.kayitlar[k] : ''}</span>
@@ -137,21 +140,22 @@ export default function KorOyun({ liste, arkadas }: { liste: KorListe; arkadas: 
 function KorGiris({ liste, arkadas, onBasla }: {
   liste: KorListe; arkadas: number[] | null; onBasla: () => void;
 }) {
+  const t = messages().kor;
   return (
     <main className="kor-giris">
       <span className="kor-giris-simge" aria-hidden="true">{liste.simge}</span>
       <h1 className="kor-giris-baslik">{liste.ad}</h1>
       {arkadas && (
         <p className="kor-arkadas">
-          Bir arkadaşın bu listeyi sıraladı. Sen de oyna, ne kadar uyuştuğunuzu gör.
+          {t.arkadas}
         </p>
       )}
       <ul className="kor-kurallar">
-        <li><b>1</b><span>On kayıt birer birer, karışık sırayla gelecek.</span></li>
-        <li><b>2</b><span>Her birini hemen bir sıraya koy. Sonradan <strong>değiştiremezsin</strong>.</span></li>
-        <li><b>3</b><span>Sıradakinin ne olduğunu bilmeden karar ver.</span></li>
+        <li><b>1</b><span>{t.kural1}</span></li>
+        <li><b>2</b><span>{t.kural2[0]}<strong>{t.kural2[1]}</strong>{t.kural2[2]}</span></li>
+        <li><b>3</b><span>{t.kural3}</span></li>
       </ul>
-      <button type="button" className="btn-primary kor-basla" onClick={onBasla}>Başla</button>
+      <button type="button" className="btn-primary kor-basla" onClick={onBasla}>{t.basla}</button>
     </main>
   );
 }
@@ -160,6 +164,10 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
   liste: KorListe; sira: number[]; arkadas: number[] | null; onTekrar: () => void;
 }) {
   const s = sonucYaz(sira);
+  const t = messages().kor;
+  /** Paylaşılan bağlantı ve görsel paylaşanın dilinde. */
+  const dil = simdikiDil();
+  const dilEki = dil === 'tr' ? '' : `&${DIL_PARAMETRE}=${dil}`;
   const { user } = useAuth();
   const [gorsel, setGorsel] = useState<File | null>(null);
   const [bildirim, setBildirim] = useState<string | null>(null);
@@ -174,12 +182,12 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
   // hemen ardından açıyor, dokunuştan sonra indirmeye başlamak menüyü engellerdi.
   useEffect(() => {
     let iptal = false;
-    fetch(`/kor/${liste.slug}/gorsel?s=${s}`)
+    fetch(`/kor/${liste.slug}/gorsel?s=${s}&${DIL_PARAMETRE}=${dil}`)
       .then(y => (y.ok ? y.blob() : Promise.reject(new Error(String(y.status)))))
-      .then(b => { if (!iptal) setGorsel(new File([b], `kor-siralama-${liste.slug}.png`, { type: 'image/png' })); })
+      .then(b => { if (!iptal) setGorsel(new File([b], `${t.dosyaAdi(liste.slug)}.png`, { type: 'image/png' })); })
       .catch(() => { /* görsel yoksa yalnızca bağlantı paylaşılır */ });
     return () => { iptal = true; };
-  }, [liste.slug, s]);
+  }, [liste.slug, s, dil, t]);
 
   useEffect(() => {
     if (!bildirim) return;
@@ -188,21 +196,19 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
   }, [bildirim]);
 
   const paylas = async () => {
-    const url = `${window.location.origin}/kor/${liste.slug}?s=${s}`;
-    const metin = uyum !== null
-      ? `${liste.ad} kör sıralamasında arkadaşımla %${uyum} uyuştuk. Sen de oyna:`
-      : `${liste.ad} kör sıralamamı yaptım. Bakalım sen nasıl sıralayacaksın:`;
+    const url = `${window.location.origin}/kor/${liste.slug}?s=${s}${dilEki}`;
+    const metin = uyum !== null ? t.paylasimUyum(liste.ad, uyum) : t.paylasimDuz(liste.ad);
     try {
       if (gorsel && navigator.canShare?.({ files: [gorsel] })) {
         await navigator.share({ files: [gorsel], text: `${metin} ${url}` });
         return;
       }
       if (navigator.share) {
-        await navigator.share({ title: `Kör Sıralama: ${liste.ad}`, text: metin, url });
+        await navigator.share({ title: t.baslik(liste.ad), text: metin, url });
         return;
       }
       await navigator.clipboard.writeText(`${metin} ${url}`);
-      setBildirim('Bağlantı kopyalandı');
+      setBildirim(t.kopyalandi);
     } catch { /* menü kapatıldı */ }
   };
 
@@ -218,19 +224,19 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
 
   return (
     <main className="kor-sonuc">
-      <h1 className="kor-sonuc-baslik">Senin sıralaman</h1>
+      <h1 className="kor-sonuc-baslik">{t.seninSiralaman}</h1>
 
       {uyum !== null && (
         <div className="kor-uyum">
           <strong>%{uyum}</strong>
           <span>
             <b>{uyumEtiketi(uyum)}</b>
-            Her 100 ikilinin {uyum} tanesinde ikiniz de aynı olanı öne koydunuz.
+            {t.uyumMetni(uyum)}
           </span>
         </div>
       )}
 
-      {arkadas && <p className="kor-lejant">Sağdaki sayılar arkadaşının sırası.</p>}
+      {arkadas && <p className="kor-lejant">{t.lejant}</p>}
       <ol className="kor-liste">
         {sira.map((k, i) => {
           const onun = arkadas ? arkadas.indexOf(k) + 1 : null;
@@ -238,30 +244,30 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
             <li key={k} className={i === 0 ? 'is-bir' : ''} style={{ '--i': i } as React.CSSProperties}>
               <i>{i + 1}</i>
               <span>{liste.kayitlar[k]}</span>
-              {onun !== null && <em title="Arkadaşının sırası">{onun}.</em>}
+              {onun !== null && <em title={t.arkadasinSirasi}>{onun}.</em>}
             </li>
           );
         })}
       </ol>
 
       <div className="kor-islemler">
-        <button type="button" className="btn-primary" onClick={paylas}>Paylaş</button>
-        {gorsel && <button type="button" className="btn-quiet kor-indir" onClick={indir}>Görseli indir</button>}
-        <button type="button" className="btn-quiet" onClick={onTekrar}>Tekrar oyna</button>
-        <Link href="/kor" className="btn-quiet">Başka liste</Link>
+        <button type="button" className="btn-primary" onClick={paylas}>{t.paylas}</button>
+        {gorsel && <button type="button" className="btn-quiet kor-indir" onClick={indir}>{t.gorseliIndir}</button>}
+        <button type="button" className="btn-quiet" onClick={onTekrar}>{t.tekrar}</button>
+        <Link href="/kor" className="btn-quiet">{t.baskaListe}</Link>
       </div>
 
       {/* Oturum açıksa kayıt çağrısı yerine listelere dönüş. */}
       <Link href="/" className="kor-davet">
         {user ? (
           <>
-            <strong>Listelerime dön</strong>
-            <span>Kendi sıralamalarına geri dön →</span>
+            <strong>{t.listelerimeDon}</strong>
+            <span>{t.listelerimeDonAlt}</span>
           </>
         ) : (
           <>
-            <strong>Kendi listelerini kur</strong>
-            <span>Denediklerini fotoğraflarıyla sırala, arkadaşlarınla karşılaştır →</span>
+            <strong>{t.listeKur}</strong>
+            <span>{t.listeKurAlt}</span>
           </>
         )}
       </Link>

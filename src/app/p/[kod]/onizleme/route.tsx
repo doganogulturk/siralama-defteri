@@ -1,18 +1,22 @@
 import { ImageResponse } from 'next/og';
-import { brandInitials } from '../../../types/item';
-import { PaylasilanKayit, tamlayan } from '../../../lib/paylasim';
-import { paylasilanListe } from '../../../lib/paylasim-sunucu';
-import { RENK, fotoVerisi, yaziTipleri } from '../../../lib/gorsel-sunucu';
+import { brandInitials } from '../../../../types/item';
+import { PaylasilanKayit, sahibinSiralamasi } from '../../../../lib/paylasim';
+import { DIL_PARAMETRE, sozluk } from '../../../../lib/i18n';
+import { baglantiDili } from '../../../../lib/i18n/sunucu';
+import { paylasilanListe } from '../../../../lib/paylasim-sunucu';
+import { RENK, fotoVerisi, yaziTipleri } from '../../../../lib/gorsel-sunucu';
 
 /*
  * WhatsApp önizleme kartının görseli: sahibin adı, listenin adı ve fotoğraflarıyla
  * ilk üç. Uygulamanın açık temasından sabit renkler — görsel temayı izleyemez.
+ *
+ * `opengraph-image` dosyası değil route: kart paylaşanın dilinde çiziliyor ve dil
+ * bağlantıda (`?l=en`); Next'in görsel dosyaları adresin sorgu kısmını okuyamıyor.
+ * Paylaşım sayfası bu adresi metadata'sına kendisi yazıyor.
  */
 
 export const dynamic = 'force-dynamic';
-export const alt = 'Sıralamanın ilk üçü';
-export const size = { width: 1200, height: 630 };
-export const contentType = 'image/png';
+const size = { width: 1200, height: 630 };
 
 function Basamak({ kayit, sira, foto }: { kayit: PaylasilanKayit; sira: number; foto: string | null }) {
   const sampiyon = sira === 1;
@@ -42,7 +46,7 @@ function Basamak({ kayit, sira, foto }: { kayit: PaylasilanKayit; sira: number; 
         {sira}
       </div>
       {foto ? (
-        // eslint-disable-next-line jsx-a11y/alt-text
+        // eslint-disable-next-line jsx-a11y/alt-text, @next/next/no-img-element
         <img src={foto} width={92} height={92} style={{ borderRadius: 16, objectFit: 'cover' }} />
       ) : (
         <div
@@ -83,13 +87,15 @@ function Basamak({ kayit, sira, foto }: { kayit: PaylasilanKayit; sira: number; 
   );
 }
 
-export default async function Gorsel({ params }: { params: Promise<{ kod: string }> }) {
+export async function GET(istek: Request, { params }: { params: Promise<{ kod: string }> }) {
   const { kod } = await params;
+  const dil = baglantiDili(new URL(istek.url).searchParams.get(DIL_PARAMETRE));
+  const t = sozluk(dil);
   const [liste, fonts] = await Promise.all([paylasilanListe(kod), yaziTipleri()]);
 
   const ilkUc = liste ? liste.kayitlar.filter(k => !k.asla).slice(0, 3) : [];
   const fotolar = await Promise.all(ilkUc.map(k => fotoVerisi(k.fotograf_url)));
-  const sahip = liste?.sahip ? `${tamlayan(liste.sahip)} sıralaması` : 'Bir sıralama';
+  const sahip = sahibinSiralamasi(liste?.sahip ?? null, dil);
 
   return new ImageResponse(
     (
@@ -125,11 +131,11 @@ export default async function Gorsel({ params }: { params: Promise<{ kod: string
               <div style={{ width: 23, height: 7, borderRadius: 4, background: RENK.zemin }} />
               <div style={{ width: 14, height: 7, borderRadius: 4, background: RENK.zemin }} />
             </div>
-            <div style={{ fontSize: 28, color: RENK.murekkep }}>Sıralama Defteri</div>
+            <div style={{ fontSize: 28, color: RENK.murekkep }}>{t.marka}</div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ fontSize: 30, color: RENK.soluk }}>{liste ? sahip : 'Sıralama Defteri'}</div>
+            <div style={{ fontSize: 30, color: RENK.soluk }}>{liste ? sahip : t.marka}</div>
             <div
               style={{
                 fontFamily: 'Instrument Serif',
@@ -138,7 +144,7 @@ export default async function Gorsel({ params }: { params: Promise<{ kod: string
                 letterSpacing: -1,
               }}
             >
-              {liste ? liste.ad : 'Liste bulunamadı'}
+              {liste ? liste.ad : t.paylasimSayfasi.bulunamadi}
             </div>
           </div>
         </div>
@@ -148,7 +154,7 @@ export default async function Gorsel({ params }: { params: Promise<{ kod: string
           {ilkUc.length > 0 ? (
             ilkUc.map((k, i) => <Basamak key={k.id} kayit={k} sira={i + 1} foto={fotolar[i]} />)
           ) : (
-            <div style={{ display: 'flex', fontSize: 36, color: RENK.soluk }}>Henüz sıralama yok.</div>
+            <div style={{ display: 'flex', fontSize: 36, color: RENK.soluk }}>{t.paylasimSayfasi.siralamaYok}</div>
           )}
         </div>
       </div>

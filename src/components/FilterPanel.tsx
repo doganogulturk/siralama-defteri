@@ -3,6 +3,7 @@
 import React from 'react';
 import { AlanTanimi, Kategori, alanKisa, filtreAlanlari } from '../types/item';
 import { BayrakDurumu, Filtre, KATEGORISIZ, bayrakDurumu } from '../lib/filtre';
+import { messages } from '../lib/i18n';
 
 interface FilterPanelProps {
   /** Panel iki kez render ediliyor (mobil şerit + masaüstü şeridi); radio
@@ -24,9 +25,10 @@ const DURUMLAR: BayrakDurumu[] = ['hepsi', 'evet', 'hayir'];
 
 const durumEtiketi = (durum: BayrakDurumu, alan: AlanTanimi, kisaMod: boolean): string => {
   const ad = alanKisa(alan);
-  if (durum === 'hepsi') return kisaMod ? 'Tümü' : 'Tüm Kayıtlar';
-  if (durum === 'evet') return kisaMod ? ad : `${ad} Olanlar`;
-  return kisaMod ? `${ad} değil` : `${ad} Olmayanlar`;
+  const t = messages().filtre;
+  if (durum === 'hepsi') return kisaMod ? t.tumu : t.tumKayitlar;
+  if (durum === 'evet') return kisaMod ? ad : t.olanlar(ad);
+  return kisaMod ? t.degil(ad) : t.olmayanlar(ad);
 };
 
 export default function FilterPanel({
@@ -94,14 +96,14 @@ export default function FilterPanel({
            filtreyi temizler. Dikey düzen çoklu seçim (checkbox) olarak kalıyor. */
         <fieldset className="filter-group">
           <legend className="filter-legend">
-            Kategoriler
+            {messages().filtre.kategoriler}
             {filtre.kategoriler.size > 0 && (
               <button
                 type="button"
                 className="filter-clear"
                 onClick={() => onChange({ ...filtre, kategoriler: new Set() })}
               >
-                Temizle
+                {messages().filtre.temizle}
               </button>
             )}
           </legend>
@@ -114,7 +116,7 @@ export default function FilterPanel({
                 onClick={() => onChange({ ...filtre, kategoriler: new Set() })}
               >
                 <span className="opt-mark" aria-hidden="true" />
-                <span className="opt-label">Tümü</span>
+                <span className="opt-label">{messages().filtre.tumu}</span>
               </button>
             )}
             {/* Kalan atama işini gösteriyor: sonradan açılan kategorilere dağıtılmamış kayıtlar.
@@ -127,7 +129,7 @@ export default function FilterPanel({
                 onClick={() => onChange({ ...filtre, kategoriler: new Set([KATEGORISIZ]) })}
               >
                 <span className="opt-mark" aria-hidden="true" />
-                <span className="opt-label">Kategorisiz</span>
+                <span className="opt-label">{messages().filtre.kategorisiz}</span>
                 <span className="opt-count">{kategorisizAdet}</span>
               </button>
             )}

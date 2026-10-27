@@ -3,6 +3,7 @@ import { Geist, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import Analitik from "../components/Analitik";
 import Pencereler from "../components/Pencereler";
+import DilKoku from "../components/DilKoku";
 
 /*
  * Yazı tipleri derleme anında indirilip uygulamayla birlikte sunuluyor: tarayıcı
@@ -64,8 +65,10 @@ export default function RootLayout({
   return (
     <html lang="tr" className={`${geist.variable} ${instrumentSerif.variable}`}>
       <body>
-        {children}
-        <Pencereler />
+        <DilKoku>
+          {children}
+          <Pencereler />
+        </DilKoku>
         <Analitik />
       </body>
     </html>

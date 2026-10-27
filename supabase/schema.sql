@@ -359,6 +359,31 @@ $$;
 revoke all on function do_siralama_defteri.paylasilan_liste(text) from public;
 grant execute on function do_siralama_defteri.paylasilan_liste(text) to anon, authenticated;
 
+-- Hesap silme: App Store ve Google Play, hesabın uygulamanın içinden silinebilmesini şart koşuyor.
+-- Yalnızca oturumdaki kullanıcı kendi hesabını silebilir. auth.users satırı silinince listeler, kategoriler ve
+-- kayıtlar "on delete cascade" ile gidiyor; oturumları Supabase Auth'ta kapanıyor. Fotoğraflar burada
+-- silinemiyor (Supabase kova tablolarına doğrudan silmeyi kapatıyor): istemci önce onları Storage API'yle
+-- siliyor (src/lib/items.ts → hesabiSil), sonra bunu çağırıyor.
+create or replace function do_siralama_defteri.hesabimi_sil()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_kullanici uuid := auth.uid();
+begin
+  if v_kullanici is null then
+    raise exception 'Hesabı silmek için giriş gerekir.';
+  end if;
+
+  delete from auth.users where id = v_kullanici;
+end;
+$$;
+
+revoke all on function do_siralama_defteri.hesabimi_sil() from public, anon;
+grant execute on function do_siralama_defteri.hesabimi_sil() to authenticated;
+
 -- ── Sunucu tarafı ───────────────────────────────────────────────────────────────────────────
 
 -- service_role RLS'ye takılmaz ama tablo yetkisine yine de ihtiyaç duyar (Dashboard, betikler).

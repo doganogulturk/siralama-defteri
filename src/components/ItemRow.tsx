@@ -5,6 +5,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { AlanTanimi, Item, altBilgi, brandInitials, rozetler } from '../types/item';
+import { messages } from '../lib/i18n';
 
 /** Sıralama ile "Bir daha asla" bölümünü ayıran çizginin sıralanabilir listedeki kimliği. */
 export const ASLA_SINIRI = 'asla-siniri';
@@ -76,7 +77,7 @@ function RowShell({
       {draggable && (
         <span
           className="row-grip"
-          aria-label="Sürükleyerek sırala"
+          aria-label={messages().satir.surukle}
           onClick={(e) => e.stopPropagation()}
           {...handleProps}
         >
@@ -92,7 +93,7 @@ function RowShell({
       {taclandi && <span className="row-tac">{TacIkon}</span>}
 
       {asla ? (
-        <span className="row-rank is-asla" aria-label="Bir daha asla">{AslaIkon}</span>
+        <span className="row-rank is-asla" aria-label={messages().satir.birDahaAsla}>{AslaIkon}</span>
       ) : (
         <span className={`row-rank${isPodium ? ' is-podium' : ''}`} data-rank={rank}>
           {rank}
@@ -127,7 +128,7 @@ function RowShell({
 function AslaSiniriIcerik({ adet }: { adet: number }) {
   return (
     <>
-      <span className="asla-siniri-ad">Bir daha asla</span>
+      <span className="asla-siniri-ad">{messages().satir.birDahaAsla}</span>
       {adet > 0 && <span className="asla-siniri-sayi">{adet}</span>}
     </>
   );

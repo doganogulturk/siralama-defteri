@@ -1,9 +1,14 @@
+import { simdikiDil, type Dil } from './i18n';
+
 /**
  * Yeni liste formundaki hazır şablonlar. Bir şablon formu doldurur: liste adı,
  * kategoriler ve toplu giriş metni (`lib/toplu.ts` biçimi: "Kategori:" başlığı,
  * "Ad, çeşit" satırları). Kayıtlar "Denenmemiş"e düşüyor: kullanıcı onları henüz
  * denememiş olabilir, denedikçe sıralamaya alır. Form doldurulduktan sonra her şey
  * değiştirilebilir — şablon yalnızca başlangıç.
+ *
+ * Her dilin kendi metni var: kategori adları toplu metnin başlıklarında da geçtiği
+ * için ikisi birlikte çevriliyor. Marka adları iki dilde aynı.
  */
 export interface Sablon {
   ad: string;
@@ -13,12 +18,15 @@ export interface Sablon {
   metin: string;
 }
 
-export const SABLONLAR: Sablon[] = [
+type SablonMetni = Omit<Sablon, 'simge'>;
+
+const SABLON_VERISI: ({ simge: string } & Record<Dil, SablonMetni>)[] = [
   {
-    ad: 'Kola',
     simge: '🥤',
-    kategoriler: ['Şekerli', 'Şekersiz'],
-    metin: `Şekerli:
+    tr: {
+      ad: 'Kola',
+      kategoriler: ['Şekerli', 'Şekersiz'],
+      metin: `Şekerli:
 Coca-Cola
 Pepsi
 Cola Turka
@@ -27,33 +35,71 @@ Cola Turka
 Coca-Cola, Zero Sugar
 Coca-Cola, Light
 Pepsi, Max`,
+    },
+    en: {
+      ad: 'Cola',
+      kategoriler: ['Regular', 'Sugar-free'],
+      metin: `Regular:
+Coca-Cola
+Pepsi
+Cola Turka
+
+Sugar-free:
+Coca-Cola, Zero Sugar
+Coca-Cola, Light
+Pepsi, Max`,
+    },
   },
   {
-    ad: 'Ayran',
     simge: '🥛',
-    kategoriler: [],
-    metin: `Sütaş
+    tr: {
+      ad: 'Ayran',
+      kategoriler: [],
+      metin: `Sütaş
 Pınar
 Eker
 Torku
 Yörükoğlu
 Tikveşli`,
+    },
+    en: {
+      ad: 'Ayran',
+      kategoriler: [],
+      metin: `Sütaş
+Pınar
+Eker
+Torku
+Yörükoğlu
+Tikveşli`,
+    },
   },
   {
-    ad: 'Türk Kahvesi',
     simge: '☕',
-    kategoriler: [],
-    metin: `Kurukahveci Mehmet Efendi
+    tr: {
+      ad: 'Türk Kahvesi',
+      kategoriler: [],
+      metin: `Kurukahveci Mehmet Efendi
 Kahve Dünyası
 Selamlique
 Tchibo
 Osmanlı Kahvecisi`,
+    },
+    en: {
+      ad: 'Turkish Coffee',
+      kategoriler: [],
+      metin: `Kurukahveci Mehmet Efendi
+Kahve Dünyası
+Selamlique
+Tchibo
+Osmanlı Kahvecisi`,
+    },
   },
   {
-    ad: 'Cips',
     simge: '🥔',
-    kategoriler: ['Patates', 'Mısır'],
-    metin: `Patates:
+    tr: {
+      ad: 'Cips',
+      kategoriler: ['Patates', 'Mısır'],
+      metin: `Patates:
 Lay's, Klasik
 Ruffles, Originals
 Pringles, Original
@@ -61,12 +107,26 @@ Pringles, Original
 Mısır:
 Doritos, Nacho
 Cheetos`,
+    },
+    en: {
+      ad: 'Crisps',
+      kategoriler: ['Potato', 'Corn'],
+      metin: `Potato:
+Lay's, Classic
+Ruffles, Originals
+Pringles, Original
+
+Corn:
+Doritos, Nacho
+Cheetos`,
+    },
   },
   {
-    ad: 'Çikolata',
     simge: '🍫',
-    kategoriler: ['Sütlü', 'Bitter'],
-    metin: `Sütlü:
+    tr: {
+      ad: 'Çikolata',
+      kategoriler: ['Sütlü', 'Bitter'],
+      metin: `Sütlü:
 Milka
 Ülker
 Nestlé
@@ -75,12 +135,27 @@ Torku
 Bitter:
 Ülker, Bitter
 Lindt, Excellence`,
+    },
+    en: {
+      ad: 'Chocolate',
+      kategoriler: ['Milk', 'Dark'],
+      metin: `Milk:
+Milka
+Ülker
+Nestlé
+Torku
+
+Dark:
+Ülker, Bitter
+Lindt, Excellence`,
+    },
   },
   {
-    ad: 'Dondurma',
     simge: '🍦',
-    kategoriler: ['Sütlü', 'Meyveli'],
-    metin: `Sütlü:
+    tr: {
+      ad: 'Dondurma',
+      kategoriler: ['Sütlü', 'Meyveli'],
+      metin: `Sütlü:
 Kaymaklı
 Çikolatalı
 Antep fıstıklı
@@ -90,12 +165,28 @@ Meyveli:
 Limon
 Çilek
 Vişne`,
+    },
+    en: {
+      ad: 'Ice Cream',
+      kategoriler: ['Creamy', 'Fruity'],
+      metin: `Creamy:
+Kaymak
+Chocolate
+Pistachio
+Caramel
+
+Fruity:
+Lemon
+Strawberry
+Sour cherry`,
+    },
   },
   {
-    ad: 'Döner',
     simge: '🥙',
-    kategoriler: ['Et', 'Tavuk'],
-    metin: `Et:
+    tr: {
+      ad: 'Döner',
+      kategoriler: ['Et', 'Tavuk'],
+      metin: `Et:
 Yaprak döner
 İskender
 Dürüm
@@ -105,5 +196,25 @@ Tavuk:
 Tavuk dürüm
 Tavuk pilav üstü
 Ekmek arası`,
+    },
+    en: {
+      ad: 'Döner',
+      kategoriler: ['Meat', 'Chicken'],
+      metin: `Meat:
+Yaprak döner
+İskender
+Dürüm
+On rice
+
+Chicken:
+Chicken dürüm
+Chicken on rice
+In bread`,
+    },
   },
 ];
+
+/** Arayüz dilindeki şablonlar. */
+export function sablonlar(dil: Dil = simdikiDil()): Sablon[] {
+  return SABLON_VERISI.map(s => ({ simge: s.simge, ...s[dil] }));
+}

@@ -4,13 +4,14 @@
 import React, { useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import HesapPenceresi from './HesapPenceresi';
+import { dilEtiketi, messages } from '../lib/i18n';
 
 /** Google hesabının adı varsa o, yoksa e-postanın kullanıcı adı kısmı; ve profil fotoğrafı. */
 export function hesapBilgisi(user: User): { ad: string; foto?: string } {
   const meta = user.user_metadata as
     { full_name?: string; name?: string; avatar_url?: string; picture?: string } | undefined;
   return {
-    ad: meta?.full_name ?? meta?.name ?? (user.email ?? '').split('@')[0] ?? 'Hesabım',
+    ad: meta?.full_name ?? meta?.name ?? (user.email ?? '').split('@')[0] ?? messages().hesap.hesabim,
     foto: meta?.avatar_url ?? meta?.picture,
   };
 }
@@ -30,12 +31,12 @@ export default function Hesap({ user, className }: { user: User; className: stri
   return (
     // Çıkış burada değil, "Hesabım"ın içinde: yanlışlıkla dokunup oturumu kapatmak kolaydı.
     <div className={className}>
-      <button type="button" className="account-ac" onClick={() => setPencere(true)} aria-label="Hesabım">
+      <button type="button" className="account-ac" onClick={() => setPencere(true)} aria-label={messages().hesap.hesabim}>
         <span className="account-avatar" aria-hidden="true">
           {foto && !fotoBozuk
             // Google fotoğrafları yönlendiren sayfa bilgisi gidince 403 verebiliyor.
             ? <img src={foto} alt="" referrerPolicy="no-referrer" onError={() => setFotoBozuk(true)} />
-            : ad.charAt(0).toLocaleUpperCase('tr')}
+            : ad.charAt(0).toLocaleUpperCase(dilEtiketi())}
         </span>
         <span className="account-text">
           <strong>{ad}</strong>

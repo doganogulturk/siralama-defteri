@@ -13,6 +13,7 @@ import MobilMenu from '../../components/MobilMenu';
 import { useAuth } from '../../hooks/useAuth';
 import { brandInitials } from '../../types/item';
 import type { OzetKayit } from '../../lib/items';
+import { messages } from '../../lib/i18n';
 
 /**
  * Liste kartının vitrini: ilk üçün fotoğrafları kartın bütün yüksekliğinde, soldan
@@ -57,6 +58,8 @@ export default function ListelerPage() {
   const meta = user?.user_metadata as { full_name?: string; name?: string } | undefined;
   const adTam = meta?.full_name ?? meta?.name ?? user?.email?.split('@')[0] ?? '';
   const ilkAd = adTam.trim().split(/\s+/)[0] ?? '';
+  const m = messages();
+  const a = m.ana;
 
   return (
     <div className="app app-solo">
@@ -67,9 +70,9 @@ export default function ListelerPage() {
           <div className="home-head-yan">
             {/* Masaüstünde yüzen düğme gizli; ekleme üst çubuğa geçiyor. */}
             <div className="list-head-actions">
-              <Link href="/kor" className="btn-quiet">Kör Sıralama</Link>
+              <Link href="/kor" className="btn-quiet">{m.menu.kor}</Link>
               <button type="button" className="btn-primary" onClick={() => setFormAcik(true)}>
-                <span aria-hidden="true">+</span> Yeni liste
+                <span aria-hidden="true">+</span> {m.menu.yeniListe}
               </button>
             </div>
             {user && <Hesap user={user} className="home-hesap" />}
@@ -77,13 +80,13 @@ export default function ListelerPage() {
         </div>
 
         <header className="home-head">
-          {ilkAd && <p className="home-hello">Merhaba {ilkAd},</p>}
-          <h1 className="home-title">Listelerin</h1>
+          {ilkAd && <p className="home-hello">{a.merhaba(ilkAd)}</p>}
+          <h1 className="home-title">{a.baslik}</h1>
           {listeler.length > 0 && (
             <ul className="home-stats">
-              <li><strong>{listeler.length}</strong> liste</li>
-              <li><strong>{siralananToplam}</strong> sıralandı</li>
-              <li><strong>{bekleyen}</strong> denenmemiş</li>
+              <li><strong>{listeler.length}</strong> {a.liste}</li>
+              <li><strong>{siralananToplam}</strong> {a.siralandi}</li>
+              <li><strong>{bekleyen}</strong> {a.denenmemis}</li>
             </ul>
           )}
         </header>
@@ -91,7 +94,7 @@ export default function ListelerPage() {
         {error && (
           <div className="alert">
             {error}
-            <button type="button" onClick={load}>Tekrar dene</button>
+            <button type="button" onClick={load}>{a.tekrarDene}</button>
           </div>
         )}
 
@@ -100,10 +103,10 @@ export default function ListelerPage() {
         ) : listeler.length === 0 ? (
           <div className="state-empty">
             <BosSahne tur="listeler" />
-            <p className="state-empty-title">Henüz listen yok</p>
-            <p>Sıralamak istediğin şeyle başla: kola, döner, Türk kahvesi…</p>
+            <p className="state-empty-title">{a.bosBaslik}</p>
+            <p>{a.bosMetin}</p>
             <button type="button" className="btn-primary" onClick={() => setFormAcik(true)}>
-              İlk listeyi oluştur
+              {a.ilkListe}
             </button>
           </div>
         ) : (
@@ -124,12 +127,12 @@ export default function ListelerPage() {
                   <span className="liste-card-bas">
                     <span className="liste-card-baslik">
                       <strong className="liste-card-ad">{l.ad}</strong>
-                      {bekleyenAdet > 0 && <em className="liste-card-bekleyen">{bekleyenAdet} denenmemiş</em>}
+                      {bekleyenAdet > 0 && <em className="liste-card-bekleyen">{a.adetDenenmemis(bekleyenAdet)}</em>}
                     </span>
-                    <b className="liste-card-sayi" aria-label={`${adet} sıralandı`}>{adet}</b>
+                    <b className="liste-card-sayi" aria-label={a.adetSiralandi(adet)}>{adet}</b>
                   </span>
 
-                  {!sampiyon && <span className="liste-card-bos">Henüz sıralama yok</span>}
+                  {!sampiyon && <span className="liste-card-bos">{a.siralamaYok}</span>}
                 </Link>
               );
             })}

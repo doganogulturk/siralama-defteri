@@ -1,3 +1,6 @@
+import { messages } from './i18n';
+import { SINIR } from './sinirlar';
+
 /**
  * Supabase hataları `Error` değil, düz nesne ({ message, details, hint, code }).
  * `String(e)` bunları "[object Object]" yaptığı için tek geçiş noktası burası.
@@ -20,7 +23,7 @@ export function hataMetni(e: unknown): string {
     try {
       return JSON.stringify(e);
     } catch {
-      return 'Bilinmeyen hata';
+      return messages().hata.bilinmeyen;
     }
   }
 
@@ -33,17 +36,22 @@ export function hataMetni(e: unknown): string {
  */
 function sinirMetni(o: Record<string, unknown>): string | null {
   const mesaj = typeof o.message === 'string' ? o.message : '';
-  // Tetikleyicinin kendi mesajı zaten Türkçe.
-  if (o.code === 'SDLIM') return mesaj;
-  if (o.code === '23514') return 'Yazdığın metin çok uzun; biraz kısaltıp tekrar dene.';
+  const t = messages().sinir;
+  // Tetikleyicinin mesajı Türkçe ve hangi sınır olduğunu söylüyor (schema.sql → sinir_denetle).
+  if (o.code === 'SDLIM') {
+    if (/kategori/i.test(mesaj)) return t.kategoriSayisi(SINIR.listeKategori);
+    if (/liste oluştur/i.test(mesaj)) return t.listeSayisi(SINIR.kullaniciListe);
+    return t.listeDolu(SINIR.listeKayit);
+  }
+  if (o.code === '23514') return t.metinUzun;
   // Kova: boyut ve tür sınırı, yükleme politikasındaki dosya sayısı sınırı.
   if (/exceeded the maximum allowed size|payload too large/i.test(mesaj)) {
-    return 'Fotoğraf çok büyük.';
+    return t.fotoBuyuk;
   }
-  if (/mime type .* is not supported/i.test(mesaj)) return 'Bu dosya türü desteklenmiyor.';
+  if (/mime type .* is not supported/i.test(mesaj)) return t.dosyaTuru;
   // Tablo RLS hataları PostgREST'ten `code` ile gelir; kovanınkiler Error olarak, kodsuz.
   if (/row-level security/i.test(mesaj) && o.code === undefined) {
-    return 'Fotoğraf sınırına ulaştın (en fazla 1000). Kullanmadığın kayıtların fotoğraflarını silerek yer açabilirsin.';
+    return t.fotoSayisi;
   }
   return null;
 }

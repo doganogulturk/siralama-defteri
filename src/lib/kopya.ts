@@ -4,6 +4,7 @@ import { KOD_BICIMI, PaylasilanKayit, PaylasilanListe, guvenliFoto } from './pay
 import { benzersizSlug, slugify } from './slug';
 import { AlanTanimi, Kategori, Liste } from '../types/item';
 import { SINIR } from './sinirlar';
+import { messages } from './i18n';
 
 /*
  * "Ben de sıralayayım": paylaşılan bir listenin kayıtlarını kullanıcının kendi
@@ -77,7 +78,7 @@ export async function listeKopyala(
 ): Promise<Liste> {
   const mevcut = await getListeler();
   if (mevcut.length >= SINIR.kullaniciListe) {
-    throw new Error(`En fazla ${SINIR.kullaniciListe} liste oluşturabilirsin.`);
+    throw new Error(messages().sinir.listeSayisi(SINIR.kullaniciListe));
   }
 
   // Ek alanlar listeyle birlikte doğuyor ama kategoriye bağlı olanlar yeni kimlikleri
@@ -137,7 +138,7 @@ export async function denenmemislereEkle(
   mevcutKayit: number,
 ): Promise<number> {
   const kalan = Math.max(0, SINIR.listeKayit - mevcutKayit);
-  if (kalan === 0) throw new Error(`Bu liste dolu: bir listede en fazla ${SINIR.listeKayit} kayıt olabilir.`);
+  if (kalan === 0) throw new Error(messages().sinir.listeDolu(SINIR.listeKayit));
   const eklenecek = kayitlar.slice(0, kalan);
   const tr = (s: string) => s.trim().toLocaleLowerCase('tr');
   const katAdi = new Map(kaynak.kategoriler.map(k => [k.id, tr(k.ad)]));

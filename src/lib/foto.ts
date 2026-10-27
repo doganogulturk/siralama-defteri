@@ -1,4 +1,5 @@
 import { FOTO } from './sinirlar';
+import { messages } from './i18n';
 
 /**
  * Fotoğrafı yüklemeden önce tarayıcıda küçültür: uzun kenar `FOTO.kenar`, JPEG.
@@ -19,7 +20,7 @@ export async function fotoKucult(file: File): Promise<Blob> {
       const blob = await ciz(kaynak, kenar, kalite);
       if (blob.size <= FOTO.enFazlaBayt) return blob;
     }
-    throw new Error('Fotoğraf küçültülemedi, başka bir fotoğraf dene.');
+    throw new Error(messages().foto.kucultulemedi);
   } finally {
     if ('close' in kaynak) kaynak.close();
   }
@@ -39,7 +40,7 @@ async function coz(file: File): Promise<Kaynak> {
       await img.decode();
       return img;
     } catch {
-      throw new Error('Bu fotoğraf biçimi açılamadı. JPEG ya da PNG bir fotoğraf dene.');
+      throw new Error(messages().foto.acilamadi);
     } finally {
       URL.revokeObjectURL(url);
     }
@@ -55,7 +56,7 @@ async function ciz(kaynak: Kaynak, kenar: number, kalite: number): Promise<Blob>
   canvas.width = Math.max(1, Math.round(g * oran));
   canvas.height = Math.max(1, Math.round(y * oran));
   const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Fotoğraf işlenemedi.');
+  if (!ctx) throw new Error(messages().foto.islenemedi);
   // JPEG saydamlık taşımıyor: saydam PNG siyah zemine düşmesin.
   ctx.fillStyle = '#fff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -63,6 +64,6 @@ async function ciz(kaynak: Kaynak, kenar: number, kalite: number): Promise<Blob>
   ctx.drawImage(kaynak, 0, 0, canvas.width, canvas.height);
 
   const jpeg = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/jpeg', kalite));
-  if (!jpeg) throw new Error('Fotoğraf işlenemedi.');
+  if (!jpeg) throw new Error(messages().foto.islenemedi);
   return jpeg;
 }

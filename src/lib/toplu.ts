@@ -1,6 +1,7 @@
 import { Item, Kategori, Liste } from '../types/item';
 import { KATEGORI_PALET, createItems, createKategori } from './items';
 import { SINIR } from './sinirlar';
+import { messages } from './i18n';
 
 /** Toplu girişte bir satırdan çıkan kayıt. */
 export interface TopluKayit {
@@ -76,14 +77,14 @@ export function topluSorun(bloklar: TopluBlok[], mevcutKayit: number): string | 
   const kalan = Math.max(0, SINIR.listeKayit - mevcutKayit);
   if (adet > kalan) {
     return kalan === 0
-      ? `Bu liste dolu: bir listede en fazla ${SINIR.listeKayit} kayıt olabilir.`
-      : `Bu listeye en fazla ${kalan} kayıt daha eklenebilir (sınır ${SINIR.listeKayit}).`;
+      ? messages().sinir.listeDolu(SINIR.listeKayit)
+      : messages().sinir.kalan(kalan, SINIR.listeKayit);
   }
   const uzunKat = bloklar.find(b => b.kategori && b.kategori.length > SINIR.kategoriAdi);
-  if (uzunKat) return `“${uzunKat.kategori!.slice(0, 30)}…” kategori adı çok uzun (en fazla ${SINIR.kategoriAdi} harf).`;
+  if (uzunKat) return messages().sinir.kategoriUzun(uzunKat.kategori!.slice(0, 30), SINIR.kategoriAdi);
   for (const b of bloklar) {
     const uzun = b.kayitlar.find(k => k.ad.length > SINIR.kayitAdi || (k.alt_ad?.length ?? 0) > SINIR.altAd);
-    if (uzun) return `“${uzun.ad.slice(0, 30)}…” satırı çok uzun (ad ve çeşit en fazla ${SINIR.kayitAdi} harf).`;
+    if (uzun) return messages().sinir.satirUzun(uzun.ad.slice(0, 30), SINIR.kayitAdi);
   }
   return null;
 }

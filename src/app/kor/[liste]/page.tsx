@@ -2,44 +2,41 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import KorOyun from '../../../components/KorOyun';
 import { korListesi, sonucCoz } from '../../../lib/kor';
+import { DIL_PARAMETRE, sozluk } from '../../../lib/i18n';
+import { sunucuDili } from '../../../lib/i18n/sunucu';
 
 type Props = {
   params: Promise<{ liste: string }>;
-  searchParams: Promise<{ s?: string }>;
+  searchParams: Promise<{ s?: string; [DIL_PARAMETRE]?: string }>;
 };
 
-/**
- * Bir listenin oyunu. `?s=` bir arkadaşın sonucu: bağlantı paylaşılan bir sonuçtan
- * geldiyse önizleme kartı onun sıralamasını gösteriyor, oyun sonunda da uyum hesaplanıyor.
- */
+/** Önizleme kartı paylaşanın dilinde: bağlantı dili taşıyor (`?l=en`), görsel de aynı dilde çiziliyor. */
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
-  const [{ liste: slug }, { s }] = await Promise.all([params, searchParams]);
-  const liste = korListesi(slug);
-  if (!liste) return { title: 'Liste bulunamadı' };
-  const sonuc = sonucCoz(liste, s);
-  const baslik = `Kör Sıralama: ${liste.ad}`;
-  const aciklama = sonuc
-    ? `Şampiyonu ${liste.kayitlar[sonuc[0]]}. Sen nasıl sıralardın?`
-    : 'On kayıt birer birer gelir; her birini hemen bir sıraya koy, sonradan değiştiremezsin.';
+  const [{ liste: slug }, arama] = await Promise.all([params, searchParams]);
+  const dil = await sunucuDili(arama[DIL_PARAMETRE]);
+  const t = sozluk(dil);
+  const liste = korListesi(slug, dil);
+  if (!liste) return { title: t.kor.bulunamadi };
+  const sonuc = sonucCoz(liste, arama.s);
+  const baslik = t.kor.baslik(liste.ad);
+  const aciklama = sonuc ? t.kor.sampiyonu(liste.kayitlar[sonuc[0]]) : t.kor.aciklama;
+  const gorsel = new URLSearchParams({ boyut: 'kart', ...(sonuc ? { s: arama.s! } : {}), [DIL_PARAMETRE]: dil });
   return {
     title: { absolute: baslik },
     description: aciklama,
     openGraph: {
       title: baslik,
       description: aciklama,
-      siteName: 'Sıralama Defteri',
-      images: [{
-        url: `/kor/${liste.slug}/gorsel?boyut=kart${sonuc ? `&s=${s}` : ''}`,
-        width: 1200,
-        height: 630,
-      }],
+      siteName: t.marka,
+      images: [{ url: `/kor/${liste.slug}/gorsel?${gorsel}`, width: 1200, height: 630 }],
     },
   };
 }
 
 export default async function KorOyunSayfasi({ params, searchParams }: Props) {
   const [{ liste: slug }, { s }] = await Promise.all([params, searchParams]);
-  const liste = korListesi(slug);
+  const liste = korListesi(slug, 'tr');
   if (!liste) notFound();
-  return <KorOyun liste={liste} arkadas={sonucCoz(liste, s)} />;
+  // Liste adları istemcide arayüz dilinde okunuyor; burada yalnızca var olup olmadığı.
+  return <KorOyun slug={liste.slug} arkadas={sonucCoz(liste, s)} />;
 }

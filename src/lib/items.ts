@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { AlanTanimi, Item, Kategori, Liste } from '../types/item';
 import { fotoKucult } from './foto';
 import { KOVA } from './kova';
+import { messages } from './i18n';
 
 const T_LISTS = 'lists';
 const T_CATS = 'categories';
@@ -44,7 +45,7 @@ export async function createListe(
 ): Promise<Liste> {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError) throw userError;
-  if (!userData.user) throw new Error('Oturum bulunamadı.');
+  if (!userData.user) throw new Error(messages().hata.oturumYok);
 
   const { data, error } = await supabase
     .from(T_LISTS)
@@ -328,16 +329,17 @@ export async function deleteFotograf(url?: string | null): Promise<void> {
 /* ── Hesap ──────────────────────────────────────────── */
 
 /**
- * "Verilerimi sil": kullanıcının bu uygulamadaki her şeyi. Önce kovadaki bütün
- * dosyaları (kayıtlara bağlı olmayan yetimler dahil — listeleme politikası
- * yalnızca sahibine açık, `storage.sql`), sonra listeleri; kategoriler ve kayıtlar
- * cascade ile gidiyor. Giriş kaydı (auth.users) silinmiyor: aynı Supabase projesi
- * başka uygulamalarla paylaşılıyor, oradaki hesap da ona bağlı.
+ * Hesabı silme: kullanıcının bu uygulamadaki her şeyi ve giriş kaydı. Önce kovadaki
+ * bütün dosyaları (kayıtlara bağlı olmayan yetimler dahil — listeleme politikası
+ * yalnızca sahibine açık, `storage.sql`), sonra hesabı (`hesabimi_sil`): listeler,
+ * kategoriler ve kayıtlar auth.users'tan cascade ile gidiyor. Hesap sunucuda silinince
+ * oturum geçersiz kalıyor; çıkış yalnızca bu cihazda yapılıyor (sunucuya sorulacak
+ * oturum kalmadı).
  */
-export async function tumVerileriSil(): Promise<void> {
+export async function hesabiSil(): Promise<void> {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError) throw userError;
-  if (!userData.user) throw new Error('Oturum bulunamadı.');
+  if (!userData.user) throw new Error(messages().hata.oturumYok);
 
   // Silindikçe sayfa kayıyor: hep baştan, dosya kalmayana kadar.
   for (let tur = 0; tur < 20; tur++) {
@@ -349,6 +351,7 @@ export async function tumVerileriSil(): Promise<void> {
     if (e) throw e;
   }
 
-  const { error } = await supabase.from(T_LISTS).delete().eq('user_id', userData.user.id);
+  const { error } = await supabase.rpc('hesabimi_sil');
   if (error) throw error;
+  await supabase.auth.signOut({ scope: 'local' });
 }

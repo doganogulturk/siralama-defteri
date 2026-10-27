@@ -13,6 +13,7 @@ import { titret } from '../../lib/his';
 import {
   ASLA_SINIRI, AslaSiniri, DraggableRow, StaticRow, SuruklenebilirAslaSiniri,
 } from '../ItemRow';
+import { messages } from '../../lib/i18n';
 
 /**
  * "Sıralamam" sekmesinin kayıtları: sıralama, vurgu çizgisi ve "Bir daha asla" bölümü.
@@ -129,7 +130,7 @@ export default function SiralamaListesi({
           <SuruklenebilirAslaSiniri adet={aslaListesi.length} />
           {/* Bölüm boşken çizgi yine duruyor ki kartlar altına bırakılabilsin. */}
           {aslaListesi.length === 0 && (
-            <p className="asla-bos">Bir daha asla dediklerini bu çizginin altına sürükle.</p>
+            <p className="asla-bos">{messages().satir.aslaBos}</p>
           )}
           {aslaListesi.map((item) => (
             <DraggableRow

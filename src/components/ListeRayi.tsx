@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useListeler, siralanan } from '../hooks/useListeler';
 import ListeEkleModal from './ListeEkleModal';
 import Marka from './Marka';
+import { messages } from '../lib/i18n';
 
 const ArtiIkon = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -26,6 +27,7 @@ interface ListeRayiProps {
 export default function ListeRayi({ aktifSlug }: ListeRayiProps) {
   const { listeler, sayilar, load } = useListeler();
   const [formAcik, setFormAcik] = useState(false);
+  const m = messages();
 
   return (
     <>
@@ -35,10 +37,10 @@ export default function ListeRayi({ aktifSlug }: ListeRayiProps) {
         </Link>
 
         <p className="rail-baslik">
-          Listeler <span>{listeler.length}</span>
+          {m.ray.listeler} <span>{listeler.length}</span>
         </p>
 
-        <nav className="rail-index" aria-label="Listeler">
+        <nav className="rail-index" aria-label={m.ray.listeler}>
           {listeler.map(l => {
             const aktif = l.slug === aktifSlug;
             const sampiyon = sayilar[l.id]?.ilkUc[0];
@@ -61,9 +63,9 @@ export default function ListeRayi({ aktifSlug }: ListeRayiProps) {
         </nav>
 
         <button type="button" className="rail-add" onClick={() => setFormAcik(true)}>
-          {ArtiIkon}Yeni liste
+          {ArtiIkon}{m.menu.yeniListe}
         </button>
-        <Link href="/kor" className="rail-oyun">Kör Sıralama oyna</Link>
+        <Link href="/kor" className="rail-oyun">{m.ray.korOyna}</Link>
       </aside>
 
       <ListeEkleModal isOpen={formAcik} onClose={() => setFormAcik(false)} onCreated={load} />

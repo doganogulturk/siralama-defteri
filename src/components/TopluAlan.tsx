@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { TopluBlok, topluKayitSayisi } from '../lib/toplu';
+import { messages } from '../lib/i18n';
 
 interface TopluAlanProps {
   deger: string;
@@ -18,31 +19,26 @@ interface TopluAlanProps {
  * kategorileri. Önceki örnek iki ayrı listeden karışıktı — başlığı liste sanmaya
  * davetiye çıkarıyordu.
  */
-const ORNEK = `Patates:
-Lays, Klasik
-Ruffles, Originals
-
-Mısır:
-Doritos, Nacho`;
 
 /**
  * Toplu giriş kutusu ve ayrıştırma önizlemesi. Önizleme süs değil: virgül ve iki nokta
  * kayıt adının içinde geçtiğinde bölünme yanlış olur, kullanıcı bunu kaydetmeden görsün.
  */
 export default function TopluAlan({
-  deger, onChange, bloklar, etiket = 'Kayıtlar', autoFocus, sorun,
+  deger, onChange, bloklar, etiket, autoFocus, sorun,
 }: TopluAlanProps) {
+  const t = messages().toplu;
   const kayit = topluKayitSayisi(bloklar);
   const kategori = bloklar.filter(b => b.kategori).length;
 
   return (
     <>
       <label className="field">
-        <span className="field-label">{etiket}</span>
+        <span className="field-label">{etiket ?? t.kayitlar}</span>
         <textarea
           className="field-input field-textarea toplu-alan"
           rows={8}
-          placeholder={ORNEK}
+          placeholder={t.ornek}
           value={deger}
           onChange={(e) => onChange(e.target.value)}
           autoFocus={autoFocus}
@@ -50,9 +46,7 @@ export default function TopluAlan({
       </label>
 
       <p className="field-hint">
-        Her satır bir kayıt. Sonu iki nokta ile biten satır (<code>Patates:</code>) listenin
-        içinde bir kategori açar, altındaki satırlar o kategoriye yazılır. Virgülden sonrası
-        kaydın çeşidi olur: <code>Doritos, Nacho</code>.
+        {t.ipucu[0]}<code>{t.ipucuKategori}</code>{t.ipucu[1]}<code>{t.ipucuCesit}</code>{t.ipucu[2]}
       </p>
 
       {sorun && <p className="toplu-sorun" role="alert">{sorun}</p>}
@@ -60,12 +54,12 @@ export default function TopluAlan({
       {kayit > 0 && (
         <div className="toplu-onizleme">
           <p className="toplu-onizleme-ozet">
-            {kategori > 0 && <><strong>{kategori}</strong> kategori · </>}
-            <strong>{kayit}</strong> kayıt oluşturulacak
+            {kategori > 0 && <><strong>{t.kategoriAdet(kategori)[0]}</strong>{t.kategoriAdet(kategori)[1]}</>}
+            <strong>{t.kayitAdet(kayit)[0]}</strong>{t.kayitAdet(kayit)[1]}
           </p>
           {bloklar.map((blok, i) => (
             <p className="toplu-onizleme-blok" key={i}>
-              <span className="toplu-onizleme-kat">{blok.kategori ?? 'Kategorisiz'}</span>
+              <span className="toplu-onizleme-kat">{blok.kategori ?? t.kategorisiz}</span>
               {blok.kayitlar.map((k, j) => (
                 <React.Fragment key={j}>
                   {j > 0 && ' · '}

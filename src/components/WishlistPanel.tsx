@@ -7,6 +7,7 @@ import {
 } from '../types/item';
 import { SecimIkon } from './ItemRow';
 import { BosSahne } from './Sahne';
+import { messages } from '../lib/i18n';
 
 interface WishlistPanelProps {
   items: Item[];
@@ -33,9 +34,9 @@ export default function WishlistPanel({
     return (
       <div className="wish-empty">
         <BosSahne tur="denenmemis" />
-        <p className="wish-empty-title">Listen boş</p>
-        <p>Denemek istediğin ama henüz sırası gelmemiş kayıtları buraya ekle.</p>
-        <button type="button" className="btn-primary" onClick={onAdd}>Listeye Ekle</button>
+        <p className="wish-empty-title">{messages().bekleyen.bosBaslik}</p>
+        <p>{messages().bekleyen.bosMetin}</p>
+        <button type="button" className="btn-primary" onClick={onAdd}>{messages().bekleyen.listeyeEkle}</button>
       </div>
     );
   }
@@ -91,7 +92,7 @@ export default function WishlistPanel({
                 className="wish-tried"
                 onClick={() => onTried(item)}
               >
-                Denedim
+                {messages().bekleyen.denedim}
               </button>
             )}
           </div>

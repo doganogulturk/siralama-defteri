@@ -5,7 +5,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { KiyasKayit, KiyasSatiri, kiyasAnahtari, kiyasla, uyumEtiketi } from '../lib/kiyas';
 import { denenmemislereEkle } from '../lib/kopya';
-import { PaylasilanListe, guvenliFoto, paylasimAdresi, tamlayan } from '../lib/paylasim';
+import { PaylasilanListe, guvenliFoto, iyelik, paylasimAdresi } from '../lib/paylasim';
+import { messages } from '../lib/i18n';
 import { sortSirali } from '../lib/sort';
 import { hataMetni } from '../lib/hata';
 import { titret } from '../lib/his';
@@ -61,7 +62,7 @@ function UyumHalkasi({ uyum }: { uyum: number }) {
   const r = 52;
   const cevre = 2 * Math.PI * r;
   return (
-    <div className="kiyas-halka" role="img" aria-label={`Yüzde ${uyum} uyum`}>
+    <div className="kiyas-halka" role="img" aria-label={messages().kiyas.yuzdeUyum(uyum)}>
       <svg viewBox="0 0 120 120" aria-hidden="true">
         <circle cx="60" cy="60" r={r} className="kiyas-halka-iz" />
         <circle
@@ -71,7 +72,7 @@ function UyumHalkasi({ uyum }: { uyum: number }) {
           strokeDashoffset={cevre * (1 - gorunen / 100)}
         />
       </svg>
-      <span className="kiyas-halka-sayi">%{gorunen}</span>
+      <span className="kiyas-halka-sayi">{messages().kiyas.yuzde(gorunen)}</span>
     </div>
   );
 }
@@ -82,7 +83,11 @@ function AyrilikSatiri({ satir, onunAdi }: { satir: KiyasSatiri; onunAdi: string
       <Foto kayit={satir.benim} />
       <span className="kiyas-ayrilik-ad">
         <strong>{satir.benim.ad}</strong>
-        <em>sende {satir.benim.sira === null ? '“Bir daha asla”' : `${satir.benim.sira}.`} · {onunAdi} {satir.onun.sira === null ? '“Bir daha asla”' : `${satir.onun.sira}.`}</em>
+        <em>{messages().kiyas.yerler(
+          satir.benim.sira === null ? messages().kiyas.birDahaAsla : `${satir.benim.sira}.`,
+          onunAdi,
+          satir.onun.sira === null ? messages().kiyas.birDahaAsla : `${satir.onun.sira}.`,
+        )}</em>
       </span>
     </li>
   );
@@ -109,8 +114,9 @@ export default function KiyasEkrani({ kod, kaynak, liste, items, kategoriler, on
   const [ekleniyor, setEkleniyor] = useState(false);
   const [bildirim, setBildirim] = useState<string | null>(null);
 
-  const onunAdi = kaynak.sahip?.split(' ')[0] ?? 'O';
-  const kiminle = kaynak.sahip ? `${kaynak.sahip} ile` : 'Bu listeyle';
+  const m = messages();
+  const t = m.kiyas;
+  const onunAdi = kaynak.sahip?.split(' ')[0] ?? t.o;
   const benimSampiyon = benim.find(k => k.sira === 1);
   const onunSampiyon = onun.find(k => k.sira === 1);
   const ayniSampiyon = !!benimSampiyon && !!onunSampiyon
@@ -125,15 +131,15 @@ export default function KiyasEkrani({ kod, kaynak, liste, items, kategoriler, on
   const paylas = async () => {
     const url = paylasimAdresi(kod, window.location.origin);
     const metin = sonuc.uyum !== null
-      ? `${kiminle} ${kaynak.ad} zevkimiz %${sonuc.uyum} uyuşuyor. Sen de sırala, bakalım bize ne kadar uyuyorsun:`
-      : `${kaynak.ad} sıralamamı yaptım. Sen de sırala:`;
+      ? t.paylasimUyum(kaynak.sahip, kaynak.ad, sonuc.uyum)
+      : t.paylasimDuz(kaynak.ad);
     try {
       if (navigator.share) {
         await navigator.share({ title: kaynak.ad, text: metin, url });
         return;
       }
       await navigator.clipboard.writeText(`${metin} ${url}`);
-      setBildirim('Kopyalandı');
+      setBildirim(t.kopyalandi);
     } catch { /* paylaşım menüsü kapatıldı */ }
   };
 
@@ -144,10 +150,10 @@ export default function KiyasEkrani({ kod, kaynak, liste, items, kategoriler, on
       const kaynakKayitlari = kaynak.kayitlar.filter(k =>
         sonuc.yalnizOnda.some(y => y.id === k.id));
       const n = await denenmemislereEkle(liste, kategoriler, kaynak, kaynakKayitlari, items.length);
-      setBildirim(`${n} kayıt denenmemişlerine eklendi`);
+      setBildirim(t.eklendi(n));
       onDegisti();
     } catch (e: unknown) {
-      void uyar('Eklenemedi: ' + hataMetni(e));
+      void uyar(t.eklenemedi(hataMetni(e)));
     } finally {
       setEkleniyor(false);
     }
@@ -156,7 +162,7 @@ export default function KiyasEkrani({ kod, kaynak, liste, items, kategoriler, on
   return (
     <div className="kiyas">
       <section className="kiyas-bas kiyas-bas-sonuc">
-        <p className="paylasim-sahip">{kiminle} karşılaştırma</p>
+        <p className="paylasim-sahip">{t.ileKarsilastirma(kaynak.sahip)}</p>
         <h1 className="paylasim-baslik">{kaynak.ad}</h1>
       </section>
 
@@ -166,32 +172,32 @@ export default function KiyasEkrani({ kod, kaynak, liste, items, kategoriler, on
             <UyumHalkasi uyum={sonuc.uyum} />
             <p className="kiyas-uyum-etiket">{uyumEtiketi(sonuc.uyum)}</p>
             <p className="kiyas-uyum-metin">
-              Ortak <strong>{sonuc.ortak.length}</strong> kayıttan kurulan her 100 ikilinin{' '}
-              <strong>{sonuc.uyum}</strong> tanesinde aynı olanı öne koymuşsunuz.
-              {sonuc.ayniYer > 0 && <> <strong>{sonuc.ayniYer}</strong> kaydı tam aynı sıraya koymuşsunuz.</>}
+              {t.uyumMetni[0]}<strong>{sonuc.ortak.length}</strong>{t.uyumMetni[1]}
+              <strong>{sonuc.uyum}</strong>{t.uyumMetni[2]}
+              {sonuc.ayniYer > 0 && <>{t.ayniYer[0]}<strong>{sonuc.ayniYer}</strong>{t.ayniYer[1]}</>}
             </p>
           </>
         ) : (
           <p className="kiyas-uyum-metin">
-            Uyumu hesaplamak için ikinizin de sıraladığı en az üç ortak kayıt gerekiyor
-            {sonuc.ortak.length > 0 && <> — şu an <strong>{sonuc.ortak.length}</strong> tane var</>}.
+            {t.yetersiz}
+            {sonuc.ortak.length > 0 && <>{t.suAn[0]}<strong>{sonuc.ortak.length}</strong>{t.suAn[1]}</>}.
           </p>
         )}
-        <button type="button" className="btn-primary" onClick={paylas}>Sonucu paylaş</button>
+        <button type="button" className="btn-primary" onClick={paylas}>{t.sonucuPaylas}</button>
       </section>
 
       {(benimSampiyon || onunSampiyon) && (
         <section className="kiyas-kart">
-          <h2 className="kiyas-alt-baslik">{ayniSampiyon ? 'Aynı şampiyon 🏆' : 'Şampiyonlar'}</h2>
+          <h2 className="kiyas-alt-baslik">{ayniSampiyon ? t.ayniSampiyon : t.sampiyonlar}</h2>
           <div className="kiyas-sampiyonlar">
             <div className="kiyas-sampiyon">
               <Foto kayit={benimSampiyon} buyuk />
-              <em>Senin</em>
+              <em>{t.senin}</em>
               <strong>{benimSampiyon?.ad ?? '—'}</strong>
             </div>
             <div className="kiyas-sampiyon">
               <Foto kayit={onunSampiyon} buyuk />
-              <em>{kaynak.sahip ? tamlayan(onunAdi) : 'Onun'}</em>
+              <em>{kaynak.sahip ? iyelik(onunAdi) : t.onun}</em>
               <strong>{onunSampiyon?.ad ?? '—'}</strong>
             </div>
           </div>
@@ -200,7 +206,7 @@ export default function KiyasEkrani({ kod, kaynak, liste, items, kategoriler, on
 
       {sonuc.ayriliklar.length > 0 && (
         <section className="kiyas-kart">
-          <h2 className="kiyas-alt-baslik">En büyük ayrılıklar</h2>
+          <h2 className="kiyas-alt-baslik">{t.ayriliklar}</h2>
           <ul className="kiyas-ayriliklar">
             {sonuc.ayriliklar.map(s => <AyrilikSatiri key={s.anahtar} satir={s} onunAdi={onunAdi} />)}
           </ul>
@@ -209,10 +215,10 @@ export default function KiyasEkrani({ kod, kaynak, liste, items, kategoriler, on
 
       {sonuc.ortak.length > 0 && (
         <section className="kiyas-kart">
-          <h2 className="kiyas-alt-baslik">Yan yana</h2>
-          <div className="kiyas-tablo" role="table" aria-label="Ortak kayıtların sırası">
+          <h2 className="kiyas-alt-baslik">{t.yanYana}</h2>
+          <div className="kiyas-tablo" role="table" aria-label={t.ortakSira}>
             <div className="kiyas-tablo-bas" role="row">
-              <span role="columnheader">Sen</span>
+              <span role="columnheader">{t.sen}</span>
               <span role="columnheader" />
               <span role="columnheader">{onunAdi}</span>
             </div>
@@ -241,21 +247,21 @@ export default function KiyasEkrani({ kod, kaynak, liste, items, kategoriler, on
       {sonuc.yalnizOnda.length > 0 && (
         <section className="kiyas-kart">
           <h2 className="kiyas-alt-baslik">
-            Onda var, sende yok <span>{sonuc.yalnizOnda.length}</span>
+            {t.ondaVar} <span>{sonuc.yalnizOnda.length}</span>
           </h2>
           <p className="kiyas-ipucu">
             {sonuc.yalnizOnda.slice(0, 6).map(k => k.ad).join(', ')}
-            {sonuc.yalnizOnda.length > 6 && ` ve ${sonuc.yalnizOnda.length - 6} tane daha`}.
+            {sonuc.yalnizOnda.length > 6 && t.veDaha(sonuc.yalnizOnda.length - 6)}.
           </p>
           <button type="button" className="btn-quiet" onClick={ekle} disabled={ekleniyor}>
-            {ekleniyor ? 'Ekleniyor…' : 'Denenmemişlerime ekle'}
+            {ekleniyor ? t.ekleniyor : t.denenmemislereEkle}
           </button>
         </section>
       )}
 
       <footer className="kiyas-son">
-        <Link href={`/l/${liste.slug}`} className="btn-primary">Listeme git</Link>
-        <Link href={`/p/${kod}`} className="btn-quiet">{kaynak.sahip ? `${tamlayan(onunAdi)} listesi` : 'Onun listesi'}</Link>
+        <Link href={`/l/${liste.slug}`} className="btn-primary">{t.listemeGit}</Link>
+        <Link href={`/p/${kod}`} className="btn-quiet">{kaynak.sahip ? m.paylasim.sahibinListesi(iyelik(onunAdi)) : t.onunListesi}</Link>
       </footer>
 
       {bildirim && <div className="toast" role="status">{bildirim}</div>}

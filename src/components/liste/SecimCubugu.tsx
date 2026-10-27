@@ -6,6 +6,7 @@ import type { SecimModu } from '../../hooks/useSecim';
 import {
   AslaIkon, DenedimIkon, GeriAlIkon, GeriIkon, KategoriIkon, SilIkon,
 } from './Ikonlar';
+import { messages } from '../../lib/i18n';
 
 /**
  * Seçim modunda ekleme düğmesinin yerini alan işlem çubuğu. Mobilde ekranın dibinde
@@ -23,12 +24,13 @@ export default function SecimCubugu({ s, sekme, kategoriler }: {
     kapat, tumunuSec, kategoriyeTasi, bolumIslemi, denedimToplu, silToplu,
   } = s;
   if (!secim) return null;
+  const t = messages().secim;
 
   return (
-    <div className="secim-cubugu" role="toolbar" aria-label="Seçili kayıtlar">
+    <div className="secim-cubugu" role="toolbar" aria-label={t.seciliKayitlar}>
       <div className="secim-cubugu-ust">
         <strong aria-live="polite">
-          {secim.size > 0 ? `${secim.size} seçili` : 'Kayıtlara dokunarak seç'}
+          {secim.size > 0 ? t.seciliAdet(secim.size) : t.dokunarakSec}
         </strong>
         <button
           type="button"
@@ -36,9 +38,9 @@ export default function SecimCubugu({ s, sekme, kategoriler }: {
           onClick={tumunuSec}
           disabled={gorunenAdet === 0}
         >
-          {hepsiSecili ? 'Seçimi temizle' : 'Tümünü seç'}
+          {hepsiSecili ? t.temizle : t.tumunuSec}
         </button>
-        <button type="button" className="secim-kapat" onClick={kapat} aria-label="Seçimi bitir">
+        <button type="button" className="secim-kapat" onClick={kapat} aria-label={t.bitir}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" />
@@ -48,7 +50,7 @@ export default function SecimCubugu({ s, sekme, kategoriler }: {
       {/* Karışık seçimde "Bir daha asla" yalnızca sıralamadakileri taşıyor — söylenmeli. */}
       {sekme === 'siralama' && cubukKip === 'islemler' && aslaSecili.length > 0 && siraliSecili.length > 0 && (
         <p className="secim-not">
-          {aslaSecili.length} tanesi zaten Bir daha asla&apos;da; yalnızca diğer {siraliSecili.length} taşınır.
+          {t.karisikNot(aslaSecili.length, siraliSecili.length)}
         </p>
       )}
       {cubukKip === 'kategori' ? (
@@ -57,7 +59,7 @@ export default function SecimCubugu({ s, sekme, kategoriler }: {
             type="button"
             className="secim-geri"
             onClick={() => setCubukKip('islemler')}
-            aria-label="İşlemlere dön"
+            aria-label={t.islemlereDon}
           >
             {GeriIkon}
           </button>
@@ -80,7 +82,7 @@ export default function SecimCubugu({ s, sekme, kategoriler }: {
               disabled={secim.size === 0 || atamaSuruyor}
               onClick={() => kategoriyeTasi(null)}
             >
-              Kategoriden çıkar
+              {t.kategoridenCikar}
             </button>
           </div>
         </div>
@@ -93,7 +95,7 @@ export default function SecimCubugu({ s, sekme, kategoriler }: {
               disabled={secim.size === 0 || atamaSuruyor}
               onClick={() => setCubukKip('kategori')}
             >
-              {KategoriIkon}<span>Kategori</span>
+              {KategoriIkon}<span>{t.kategori}</span>
             </button>
           )}
           {sekme === 'sirada' ? (
@@ -103,7 +105,7 @@ export default function SecimCubugu({ s, sekme, kategoriler }: {
               disabled={secim.size === 0 || atamaSuruyor}
               onClick={denedimToplu}
             >
-              {DenedimIkon}<span>Denedim</span>
+              {DenedimIkon}<span>{t.denedim}</span>
             </button>
           ) : (
             <button
@@ -113,7 +115,7 @@ export default function SecimCubugu({ s, sekme, kategoriler }: {
               onClick={bolumIslemi}
             >
               {sadeceAsla ? GeriAlIkon : AslaIkon}
-              <span>{sadeceAsla ? 'Sıralamaya al' : 'Bir daha asla'}</span>
+              <span>{sadeceAsla ? t.siralamayaAl : t.birDahaAsla}</span>
             </button>
           )}
           <button
@@ -122,7 +124,7 @@ export default function SecimCubugu({ s, sekme, kategoriler }: {
             disabled={secim.size === 0 || atamaSuruyor}
             onClick={silToplu}
           >
-            {SilIkon}<span>Sil</span>
+            {SilIkon}<span>{t.sil}</span>
           </button>
         </div>
       )}

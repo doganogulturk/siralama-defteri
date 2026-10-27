@@ -1,4 +1,5 @@
 import React from 'react';
+import { messages } from '../lib/i18n';
 
 /**
  * Yüklenirken içeriğin yerini tutan soluk taslaklar: sayfa boş bir "Yükleniyor…"
@@ -6,7 +7,7 @@ import React from 'react';
  */
 export function IskeletSatirlar({ adet = 6 }: { adet?: number }) {
   return (
-    <div className="rows iskelet" role="status" aria-label="Yükleniyor">
+    <div className="rows iskelet" role="status" aria-label={messages().genel.yukleniyor}>
       {Array.from({ length: adet }, (_, i) => (
         <div className="row iskelet-row" key={i} style={{ '--i': i } as React.CSSProperties}>
           <span className="iskelet-blok iskelet-no" />
@@ -23,7 +24,7 @@ export function IskeletSatirlar({ adet = 6 }: { adet?: number }) {
 
 export function IskeletKartlar({ adet = 4 }: { adet?: number }) {
   return (
-    <div className="liste-grid iskelet" role="status" aria-label="Yükleniyor">
+    <div className="liste-grid iskelet" role="status" aria-label={messages().genel.yukleniyor}>
       {Array.from({ length: adet }, (_, i) => (
         <div className="liste-card iskelet-kart" key={i} style={{ '--i': i } as React.CSSProperties}>
           <span className="iskelet-blok iskelet-baslik" />

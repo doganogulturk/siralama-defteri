@@ -2,14 +2,11 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { signOut } from '../../lib/auth';
-import { tumVerileriSil } from '../../lib/items';
+import { hesabiSil } from '../../lib/items';
 import { hataMetni } from '../../lib/hata';
 import { hesapBilgisi } from '../Hesap';
 import { uyar } from '../../lib/pencere';
-
-/** Silmeyi onaylamak için yazılacak kelime: yanlışlıkla iki dokunuşla silinmesin. */
-const ONAY = 'SİL';
+import { dilEtiketi, messages } from '../../lib/i18n';
 
 /**
  * Hesap Silme sayfasının sonundaki silme kutusu: ne silineceği okunduktan sonra.
@@ -18,6 +15,9 @@ const ONAY = 'SİL';
  */
 export default function VeriSilmePaneli() {
   const { user, loading } = useAuth();
+  const m = messages().silme;
+  /** Silmeyi onaylamak için yazılacak kelime: yanlışlıkla iki dokunuşla silinmesin. */
+  const ONAY = m.onayKelimesi;
   const [acik, setAcik] = useState(false);
   const [onay, setOnay] = useState('');
   const [siliniyor, setSiliniyor] = useState(false);
@@ -26,49 +26,48 @@ export default function VeriSilmePaneli() {
   if (silindi) {
     return (
       <div className="silme-panel is-tamam">
-        <p><strong>Verilerin silindi.</strong> Bu cihazdaki oturumun da kapandı.</p>
+        <p><strong>{m.silindi}</strong> {m.silindiAlt}</p>
       </div>
     );
   }
   if (loading || !user) return null;
 
-  const tamam = onay.trim().toLocaleUpperCase('tr') === ONAY;
+  const tamam = onay.trim().toLocaleUpperCase(dilEtiketi()) === ONAY;
   const sil = async () => {
     if (!tamam || siliniyor) return;
     setSiliniyor(true);
     try {
-      await tumVerileriSil();
-      await signOut();
+      await hesabiSil();
       setSilindi(true);
     } catch (e: unknown) {
-      void uyar('Veriler silinemedi: ' + hataMetni(e));
+      void uyar(m.silinemedi(hataMetni(e)));
       setSiliniyor(false);
     }
   };
 
   return (
     <div className="silme-panel">
-      <p><strong>{hesapBilgisi(user).ad}</strong> olarak giriş yaptın.</p>
+      <p>{m.girisYapildi[0]}<strong>{hesapBilgisi(user).ad}</strong>{m.girisYapildi[1]}</p>
       {!acik ? (
         <>
-          <p>Yukarıda sayılan bütün verilerini buradan hemen silebilirsin.</p>
-          <button type="button" className="btn-danger" onClick={() => setAcik(true)}>Verilerimi sil</button>
+          <p>{m.aciklama}</p>
+          <button type="button" className="btn-danger" onClick={() => setAcik(true)}>{m.dugme}</button>
         </>
       ) : (
         <>
-          <p>Bu geri alınamaz. Onaylamak için <strong>{ONAY}</strong> yaz.</p>
+          <p>{m.geriAlinmaz[0]}<strong>{ONAY}</strong>{m.geriAlinmaz[1]}</p>
           <input
             className="field-input"
             value={onay}
             onChange={(e) => setOnay(e.target.value)}
-            aria-label={`Onay için ${ONAY} yaz`}
+            aria-label={m.onayEtiketi(ONAY)}
             autoComplete="off"
             autoCapitalize="characters"
           />
           <div className="silme-islemler">
-            <button type="button" className="btn-quiet" onClick={() => { setAcik(false); setOnay(''); }}>Vazgeç</button>
+            <button type="button" className="btn-quiet" onClick={() => { setAcik(false); setOnay(''); }}>{messages().genel.vazgec}</button>
             <button type="button" className="btn-danger" onClick={sil} disabled={!tamam || siliniyor}>
-              {siliniyor ? 'Siliniyor…' : 'Kalıcı olarak sil'}
+              {siliniyor ? m.siliniyor : m.kaliciSil}
             </button>
           </div>
         </>

@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { sortIstekListesi, sortSirali } from './sort';
 import { benzersizSlug, slugify } from './slug';
-import { KOR_LISTELERI, sonucCoz, sonucYaz } from './kor';
+import { korListeleri, sonucCoz, sonucYaz } from './kor';
 import { KATEGORISIZ, bosFiltre, filtreBos, filtreUygula } from './filtre';
-import { KOD_BICIMI, guvenliFoto, kodUret, tamlayan } from './paylasim';
+import {
+  KOD_BICIMI, guvenliFoto, iyelik, kodUret, paylasimAdresi, paylasimBasligi, sahibinSiralamasi, tamlayan,
+} from './paylasim';
+import { en } from './i18n/en';
+import { tr } from './i18n/tr';
 import { brandInitials } from '../types/item';
 import { Item } from '../types/item';
 
@@ -34,10 +38,10 @@ describe('slug', () => {
 });
 
 describe('Kör Sıralama sonucu', () => {
-  const liste = KOR_LISTELERI[0];
+  const liste = korListeleri('tr')[0];
 
   it('her liste tam on kayıt', () => {
-    for (const l of KOR_LISTELERI) expect(l.kayitlar).toHaveLength(10);
+    for (const l of [...korListeleri('tr'), ...korListeleri('en')]) expect(l.kayitlar).toHaveLength(10);
   });
 
   it('geçerli permütasyon gidip geliyor', () => {
@@ -76,6 +80,21 @@ describe('paylaşım', () => {
     expect(tamlayan('Umut')).toBe("Umut'un");
   });
 
+  it('iyelik dile göre: Türkçede tamlayan eki, İngilizcede kesme işareti', () => {
+    expect(iyelik('Doğan', 'tr')).toBe("Doğan'ın");
+    expect(iyelik('Doğan', 'en')).toBe("Doğan's");
+    expect(iyelik('James', 'en')).toBe("James'");
+    expect(sahibinSiralamasi('Ayşe', 'en')).toBe("Ayşe's ranking");
+    expect(sahibinSiralamasi(null, 'tr')).toBe('Bir sıralama');
+    expect(paylasimBasligi({ ad: 'Döner', sahip: 'Doğan' }, 'tr')).toBe("Döner — Doğan'ın sıralaması");
+    expect(paylasimBasligi({ ad: 'Döner', sahip: null }, 'en')).toBe('Döner ranking');
+  });
+
+  it('paylaşım bağlantısı paylaşanın dilini yalnızca İngilizcede taşıyor', () => {
+    expect(paylasimAdresi('abc', 'https://x.app', 'tr')).toBe('https://x.app/p/abc');
+    expect(paylasimAdresi('abc', 'https://x.app', 'en')).toBe('https://x.app/p/abc?l=en');
+  });
+
   it('üretilen kod veritabanındaki biçime uyuyor', () => {
     for (let i = 0; i < 50; i++) expect(kodUret()).toMatch(KOD_BICIMI);
   });
@@ -96,5 +115,17 @@ describe('brandInitials', () => {
     expect(brandInitials('ıhlamur çayı')).toBe('IÇ');
     expect(brandInitials('ilik')).toBe('İ');
     expect(brandInitials('  ')).toBe('?');
+  });
+});
+
+/** İki sözlük aynı anahtarlara sahip; tip denetimi yapıyı, bu test dizilerin uzunluğunu da yakalıyor. */
+describe('sözlükler', () => {
+  const anahtarlar = (o: unknown, yol = ''): string[] =>
+    o && typeof o === 'object'
+      ? Object.entries(o).flatMap(([k, v]) => [`${yol}${k}`, ...anahtarlar(v, `${yol}${k}.`)])
+      : [];
+
+  it('İngilizce sözlükte Türkçedeki her anahtar var', () => {
+    expect(anahtarlar(en)).toEqual(anahtarlar(tr));
   });
 });

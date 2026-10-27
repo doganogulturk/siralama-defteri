@@ -1,3 +1,4 @@
+import { messages } from './i18n';
 /**
  * İki sıralamanın karşılaştırması: paylaşılan bir liste ile kullanıcının kendi listesi.
  * Kayıtlar kimlikle değil adla eşleşiyor — kopyalanan listede kimlikler yeni, ve aynı
@@ -100,10 +101,11 @@ export function kiyasla(
 
 /** Yüzdenin bir adı — sonuç kartının başlığı. */
 export function uyumEtiketi(uyum: number): string {
-  if (uyum >= 90) return 'Damak ikizi';
-  if (uyum >= 75) return 'Aynı damak';
-  if (uyum >= 55) return 'Çoğunlukla hemfikir';
-  if (uyum >= 40) return 'Ortası';
-  if (uyum >= 20) return 'Farklı damaklar';
-  return 'Zıt kutuplar';
+  const ad = messages().kiyas.uyumAdlari;
+  if (uyum >= 90) return ad[5];
+  if (uyum >= 75) return ad[4];
+  if (uyum >= 55) return ad[3];
+  if (uyum >= 40) return ad[2];
+  if (uyum >= 20) return ad[1];
+  return ad[0];
 }

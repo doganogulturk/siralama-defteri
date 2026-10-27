@@ -1,5 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { korListesi, sonucCoz } from '../../../../lib/kor';
+import { DIL_PARAMETRE, sozluk } from '../../../../lib/i18n';
+import { baglantiDili } from '../../../../lib/i18n/sunucu';
 import { RENK, yaziTipleri } from '../../../../lib/gorsel-sunucu';
 
 /*
@@ -33,7 +35,10 @@ function Logo({ boyut = 60 }: { boyut?: number }) {
 export async function GET(istek: Request, { params }: { params: Promise<{ liste: string }> }) {
   const { liste: slug } = await params;
   const adres = new URL(istek.url);
-  const liste = korListesi(slug);
+  // Görsel paylaşanın dilinde: bağlantı dili taşıyor.
+  const dil = baglantiDili(adres.searchParams.get(DIL_PARAMETRE));
+  const t = sozluk(dil).kor;
+  const liste = korListesi(slug, dil);
   if (!liste) return new Response('Bulunamadı', { status: 404 });
   const sira = sonucCoz(liste, adres.searchParams.get('s'));
   const kart = adres.searchParams.get('boyut') === 'kart';
@@ -42,7 +47,7 @@ export async function GET(istek: Request, { params }: { params: Promise<{ liste:
   const site = adres.host;
   const etiket = (
     <div style={{ display: 'flex', fontSize: kart ? 26 : 34, letterSpacing: 4, color: liste.renk }}>
-      KÖR SIRALAMA
+      {t.etiket}
     </div>
   );
 
@@ -56,7 +61,7 @@ export async function GET(istek: Request, { params }: { params: Promise<{ liste:
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {etiket}
               <div style={{ fontFamily: 'Instrument Serif', fontSize: liste.ad.length > 12 ? 84 : 104, lineHeight: 0.95 }}>{liste.ad}</div>
-              <div style={{ fontSize: 30, color: RENK.soluk }}>{sira ? 'Sen nasıl sıralardın?' : 'On kayıt, hiç değiştirmeden.'}</div>
+              <div style={{ fontSize: 30, color: RENK.soluk }}>{sira ? t.nasilSiralardin : t.hicDegistirmeden}</div>
             </div>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignContent: 'center', gap: 10, flex: 1 }}>
@@ -112,14 +117,14 @@ export async function GET(istek: Request, { params }: { params: Promise<{ liste:
                   {String(i + 1)}
                 </div>
                 <div style={{ display: 'flex', fontSize: bir ? 56 : 44 }}>{liste.kayitlar[k]}</div>
-                {bir && <div style={{ display: 'flex', marginLeft: 'auto', fontSize: 26, letterSpacing: 3, color: RENK.vurgu }}>ŞAMPİYON</div>}
+                {bir && <div style={{ display: 'flex', marginLeft: 'auto', fontSize: 26, letterSpacing: 3, color: RENK.vurgu }}>{t.sampiyon}</div>}
               </div>
             );
           })}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: 'auto', paddingTop: 36, alignItems: 'center' }}>
-          <div style={{ fontFamily: 'Instrument Serif', fontSize: 76, lineHeight: 1 }}>Sen nasıl sıralardın?</div>
+          <div style={{ fontFamily: 'Instrument Serif', fontSize: 76, lineHeight: 1 }}>{t.nasilSiralardin}</div>
           <div style={{ fontSize: 34, color: RENK.soluk, marginTop: 14 }}>{`${site}/kor`}</div>
         </div>
       </div>

@@ -11,6 +11,7 @@ import { sortSirali, sortIstekListesi } from '../lib/sort';
 import { hataMetni } from '../lib/hata';
 import { listeleriTazele } from './useListeler';
 import { uyar } from '../lib/pencere';
+import { messages } from '../lib/i18n';
 
 /** Sıralamadaki kayıt: denenmiş ve "Bir daha asla" bölümünde değil. */
 const siralamada = (i: Item) => i.denendi && !i.asla;
@@ -91,7 +92,7 @@ export function useListStore(slug: string) {
       // Şampiyon değişmiş olabilir: ray ve ana ekran ilk üçü yeniden okusun.
       listeleriTazele();
     } catch (e: unknown) {
-      void uyar('Sıralama kaydedilemedi: ' + hataMetni(e));
+      void uyar(messages().islem.siraKaydedilemedi(hataMetni(e)));
     } finally {
       setIsSaving(false);
     }
@@ -125,7 +126,7 @@ export function useListStore(slug: string) {
     editingItem: Item | null,
     targetIndex?: number
   ): Promise<Item> => {
-    if (!liste) throw new Error('Liste yüklenmedi.');
+    if (!liste) throw new Error(messages().islem.listeYuklenmedi);
     // `sira` ve `asla` bilerek dışarıda: konumu spliceIntoRanking / reorder belirliyor.
     const payload = {
       list_id: liste.id,

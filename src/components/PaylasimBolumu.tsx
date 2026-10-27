@@ -5,6 +5,7 @@ import { Liste } from '../types/item';
 import { kodUret, paylasimAdresi, paylasimMetni } from '../lib/paylasim';
 import { useAuth } from '../hooks/useAuth';
 import { onayla } from '../lib/pencere';
+import { messages } from '../lib/i18n';
 
 interface PaylasimBolumuProps {
   liste: Liste;
@@ -37,6 +38,7 @@ export default function PaylasimBolumu({ liste, busy, kodKaydet }: PaylasimBolum
     setPaylasabilir(typeof navigator.share === 'function');
   }, []);
 
+  const t = messages().paylasim;
   const kod = liste.paylasim_kodu;
   const adres = kod ? paylasimAdresi(kod, window.location.origin) : '';
   const mesaj = `${paylasimMetni(liste.ad)}: ${adres}`;
@@ -44,9 +46,9 @@ export default function PaylasimBolumu({ liste, busy, kodKaydet }: PaylasimBolum
   const kopyala = async () => {
     try {
       await navigator.clipboard.writeText(adres);
-      setBildirim('Bağlantı kopyalandı');
+      setBildirim(t.kopyalandi);
     } catch {
-      setBildirim('Kopyalanamadı — bağlantıyı seçip kopyalayabilirsin');
+      setBildirim(t.kopyalanamadi);
     }
   };
 
@@ -60,16 +62,16 @@ export default function PaylasimBolumu({ liste, busy, kodKaydet }: PaylasimBolum
 
   const yenile = async () => {
     if (!(await onayla({
-      metin: 'Yeni bir bağlantı oluşturulacak; eski bağlantı artık açılmayacak. Devam edilsin mi?',
-      onay: 'Yenile',
+      metin: t.yenilensinMi,
+      onay: t.yenile,
     }))) return;
     return kodKaydet(kodUret());
   };
 
   const kapat = async () => {
     if (!(await onayla({
-      metin: 'Paylaşım kapatılsın mı? Bağlantıyı alanlar listeyi artık göremeyecek.',
-      onay: 'Kapat',
+      metin: t.kapatilsinMi,
+      onay: t.kapat,
       tehlikeli: true,
     }))) return;
     return kodKaydet(null);
@@ -77,7 +79,7 @@ export default function PaylasimBolumu({ liste, busy, kodKaydet }: PaylasimBolum
 
   return (
     <section className="ayar-bolum">
-      <h2 className="ayar-bolum-baslik">Paylaşım</h2>
+      <h2 className="ayar-bolum-baslik">{t.bolum}</h2>
 
       {kod ? (
         <div className="paylas-acik">
@@ -87,19 +89,19 @@ export default function PaylasimBolumu({ liste, busy, kodKaydet }: PaylasimBolum
               value={adres}
               readOnly
               onFocus={(e) => e.currentTarget.select()}
-              aria-label="Paylaşım bağlantısı"
+              aria-label={t.baglantiEtiketi}
             />
           </div>
           <div className="paylas-islemler">
             {paylasabilir && (
-              <button type="button" className="btn-primary" onClick={paylas}>Paylaş</button>
+              <button type="button" className="btn-primary" onClick={paylas}>{t.paylas}</button>
             )}
             <button
               type="button"
               className={paylasabilir ? 'btn-quiet' : 'btn-primary'}
               onClick={kopyala}
             >
-              Kopyala
+              {t.kopyala}
             </button>
             <a
               className="btn-quiet"
@@ -113,30 +115,30 @@ export default function PaylasimBolumu({ liste, busy, kodKaydet }: PaylasimBolum
           <p className="paylas-not" aria-live="polite">
             {bildirim ?? (
               <>
-                Bağlantıyı alan herkes giriş yapmadan sıralamanı görebilir
-                {ad ? <> ve adını (<strong>{ad}</strong>) görür</> : null}. Notların ve denenmemişlerin görünmez.
+                {t.acikNot[0]}
+                {ad ? <>{t.acikNot[1]}<strong>{ad}</strong>{t.acikNot[2]}</> : null}{t.acikNot[3]}
               </>
             )}
           </p>
           <div className="paylas-islemler">
             <button type="button" className="btn-quiet" onClick={yenile} disabled={busy}>
-              Bağlantıyı yenile
+              {t.baglantiyiYenile}
             </button>
             <button type="button" className="btn-danger" onClick={kapat} disabled={busy}>
-              Paylaşımı kapat
+              {t.paylasimiKapat}
             </button>
           </div>
         </div>
       ) : (
         <div className="paylas-acik">
           <p className="paylas-not">
-            Bir bağlantı oluştur; alan herkes giriş yapmadan bu sıralamayı görebilsin.
-            {ad ? <> Listede adın (<strong>{ad}</strong>) görünür.</> : null}{' '}
-            Notların ve denenmemişlerin görünmez. Paylaşımı istediğin zaman kapatabilirsin.
+            {t.kapaliNot[0]}
+            {ad ? <>{t.kapaliNot[1]}<strong>{ad}</strong>{t.kapaliNot[2]}</> : null}
+            {t.kapaliNot[3]}
           </p>
           <div className="paylas-islemler">
             <button type="button" className="btn-primary" onClick={() => kodKaydet(kodUret())} disabled={busy}>
-              Paylaşım bağlantısı oluştur
+              {t.olustur}
             </button>
           </div>
         </div>

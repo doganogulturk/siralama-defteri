@@ -7,6 +7,7 @@ import {
 } from '../types/item';
 import { hataMetni } from '../lib/hata';
 import { uyar } from '../lib/pencere';
+import { dilEtiketi, messages } from '../lib/i18n';
 
 const KameraIkon = (
   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -41,6 +42,7 @@ export default function DetailPane({
   item, rank, kategoriler, alanlar, onEdit, onDelete, onFotograf, komsular, onSelect, onClose,
 }: DetailPaneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const t = messages().ayrinti;
   const [yukleniyor, setYukleniyor] = useState(false);
   const [surukleniyor, setSurukleniyor] = useState(false);
 
@@ -51,14 +53,14 @@ export default function DetailPane({
   const dosyaSec = async (file?: File) => {
     if (!file || yukleniyor) return;
     if (!file.type.startsWith('image/')) {
-      void uyar('Lütfen bir resim dosyası seç.');
+      void uyar(messages().ayrinti.resimSec);
       return;
     }
     setYukleniyor(true);
     try {
       await onFotograf(item, file);
     } catch (e: unknown) {
-      void uyar('Fotoğraf yüklenemedi: ' + hataMetni(e));
+      void uyar(messages().ayrinti.fotoYuklenemedi(hataMetni(e)));
     } finally {
       setYukleniyor(false);
     }
@@ -72,9 +74,9 @@ export default function DetailPane({
         {rank !== null
           ? <span className="detail-rank">#{rank}</span>
           : item.asla
-            ? <span className="detail-rank">Bir daha asla</span>
-            : <span className="detail-rank detail-rank-bekleyen">Denenmemiş</span>}
-        <button type="button" className="detail-close" onClick={onClose} aria-label="Seçimi kaldır">
+            ? <span className="detail-rank">{t.birDahaAsla}</span>
+            : <span className="detail-rank detail-rank-bekleyen">{t.denenmemis}</span>}
+        <button type="button" className="detail-close" onClick={onClose} aria-label={t.secimiKaldir}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" />
@@ -98,14 +100,14 @@ export default function DetailPane({
             {/* Kırpılmadan sığdırılıyor: ürün fotoğrafları çoğunlukla dikey şişe. */}
             <img src={item.fotograf_url} className="detail-photo" alt="" />
             <button type="button" className="detail-photo-btn" onClick={secimAc} disabled={yukleniyor}>
-              {yukleniyor ? 'Yükleniyor…' : 'Fotoğrafı değiştir'}
+              {yukleniyor ? messages().genel.yukleniyor : t.fotoDegistir}
             </button>
           </>
         ) : (
           <button type="button" className="detail-photo-bos" onClick={secimAc} disabled={yukleniyor}>
             {KameraIkon}
-            <b>{yukleniyor ? 'Yükleniyor…' : 'Fotoğraf ekle'}</b>
-            {!yukleniyor && <em>Tıkla ya da dosyayı buraya bırak</em>}
+            <b>{yukleniyor ? messages().genel.yukleniyor : t.fotoEkle}</b>
+            {!yukleniyor && <em>{t.fotoBirak}</em>}
           </button>
         )}
         <input
@@ -134,14 +136,14 @@ export default function DetailPane({
           {boolAlanlari.map(a => (
             bayrak(item, a.anahtar)
               ? <span className="chip chip-sour" key={a.anahtar}>{alanKisa(a)}</span>
-              : <span className="chip chip-plain" key={a.anahtar}>{alanKisa(a)} değil</span>
+              : <span className="chip chip-plain" key={a.anahtar}>{t.degil(alanKisa(a))}</span>
           ))}
         </div>
 
         {/* "#3" tek başına bağlamsız: bir üstü ve bir altıyla birlikte gösteriliyor. */}
         {rank !== null && komsular && (komsular.ust || komsular.alt) && (
           <section className="pane-section detail-yer">
-            <h3 className="pane-section-title">Sıralamadaki yeri</h3>
+            <h3 className="pane-section-title">{t.yeri}</h3>
             <div className="detail-komsular">
               {komsular.ust && (
                 <button type="button" className="detail-komsu" onClick={() => onSelect(komsular.ust!)}>
@@ -168,23 +170,23 @@ export default function DetailPane({
           })}
           {item.created_at && (
             <div>
-              <dt>Eklendi</dt>
-              <dd>{new Date(item.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</dd>
+              <dt>{t.eklendi}</dt>
+              <dd>{new Date(item.created_at).toLocaleDateString(dilEtiketi(), { day: 'numeric', month: 'long', year: 'numeric' })}</dd>
             </div>
           )}
         </dl>
 
         {item.notlar && (
           <section className="pane-section">
-            <h3 className="pane-section-title">Not</h3>
+            <h3 className="pane-section-title">{t.not}</h3>
             <p className="detail-not">{item.notlar}</p>
           </section>
         )}
       </div>
 
       <div className="detail-actions">
-        <button type="button" className="btn-danger" onClick={() => onDelete(item)}>Sil</button>
-        <button type="button" className="btn-primary" onClick={() => onEdit(item)}>Düzenle</button>
+        <button type="button" className="btn-danger" onClick={() => onDelete(item)}>{messages().genel.sil}</button>
+        <button type="button" className="btn-primary" onClick={() => onEdit(item)}>{messages().genel.duzenle}</button>
       </div>
     </div>
   );

@@ -33,10 +33,13 @@ import {
   AyarlarIkon, KartIkon, PaylasIkon, SatirIkon, TopluIkon,
 } from '../../../../components/liste/Ikonlar';
 import { uyar, onayla } from '../../../../lib/pencere';
+import { dilEtiketi, messages } from '../../../../lib/i18n';
 
 export default function ListePage() {
   const isDesktop = useIsDesktop();
   const SLUG = String(useParams().slug ?? '');
+  const m = messages();
+  const t = m.liste;
   const magaza = useListStore(SLUG);
   const {
     liste, kategoriler, items,
@@ -147,7 +150,7 @@ export default function ListePage() {
       listeleriTazele();
       closeForm();
     } catch (e: unknown) {
-      void uyar('Hata: ' + hataMetni(e));
+      void uyar(t.hata(hataMetni(e)));
     }
   };
 
@@ -176,14 +179,14 @@ export default function ListePage() {
   };
 
   const handleDelete = async (item: Item) => {
-    if (!(await onayla({ metin: `“${item.ad}” kaydı silinsin mi?`, onay: 'Sil', tehlikeli: true }))) return;
+    if (!(await onayla({ metin: t.silinsinMi(item.ad), onay: m.genel.sil, tehlikeli: true }))) return;
     try {
       await removeEntry(item);
       listeleriTazele();
       setSelectedId(prev => (prev === item.id ? null : prev));
       closeForm();
     } catch (e: unknown) {
-      void uyar('Silme sırasında hata oluştu: ' + hataMetni(e));
+      void uyar(t.silmeHatasi(hataMetni(e)));
     }
   };
 
@@ -212,7 +215,7 @@ export default function ListePage() {
     />
   );
 
-  const listeAdi = liste?.ad ?? 'Sıralama';
+  const listeAdi = liste?.ad ?? t.yedekAd;
 
   /**
    * Başlıktaki Paylaş: liste paylaşılıyorsa bağlantı ya da story görseli menüsü
@@ -229,9 +232,9 @@ export default function ListePage() {
     if (!liste) {
       return (
         <div className="state-empty">
-          <p className="state-empty-title">Liste bulunamadı</p>
-          <p>“{SLUG}” adında bir listen yok.</p>
-          <Link href="/" className="btn-primary">Listelerime dön</Link>
+          <p className="state-empty-title">{t.bulunamadi}</p>
+          <p>{t.bulunamadiMetin(SLUG)}</p>
+          <Link href="/" className="btn-primary">{t.listelerimeDon}</Link>
         </div>
       );
     }
@@ -239,8 +242,8 @@ export default function ListePage() {
       if (istekListesi.length > 0 && gorunenIstek.length === 0) {
         return (
           <div className="state-empty">
-            <p className="state-empty-title">Eşleşen kayıt yok</p>
-            <p>Seçtiğin filtrelere uyan bekleyen kayıt bulunmuyor.</p>
+            <p className="state-empty-title">{t.eslesenYok}</p>
+            <p>{t.filtreBekleyenYok}</p>
           </div>
         );
       }
@@ -264,20 +267,17 @@ export default function ListePage() {
       return (
         <div className="state-empty">
           <BosSahne tur="siralama" />
-          <p className="state-empty-title">Henüz kaydın yok</p>
-          <p>
-            İlk kaydını ekleyerek kendi sıralamanı oluşturmaya başla — uzun bir listen varsa
-            formun “Toplu” sekmesine hepsini birden yapıştırabilirsin.
-          </p>
-          <button type="button" className="btn-primary" onClick={openAdd}>İlk Kaydı Ekle</button>
+          <p className="state-empty-title">{t.bosBaslik}</p>
+          <p>{t.bosMetin}</p>
+          <button type="button" className="btn-primary" onClick={openAdd}>{t.ilkKayit}</button>
         </div>
       );
     }
     if (visible.length === 0 && visibleAsla.length === 0) {
       return (
         <div className="state-empty">
-          <p className="state-empty-title">Eşleşen kayıt yok</p>
-          <p>Seçtiğin filtrelere uyan kayıt bulunmuyor.</p>
+          <p className="state-empty-title">{t.eslesenYok}</p>
+          <p>{t.filtreKayitYok}</p>
         </div>
       );
     }
@@ -312,7 +312,7 @@ export default function ListePage() {
         {/* Başlık, sekmeler ve filtreler kaydırmada sabit; yalnızca kayıtlar hareket ediyor. */}
         <div className="sticky-top">
         <div className="mobile-brand">
-          <Link href="/" className="mobile-brand-back" aria-label="Listelerim">
+          <Link href="/" className="mobile-brand-back" aria-label={m.menu.listelerim}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M15 5l-7 7 7 7" />
@@ -325,47 +325,47 @@ export default function ListePage() {
             <em>
               {loading || !liste
                 ? ' '
-                : ranked[0] ? <>Şampiyon: <b>{ranked[0].ad}</b></> : 'Henüz sıralama yok'}
+                : ranked[0] ? <>{t.sampiyon}<b>{ranked[0].ad}</b></> : t.siralamaYok}
             </em>
           </span>
           <div className="mobile-brand-yan">
           <button
             type="button"
             className="mobile-brand-settings"
-            aria-label="Listeyi paylaş"
+            aria-label={t.paylasEtiket}
             onClick={paylas}
             disabled={!liste}
           >
             {PaylasIkon}
-            <span className="mobile-brand-settings-ad">Paylaş</span>
+            <span className="mobile-brand-settings-ad">{t.paylas}</span>
           </button>
           {/* Telefonda ayarlar alt menüde; başlıkta yalnızca masaüstünde (CSS). */}
           <button
             type="button"
             className="mobile-brand-settings is-ayarlar"
-            aria-label="Liste ayarları"
+            aria-label={t.ayarlarEtiket}
             onClick={() => setAyarlarAcik(true)}
             disabled={!liste}
           >
             {AyarlarIkon}
             {/* Etiket yalnızca masaüstünde: mobil başlıkta sığmaz, adı keserdi. */}
-            <span className="mobile-brand-settings-ad">Liste ayarları</span>
+            <span className="mobile-brand-settings-ad">{t.ayarlarEtiket}</span>
           </button>
           </div>
         </div>
 
         {total > 0 && (
           <p className="mobile-summary">
-            <strong>{total}</strong> kayıt sıraladın
+            <strong>{t.ozet(total)[0]}</strong>{t.ozet(total)[1]}
             {ozetAlan && (
               <>
-                {' '}· <strong>{ozetEvet}</strong> tanesi {alanKisa(ozetAlan).toLocaleLowerCase('tr')} ·{' '}
-                <strong>{total - ozetEvet}</strong> tanesi değil
+                {' '}· <strong>{ozetEvet}</strong> {t.ozetEvet(alanKisa(ozetAlan).toLocaleLowerCase(dilEtiketi())).join('')} ·{' '}
+                <strong>{total - ozetEvet}</strong> {t.ozetHayir}
               </>
             )}
             {/* "Ben de sıralayayım" ile kopyalanan listede kaynağıyla karşılaştırmaya kısa yol. */}
             {liste?.kaynak_kod && (
-              <> · <Link href={`/kiyasla/${liste.kaynak_kod}`} className="mobile-summary-link">Karşılaştır</Link></>
+              <> · <Link href={`/kiyasla/${liste.kaynak_kod}`} className="mobile-summary-link">{t.karsilastir}</Link></>
             )}
           </p>
         )}
@@ -373,14 +373,14 @@ export default function ListePage() {
           {/* Masaüstünde tek satır: sekmeler solda, kategori şeridi ortada, görünüm ve "Seç" sağda.
               Mobilde satır sarıyor: sekmeler kendi satırında ortalı, altında filtreler. */}
           <div className="liste-arac">
-            <nav className="tabs" aria-label="Liste görünümü">
+            <nav className="tabs" aria-label={t.gorunumMenu}>
               <button
                 type="button"
                 className={`tab${sekme === 'siralama' ? ' is-on' : ''}`}
                 aria-current={sekme === 'siralama' ? 'page' : undefined}
                 onClick={() => sekmeSec('siralama')}
               >
-                Sıralamam · {total}
+                {t.sekmeSiralama(total)}
               </button>
               <button
                 type="button"
@@ -388,7 +388,7 @@ export default function ListePage() {
                 aria-current={sekme === 'sirada' ? 'page' : undefined}
                 onClick={() => sekmeSec('sirada')}
               >
-                Denenmemiş · {istekListesi.length}
+                {t.sekmeDenenmemis(istekListesi.length)}
               </button>
             </nav>
             <div className="liste-arac-filtre">
@@ -397,13 +397,13 @@ export default function ListePage() {
               <div className="desk-filters">{renderFilterPanel('desk', 'inline')}</div>
             </div>
             {isDesktop && (sekme === 'sirada' ? istekListesi.length : total) > 0 && (
-              <div className="gorunum-secici" role="group" aria-label="Görünüm">
+              <div className="gorunum-secici" role="group" aria-label={t.gorunum}>
                 <button
                   type="button"
                   className={gorunum === 'kart' ? 'is-on' : ''}
                   aria-pressed={gorunum === 'kart'}
-                  aria-label="Kart görünümü"
-                  title="Kart görünümü"
+                  aria-label={t.kartGorunumu}
+                  title={t.kartGorunumu}
                   onClick={() => gorunumSec('kart')}
                 >
                   {KartIkon}
@@ -412,8 +412,8 @@ export default function ListePage() {
                   type="button"
                   className={gorunum === 'satir' ? 'is-on' : ''}
                   aria-pressed={gorunum === 'satir'}
-                  aria-label="Satır görünümü"
-                  title="Satır görünümü"
+                  aria-label={t.satirGorunumu}
+                  title={t.satirGorunumu}
                   onClick={() => gorunumSec('satir')}
                 >
                   {SatirIkon}
@@ -428,14 +428,14 @@ export default function ListePage() {
                 aria-pressed={!!secim}
                 onClick={() => (secim ? secimModu.kapat() : secimAc())}
               >
-                {secim ? 'Bitti' : 'Seç'}
+                {secim ? t.bitti : t.sec}
               </button>
             )}
           </div>
 
           {sekme === 'siralama' && !canReorder && (
             <p className="list-note">
-              Sıralama yalnızca filtresiz görünümde değiştirilebilir.
+              {t.filtreliNot}
             </p>
           )}
         </div>
@@ -443,7 +443,7 @@ export default function ListePage() {
         {error && (
           <div className="alert">
             {error}
-            <button type="button" onClick={load}>Tekrar dene</button>
+            <button type="button" onClick={load}>{m.ana.tekrarDene}</button>
           </div>
         )}
 
@@ -461,12 +461,12 @@ export default function ListePage() {
               className="fab"
               onClick={() => openForm(sekme === 'sirada' ? 'istek' : 'siralama')}
             >
-              {sekme === 'sirada' ? 'Denenmemiş kayıt ekle' : 'Kayıt ekle'}
+              {sekme === 'sirada' ? t.denenmemisKayitEkle : t.kayitEkle}
             </button>
-            <nav className="mobil-menu" aria-label="Liste menüsü">
+            <nav className="mobil-menu" aria-label={t.listeMenusu}>
               <Link href="/" className="mobil-menu-oge">
                 {ListelerIkon}
-                <span>Listelerim</span>
+                <span>{m.menu.listelerim}</span>
               </Link>
               <button
                 type="button"
@@ -475,7 +475,7 @@ export default function ListePage() {
                 disabled={!liste}
               >
                 {ArtiIkon}
-                <span>{sekme === 'sirada' ? 'Denenmemiş ekle' : 'Kayıt ekle'}</span>
+                <span>{sekme === 'sirada' ? t.denenmemisEkle : t.kayitEkle}</span>
               </button>
               <button
                 type="button"
@@ -484,7 +484,7 @@ export default function ListePage() {
                 disabled={!liste}
               >
                 {TopluIkon}
-                <span>Toplu ekle</span>
+                <span>{t.topluEkle}</span>
               </button>
               <button
                 type="button"
@@ -493,7 +493,7 @@ export default function ListePage() {
                 disabled={!liste}
               >
                 {AyarlarIkon}
-                <span>Ayarlar</span>
+                <span>{t.ayarlar}</span>
               </button>
             </nav>
           </>
@@ -541,7 +541,7 @@ export default function ListePage() {
       )}
 
       {isSaving || secimModu.atamaSuruyor
-        ? <div className="toast">{secimModu.atamaSuruyor ? 'Uygulanıyor…' : 'Sıralama kaydediliyor…'}</div>
+        ? <div className="toast">{secimModu.atamaSuruyor ? t.uygulaniyor : t.siraKaydediliyor}</div>
         : bildirim && <div className="toast" role="status">{bildirim}</div>}
 
       <ItemForm

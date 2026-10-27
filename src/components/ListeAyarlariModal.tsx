@@ -12,6 +12,7 @@ import { SINIR } from '../lib/sinirlar';
 import Sheet from './Sheet';
 import PaylasimBolumu from './PaylasimBolumu';
 import { uyar, onayla } from '../lib/pencere';
+import { messages } from '../lib/i18n';
 
 const KaldirIkon = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -26,6 +27,9 @@ const KapatIkon = (
     <path d="M6 6l12 12M18 6L6 18" />
   </svg>
 );
+
+/** Ek alanın kalıcı anahtarı; etiket değişse de değerler ona bağlı kalıyor. */
+const yeniAlanAnahtari = () => `alan_${Date.now().toString(36)}`;
 
 interface ListeAyarlariModalProps {
   liste: Liste;
@@ -47,6 +51,8 @@ export default function ListeAyarlariModal({
   liste, kategoriler, items, onChanged, onClose, onKategorisizAta,
 }: ListeAyarlariModalProps) {
   const router = useRouter();
+  const m = messages();
+  const t = m.ayarlar;
   const [ad, setAd] = useState(liste.ad);
   const [busy, setBusy] = useState(false);
 
@@ -67,7 +73,7 @@ export default function ListeAyarlariModal({
       // Raydaki ve ana ekrandaki ad ile sayılar da değişmiş olabilir.
       listeleriTazele();
     } catch (e: unknown) {
-      void uyar('İşlem başarısız: ' + hataMetni(e));
+      void uyar(t.basarisiz(hataMetni(e)));
     } finally {
       setBusy(false);
     }
@@ -105,10 +111,7 @@ export default function ListeAyarlariModal({
 
   const kategoriSil = async (kat: Kategori) => {
     const adet = items.filter(i => i.category_id === kat.id).length;
-    const uyari = adet > 0
-      ? `“${kat.ad}” kategorisini silmek istiyor musun? ${adet} kayıt kategorisiz kalacak (kayıtlar silinmez).`
-      : `“${kat.ad}” kategorisini silmek istiyor musun?`;
-    if (!(await onayla({ metin: uyari, onay: 'Sil', tehlikeli: true }))) return;
+    if (!(await onayla({ metin: t.kategoriSilinsinMi(kat.ad, adet), onay: m.genel.sil, tehlikeli: true }))) return;
     return calistir(() => deleteKategori(kat.id));
   };
 
@@ -139,7 +142,7 @@ export default function ListeAyarlariModal({
     const etiket = yeniAlanEtiket.trim();
     if (!etiket) return;
     const yeni: AlanTanimi = {
-      anahtar: `alan_${Date.now().toString(36)}`,
+      anahtar: yeniAlanAnahtari(),
       tip: yeniAlanTip,
       etiket,
       ...(yeniAlanTip === 'bool' ? { filtre: true } : {}),
@@ -154,8 +157,8 @@ export default function ListeAyarlariModal({
 
   const alanSil = async (alan: AlanTanimi) => {
     if (!(await onayla({
-      metin: `“${alan.etiket}” alanı kaldırılsın mı? Kayıtlardaki değerler görünmez olur.`,
-      onay: 'Kaldır',
+      metin: t.alanKaldirilsinMi(alan.etiket),
+      onay: t.kaldir,
       tehlikeli: true,
     }))) return;
     return calistir(() =>
@@ -167,8 +170,8 @@ export default function ListeAyarlariModal({
   // Ortak yoldan geçmiyor: silinen listeyi baştan okumaya çalışmanın anlamı yok.
   const listeSil = async () => {
     if (!(await onayla({
-      metin: `“${liste.ad}” listesi ve içindeki ${toplam} kayıt kalıcı olarak silinecek. Emin misin?`,
-      onay: 'Listeyi sil',
+      metin: t.listeSilinsinMi(liste.ad, toplam),
+      onay: t.listeyiSil,
       tehlikeli: true,
     }))) return;
     setBusy(true);
@@ -177,15 +180,15 @@ export default function ListeAyarlariModal({
       listeleriTazele();
       router.push('/');
     } catch (e: unknown) {
-      void uyar('Liste silinemedi: ' + hataMetni(e));
+      void uyar(t.listeSilinemedi(hataMetni(e)));
       setBusy(false);
     }
   };
 
   return (
-    <Sheet onClose={onClose} className="form-screen-ayar" label="Liste ayarları">
+    <Sheet onClose={onClose} className="form-screen-ayar" label={t.baslik}>
       <header className="form-screen-header">
-        <button type="button" className="form-screen-back" onClick={onClose} aria-label="Kapat">
+        <button type="button" className="form-screen-back" onClick={onClose} aria-label={m.genel.kapat}>
           {KapatIkon}
         </button>
         <input
@@ -195,7 +198,7 @@ export default function ListeAyarlariModal({
           onBlur={adKaydet}
           maxLength={SINIR.listeAdi}
           onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-          aria-label="Liste adı"
+          aria-label={t.listeAdi}
         />
         <span className="form-screen-header-spacer" />
       </header>
@@ -208,7 +211,7 @@ export default function ListeAyarlariModal({
         />
 
         <section className="ayar-bolum">
-          <h2 className="ayar-bolum-baslik">Kategoriler</h2>
+          <h2 className="ayar-bolum-baslik">{t.kategoriler}</h2>
 
           <div className="kat-satirlar">
             {kategoriler.map(kat => (
@@ -219,50 +222,50 @@ export default function ListeAyarlariModal({
                   defaultValue={kat.ad}
                   onBlur={(e) => kategoriAdiKaydet(kat, e.target.value)}
                   maxLength={SINIR.kategoriAdi}
-                  aria-label={`${kat.ad} kategorisinin adı`}
+                  aria-label={t.kategoriAdiEtiketi(kat.ad)}
                 />
                 <span className="kat-sayi">
-                  {items.filter(i => i.category_id === kat.id).length} kayıt
+                  {t.kayitSayisi(items.filter(i => i.category_id === kat.id).length)}
                 </span>
                 <button
                   type="button"
                   className="ayar-sil"
                   onClick={() => kategoriSil(kat)}
                   disabled={busy}
-                  aria-label={`${kat.ad} kategorisini sil`}
+                  aria-label={t.kategoriyiSil(kat.ad)}
                 >
                   {KaldirIkon}
                 </button>
               </div>
             ))}
-            {kategoriler.length === 0 && <p className="ayar-bos">Henüz kategori yok.</p>}
+            {kategoriler.length === 0 && <p className="ayar-bos">{t.kategoriYok}</p>}
           </div>
 
           {/* Kategoriler sonradan açıldıysa kayıtlar hâlâ kategorisiz: tek tek düzenlemek yerine toplu atamaya köprü. */}
           {kategoriler.length > 0 && kategorisiz > 0 && onKategorisizAta && (
             <button type="button" className="ayar-kopru" onClick={onKategorisizAta}>
-              <span><strong>{kategorisiz} kayıt</strong> kategorisiz</span>
-              <em>Şimdi ata →</em>
+              <span><strong>{t.kategorisiz(kategorisiz)[0]}</strong>{t.kategorisiz(kategorisiz)[1]}</span>
+              <em>{t.simdiAta}</em>
             </button>
           )}
 
           <div className="ayar-ekle">
             <input
               className="field-input"
-              placeholder="Yeni kategori adı"
+              placeholder={t.yeniKategoriAdi}
               value={yeniKategori}
               onChange={(e) => setYeniKategori(e.target.value)}
               maxLength={SINIR.kategoriAdi}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void kategoriEkle(); } }}
             />
             <button type="button" className="btn-primary" onClick={kategoriEkle} disabled={busy}>
-              Ekle
+              {t.ekle}
             </button>
           </div>
         </section>
 
         <section className="ayar-bolum">
-          <h2 className="ayar-bolum-baslik">Ek alanlar</h2>
+          <h2 className="ayar-bolum-baslik">{t.ekAlanlar}</h2>
 
           <div className="alan-satirlar">
             {alanlar.map(alan => (
@@ -272,10 +275,10 @@ export default function ListeAyarlariModal({
                   value={alan.tip}
                   onChange={(e) => alanTipiKaydet(alan, e.target.value as AlanTipi)}
                   disabled={busy}
-                  aria-label={`${alan.etiket} alanının tipi`}
+                  aria-label={t.alanTipiEtiketi(alan.etiket)}
                 >
-                  <option value="bool">Evet/Hayır</option>
-                  <option value="metin">Metin</option>
+                  <option value="bool">{t.evetHayir}</option>
+                  <option value="metin">{t.metin}</option>
                 </select>
                 <input
                   className="alan-ad"
@@ -283,14 +286,14 @@ export default function ListeAyarlariModal({
                   onBlur={(e) => alanAdiKaydet(alan, e.target.value)}
                   maxLength={SINIR.alanAdi}
                   disabled={busy}
-                  aria-label={`${alan.etiket} alanının adı`}
+                  aria-label={t.alanAdiEtiketi(alan.etiket)}
                 />
                 <button
                   type="button"
                   className="ayar-sil"
                   onClick={() => alanSil(alan)}
                   disabled={busy}
-                  aria-label={`${alan.etiket} alanını kaldır`}
+                  aria-label={t.alaniKaldir(alan.etiket)}
                 >
                   {KaldirIkon}
                 </button>
@@ -299,46 +302,46 @@ export default function ListeAyarlariModal({
                   value={alan.kategori_id ?? ''}
                   onChange={(e) => alanKategoriKaydet(alan, e.target.value)}
                   disabled={busy}
-                  aria-label={`${alan.etiket} alanının kapsamı`}
+                  aria-label={t.alanKapsamiEtiketi(alan.etiket)}
                 >
-                  <option value="">Tüm kategoriler</option>
+                  <option value="">{t.tumKategoriler}</option>
                   {kategoriler.map(k => (
-                    <option key={k.id} value={k.id}>Yalnızca {k.ad}</option>
+                    <option key={k.id} value={k.id}>{t.yalnizca(k.ad)}</option>
                   ))}
                 </select>
               </div>
             ))}
-            {alanlar.length === 0 && <p className="ayar-bos">Henüz ek alan yok.</p>}
+            {alanlar.length === 0 && <p className="ayar-bos">{t.alanYok}</p>}
           </div>
 
           <div className="alan-ekle">
             <input
               className="field-input"
-              placeholder="Alan adı"
+              placeholder={t.alanAdi}
               value={yeniAlanEtiket}
               onChange={(e) => setYeniAlanEtiket(e.target.value)}
               maxLength={SINIR.alanAdi}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void alanEkle(); } }}
-              aria-label="Yeni alanın adı"
+              aria-label={t.yeniAlanAdi}
             />
             <select
               className="alan-tip"
               value={yeniAlanTip}
               onChange={(e) => setYeniAlanTip(e.target.value as AlanTipi)}
-              aria-label="Yeni alanın tipi"
+              aria-label={t.yeniAlanTipi}
             >
-              <option value="bool">Evet/Hayır</option>
-              <option value="metin">Metin</option>
+              <option value="bool">{t.evetHayir}</option>
+              <option value="metin">{t.metin}</option>
             </select>
             <select
               className="alan-kat"
               value={yeniAlanKategori}
               onChange={(e) => setYeniAlanKategori(e.target.value)}
-              aria-label="Yeni alanın kapsamı"
+              aria-label={t.yeniAlanKapsami}
             >
-              <option value="">Tüm kategoriler</option>
+              <option value="">{t.tumKategoriler}</option>
               {kategoriler.map(k => (
-                <option key={k.id} value={k.id}>Yalnızca {k.ad}</option>
+                <option key={k.id} value={k.id}>{t.yalnizca(k.ad)}</option>
               ))}
             </select>
             <button
@@ -347,14 +350,14 @@ export default function ListeAyarlariModal({
               onClick={alanEkle}
               disabled={busy || !yeniAlanEtiket.trim()}
             >
-              Alan ekle
+              {t.alanEkle}
             </button>
           </div>
         </section>
 
         {/* Yalnızca düğme: neyin silineceğini onay penceresi söylüyor. */}
         <button type="button" className="btn-danger ayar-liste-sil" onClick={listeSil} disabled={busy}>
-          Listeyi sil
+          {t.listeyiSil}
         </button>
       </div>
     </Sheet>

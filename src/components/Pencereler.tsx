@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { pencereAbone, pencereKapat, siradakiPencere } from '../lib/pencere';
+import { messages } from '../lib/i18n';
 
 /**
  * `lib/pencere.ts`'teki uyarı ve onay isteklerini çizen tek pencere; kök düzende bağlı.
@@ -39,7 +40,7 @@ export default function Pencereler() {
         <p id="onay-metin" className="onay-metin">{istek.metin}</p>
         <div className="onay-dugmeler">
           {istek.tur === 'onay' && (
-            <button type="button" className="btn-quiet" data-vazgec onClick={vazgec}>Vazgeç</button>
+            <button type="button" className="btn-quiet" data-vazgec onClick={vazgec}>{messages().genel.vazgec}</button>
           )}
           <button
             type="button"

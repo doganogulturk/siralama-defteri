@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { messages } from '../lib/i18n';
 
 /**
  * Uygulamanın arayüzünden küçük parçalar (.oz-*): giriş ekranındaki özellik
@@ -23,28 +24,29 @@ export const SahneSatiri = ({ no, ad, foto, className = '' }: {
 
 /** Boş durum kartlarının üstündeki sahne: ne olacağını metinden önce gösteriyor. */
 export function BosSahne({ tur }: { tur: 'listeler' | 'siralama' | 'denenmemis' }) {
+  const t = messages().sahne;
   return (
     <div className="oz-sahne" aria-hidden="true">
       {tur === 'listeler' && (
         <span className="oz-listeler">
-          {['Kola', 'Döner', 'Kahve'].map(ad => (
+          {t.listeler.map(ad => (
             <span className="oz-liste is-taslak" key={ad}><em>{ad}</em></span>
           ))}
         </span>
       )}
       {tur === 'siralama' && (
         <>
-          <SahneSatiri no="1" ad="İlk kaydın" foto="#c5501f" className="is-kalkik" />
-          <SahneSatiri no="2" ad="Sıradaki" className="is-taslak" />
+          <SahneSatiri no="1" ad={t.ilkKayit} foto="#c5501f" className="is-kalkik" />
+          <SahneSatiri no="2" ad={t.siradaki} className="is-taslak" />
         </>
       )}
       {tur === 'denenmemis' && (
         <>
-          <span className="oz-segment"><em>Sıralamam</em><em className="is-on">Denenmemiş</em></span>
+          <span className="oz-segment"><em>{t.siralamam}</em><em className="is-on">{t.denenmemis}</em></span>
           <span className="oz-row is-taslak">
             <span className="oz-foto is-taslak" />
-            <span className="oz-ad">Denemek istediğin</span>
-            <em className="oz-denedim">Denedim</em>
+            <span className="oz-ad">{t.denemekIstedigin}</span>
+            <em className="oz-denedim">{t.denedim}</em>
           </span>
         </>
       )}

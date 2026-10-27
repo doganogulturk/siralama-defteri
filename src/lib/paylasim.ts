@@ -1,5 +1,6 @@
 import { AlanTanimi, Item } from '../types/item';
 import { KOVA } from './kova';
+import { DIL_PARAMETRE, simdikiDil, sozluk, type Dil } from './i18n';
 
 /*
  * Salt okunur paylaşım: hem sunucudaki paylaşım sayfası hem istemcideki ayarlar
@@ -26,10 +27,15 @@ export function kodUret(uzunluk = 16): string {
   return kod;
 }
 
-export const paylasimAdresi = (kod: string, koken: string) => `${koken}/p/${kod}`;
+/**
+ * Paylaşım bağlantısı. Paylaşan İngilizce kullanıyorsa bağlantı dili taşır (`?l=en`): önizleme kartı ve
+ * story görseli onun dilinde çizilir, kendi dil seçimi olmayan ziyaretçi de sayfayı o dilde görür.
+ */
+export const paylasimAdresi = (kod: string, koken: string, dil: Dil = simdikiDil()) =>
+  `${koken}/p/${kod}${dil === 'tr' ? '' : `?${DIL_PARAMETRE}=${dil}`}`;
 
 /** Paylaşım menüsünde ve WhatsApp mesajında bağlantının önündeki metin. */
-export const paylasimMetni = (listeAdi: string) => `${listeAdi} sıralamam`;
+export const paylasimMetni = (listeAdi: string, dil: Dil = simdikiDil()) => sozluk(dil).paylasim.metin(listeAdi);
 
 export type PaylasilanKayit =
   Pick<Item, 'id' | 'category_id' | 'ad' | 'alt_ad' | 'fotograf_url' | 'ozellikler'> & { asla: boolean };
@@ -64,8 +70,24 @@ export function tamlayan(ad: string): string {
 }
 
 /** Sayfa başlığı ve önizleme kartı: "Döner — Doğan Oğultürk'ün sıralaması". */
-export const paylasimBasligi = (liste: Pick<PaylasilanListe, 'ad' | 'sahip'>) =>
-  liste.sahip ? `${liste.ad} — ${tamlayan(liste.sahip)} sıralaması` : `${liste.ad} sıralaması`;
+export const paylasimBasligi = (liste: Pick<PaylasilanListe, 'ad' | 'sahip'>, dil: Dil = simdikiDil()) => {
+  const t = sozluk(dil).paylasim;
+  return liste.sahip
+    ? t.baslik(liste.ad, t.sahibinSiralamasi(iyelik(liste.sahip, dil)))
+    : t.listeninSiralamasi(liste.ad);
+};
+
+/** İngilizce iyelik: "Doğan" → "Doğan's", "James" → "James'". */
+export const englishPossessive = (ad: string) => (/s$/i.test(ad) ? `${ad}'` : `${ad}'s`);
+
+/** Adın iyelik hâli, dile göre: "Doğan'ın" ya da "Doğan's". */
+export const iyelik = (ad: string, dil: Dil = simdikiDil()) => (dil === 'en' ? englishPossessive(ad) : tamlayan(ad));
+
+/** "Doğan'ın sıralaması" / "Doğan's ranking"; sahip bilinmiyorsa "Bir sıralama". */
+export const sahibinSiralamasi = (sahip: string | null, dil: Dil = simdikiDil()) => {
+  const t = sozluk(dil).paylasim;
+  return sahip ? t.sahibinSiralamasi(iyelik(sahip, dil)) : t.birSiralama;
+};
 
 /**
  * Kayıttaki fotoğraf adresi yalnızca uygulamanın kendi kovasındaysa kullanılıyor.

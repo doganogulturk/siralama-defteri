@@ -10,7 +10,8 @@ import {
 } from '@dnd-kit/sortable';
 import { DraggableRow, StaticRow, SuruklenebilirAslaSiniri, ASLA_SINIRI } from './ItemRow';
 import { KopyaSecimi, listeKopyala } from '../lib/kopya';
-import { PaylasilanKayit, PaylasilanListe, guvenliFoto, tamlayan } from '../lib/paylasim';
+import { PaylasilanKayit, PaylasilanListe, guvenliFoto, iyelik } from '../lib/paylasim';
+import { messages } from '../lib/i18n';
 import { hataMetni } from '../lib/hata';
 import { titret } from '../lib/his';
 import { useTac } from '../hooks/useTac';
@@ -102,7 +103,7 @@ export default function KopyaSiralama({ kod, kaynak, onBitti }: {
       titret('basari');
       onBitti(liste);
     } catch (e: unknown) {
-      void uyar('Liste oluşturulamadı: ' + hataMetni(e));
+      void uyar(messages().kopya.olusturulamadi(hataMetni(e)));
       setKaydediliyor(false);
       setIlerleme(null);
     }
@@ -112,13 +113,12 @@ export default function KopyaSiralama({ kod, kaynak, onBitti }: {
     <div className="kiyas">
       <section className="kiyas-bas">
         <p className="paylasim-sahip">
-          {kaynak.sahip ? `${tamlayan(kaynak.sahip)} listesi` : 'Paylaşılan liste'}
+          {kaynak.sahip ? messages().paylasim.sahibinListesi(iyelik(kaynak.sahip)) : messages().paylasim.paylasilanListe}
         </p>
         <h1 className="paylasim-baslik">{kaynak.ad}</h1>
-        <p className="kiyas-soru">Sen nasıl sıralardın?</p>
+        <p className="kiyas-soru">{messages().kopya.soru}</p>
         <p className="kiyas-ipucu">
-          Kayıtlar karışık sırayla geldi, onunkinden etkilenme diye. Sürükleyerek kendi sırana diz;
-          sevmediklerini çizginin altına at. Denemediğin bir kayda <strong>dokun</strong>, kenara ayrılsın.
+          {messages().kopya.ipucu[0]}<strong>{messages().kopya.ipucu[1]}</strong>{messages().kopya.ipucu[2]}
         </p>
       </section>
 
@@ -143,7 +143,7 @@ export default function KopyaSiralama({ kod, kaynak, onBitti }: {
             ))}
             <SuruklenebilirAslaSiniri adet={asla.length} />
             {asla.length === 0 && (
-              <p className="asla-bos">Bir daha asla dediklerini bu çizginin altına sürükle.</p>
+              <p className="asla-bos">{messages().satir.aslaBos}</p>
             )}
             {asla.map(id => (
               <DraggableRow
@@ -161,11 +161,11 @@ export default function KopyaSiralama({ kod, kaynak, onBitti }: {
       </DndContext>
 
       {denemedim.length > 0 && (
-        <section className="kiyas-denemedim" aria-label="Denemediklerin">
+        <section className="kiyas-denemedim" aria-label={messages().kopya.denemediklerin}>
           <h2 className="kiyas-alt-baslik">
-            Denemediklerin <span>{denemedim.length}</span>
+            {messages().kopya.denemediklerin} <span>{denemedim.length}</span>
           </h2>
-          <p className="kiyas-ipucu">Listene “Denenmemiş” olarak geçecek. Yanlışlıkla ayırdıysan dokun, geri gelsin.</p>
+          <p className="kiyas-ipucu">{messages().kopya.denemedimIpucu}</p>
           <div className="rows">
             {denemedim.map((id, i) => (
               <StaticRow
@@ -184,8 +184,8 @@ export default function KopyaSiralama({ kod, kaynak, onBitti }: {
       <div className="kiyas-cubuk">
         <span className="kiyas-cubuk-ozet">
           {ilerleme && ilerleme[1] > 0
-            ? <>Fotoğraflar kopyalanıyor <strong>{ilerleme[0]}/{ilerleme[1]}</strong></>
-            : <><strong>{siralama.length}</strong> sıralandı{denemedim.length > 0 && <> · <strong>{denemedim.length}</strong> denenmemiş</>}</>}
+            ? <>{messages().kopya.fotoKopyalaniyor}<strong>{ilerleme[0]}/{ilerleme[1]}</strong></>
+            : <><strong>{siralama.length}</strong>{messages().kopya.siralandi}{denemedim.length > 0 && <> · <strong>{denemedim.length}</strong>{messages().kopya.denenmemis}</>}</>}
         </span>
         <button
           type="button"
@@ -193,7 +193,7 @@ export default function KopyaSiralama({ kod, kaynak, onBitti }: {
           onClick={kaydet}
           disabled={kaydediliyor || siralama.length + asla.length === 0}
         >
-          {kaydediliyor ? 'Oluşturuluyor…' : 'Sıralamam hazır'}
+          {kaydediliyor ? messages().kopya.olusturuluyor : messages().kopya.hazir}
         </button>
       </div>
     </div>

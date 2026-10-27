@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
 import { listeleriTazele } from '../hooks/useListeler';
 import ListeEkleModal from './ListeEkleModal';
+import { messages } from '../lib/i18n';
 
 export const ListelerIkon = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -44,21 +45,22 @@ export default function MobilMenu({ aktif }: { aktif: 'listeler' | 'kor' }) {
   const { user } = useAuth();
   const [formAcik, setFormAcik] = useState(false);
   if (!user) return null;
+  const m = messages().menu;
 
   return (
     <>
-      <nav className="mobil-menu" aria-label="Ana menü">
+      <nav className="mobil-menu" aria-label={m.ana}>
         <Link
           href="/"
           className={`mobil-menu-oge${aktif === 'listeler' ? ' is-on' : ''}`}
           aria-current={aktif === 'listeler' ? 'page' : undefined}
         >
           {ListelerIkon}
-          <span>Listelerim</span>
+          <span>{m.listelerim}</span>
         </Link>
         <button type="button" className="mobil-menu-oge" onClick={() => setFormAcik(true)}>
           {ArtiIkon}
-          <span>Yeni liste</span>
+          <span>{m.yeniListe}</span>
         </button>
         <Link
           href="/kor"
@@ -66,7 +68,7 @@ export default function MobilMenu({ aktif }: { aktif: 'listeler' | 'kor' }) {
           aria-current={aktif === 'kor' ? 'page' : undefined}
         >
           {KorIkon}
-          <span>Kör Sıralama</span>
+          <span>{m.kor}</span>
         </Link>
       </nav>
 

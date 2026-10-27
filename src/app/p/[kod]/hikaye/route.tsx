@@ -1,6 +1,8 @@
 import { ImageResponse } from 'next/og';
 import { brandInitials } from '../../../../types/item';
-import { PaylasilanKayit, tamlayan } from '../../../../lib/paylasim';
+import { PaylasilanKayit, iyelik } from '../../../../lib/paylasim';
+import { DIL_PARAMETRE, sozluk } from '../../../../lib/i18n';
+import { baglantiDili } from '../../../../lib/i18n/sunucu';
 import { paylasilanListe } from '../../../../lib/paylasim-sunucu';
 import { RENK, fotoVerisi, yaziTipleri } from '../../../../lib/gorsel-sunucu';
 
@@ -68,7 +70,9 @@ export async function GET(istek: Request, { params }: { params: Promise<{ kod: s
   const ilkBes = liste.kayitlar.filter(k => !k.asla).slice(0, 5);
   const fotolar = await Promise.all(ilkBes.map(k => fotoVerisi(k.fotograf_url)));
   const [sampiyon, ...kalanlar] = ilkBes;
-  const sahip = liste.sahip ? tamlayan(liste.sahip.split(' ')[0]) : 'Benim';
+  const dil = baglantiDili(new URL(istek.url).searchParams.get(DIL_PARAMETRE));
+  const t = sozluk(dil);
+  const sahip = t.paylasimSayfasi.storySahibi(liste.sahip ? iyelik(liste.sahip.split(' ')[0], dil) : null);
   const adBoyu = liste.ad.length > 16 ? 120 : liste.ad.length > 10 ? 150 : 190;
   const site = new URL(istek.url).host;
 
@@ -84,7 +88,7 @@ export async function GET(istek: Request, { params }: { params: Promise<{ kod: s
         <Logo />
 
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: 56 }}>
-          <div style={{ fontSize: 44, color: RENK.soluk }}>{`${sahip} sıralaması`}</div>
+          <div style={{ fontSize: 44, color: RENK.soluk }}>{sahip}</div>
           <div
             style={{
               fontFamily: 'Instrument Serif', fontSize: adBoyu, lineHeight: 0.92, letterSpacing: -2, marginTop: 8,
@@ -104,7 +108,7 @@ export async function GET(istek: Request, { params }: { params: Promise<{ kod: s
             <Kutu kayit={sampiyon} foto={fotolar[0]} boyut={260} yaricap={30} />
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: 'Instrument Serif', fontSize: 150, lineHeight: 0.8, color: RENK.vurgu }}>1</div>
-              <div style={{ fontSize: 30, color: RENK.vurgu, marginTop: 14, letterSpacing: 4 }}>ŞAMPİYON</div>
+              <div style={{ fontSize: 30, color: RENK.vurgu, marginTop: 14, letterSpacing: 4 }}>{t.paylasimSayfasi.sampiyonEtiket}</div>
               <div style={{ fontSize: 62, lineHeight: 1.05, marginTop: 14 }}>{sampiyon.ad}</div>
               {sampiyon.alt_ad && (
                 <div style={{ fontSize: 36, color: RENK.soluk, marginTop: 6, ...tekSatir }}>{sampiyon.alt_ad}</div>
@@ -112,7 +116,7 @@ export async function GET(istek: Request, { params }: { params: Promise<{ kod: s
             </div>
           </div>
         ) : (
-          <div style={{ display: 'flex', marginTop: 64, fontSize: 48, color: RENK.soluk }}>Henüz sıralama yok.</div>
+          <div style={{ display: 'flex', marginTop: 64, fontSize: 48, color: RENK.soluk }}>{t.paylasimSayfasi.siralamaYok}</div>
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 18 }}>
@@ -142,7 +146,7 @@ export async function GET(istek: Request, { params }: { params: Promise<{ kod: s
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: 'auto', paddingTop: 48, alignItems: 'center' }}>
-          <div style={{ fontFamily: 'Instrument Serif', fontSize: 84, lineHeight: 1 }}>Sen nasıl sıralardın?</div>
+          <div style={{ fontFamily: 'Instrument Serif', fontSize: 84, lineHeight: 1 }}>{t.paylasimSayfasi.nasilSiralardin}</div>
           <div style={{ fontSize: 36, color: RENK.soluk, marginTop: 18 }}>{site}</div>
         </div>
       </div>

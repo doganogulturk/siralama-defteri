@@ -7,6 +7,7 @@ import { GIRIS_SONRASI, signInWithGoogle } from '../lib/auth';
 import { hataMetni } from '../lib/hata';
 import Hesap from './Hesap';
 import Tanitim from './Tanitim';
+import { messages } from '../lib/i18n';
 
 const GoogleIkon = (
   <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true">
@@ -42,7 +43,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   }, [user, router]);
 
   if (loading) {
-    return <p className="state-msg">Yükleniyor…</p>;
+    return <p className="state-msg">{messages().genel.yukleniyor}</p>;
   }
 
   if (!user) {
@@ -61,7 +62,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       <>
         <button type="button" className="gate-btn" onClick={handleSignIn} disabled={busy}>
           <span className="gate-g" aria-hidden="true">{GoogleIkon}</span>
-          {busy ? 'Yönlendiriliyor…' : 'Google ile devam et'}
+          {busy ? messages().giris.yonlendiriliyor : messages().giris.googleIle}
         </button>
         {error && <p className="gate-error">{error}</p>}
       </>

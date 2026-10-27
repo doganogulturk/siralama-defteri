@@ -12,6 +12,7 @@ import { PaylasilanListe } from '../../../../lib/paylasim';
 import { hataMetni } from '../../../../lib/hata';
 import { listeleriTazele } from '../../../../hooks/useListeler';
 import { Item, Kategori, Liste } from '../../../../types/item';
+import { messages } from '../../../../lib/i18n';
 
 type Durum =
   | { tur: 'yukleniyor' }
@@ -59,34 +60,34 @@ export default function KiyaslaSayfasi() {
     <div className="kiyas-sayfa">
       <header className="paylasim-bar kiyas-bar">
         {/* iOS'ta donanım geri tuşu yok: her ekranda görünür bir geri yolu. Gelinen yer paylaşım sayfası. */}
-        <Link href={`/p/${kod}`} className="mobile-brand-back" aria-label="Paylaşılan listeye dön">
+        <Link href={`/p/${kod}`} className="mobile-brand-back" aria-label={messages().kiyas.paylasilanaDon}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 5l-7 7 7 7" />
           </svg>
         </Link>
-        <Link href="/" className="paylasim-marka" aria-label="Listelerim">
+        <Link href="/" className="paylasim-marka" aria-label={messages().menu.listelerim}>
           <Marka />
         </Link>
       </header>
 
-      {durum.tur === 'yukleniyor' && <p className="state-msg">Yükleniyor…</p>}
+      {durum.tur === 'yukleniyor' && <p className="state-msg">{messages().genel.yukleniyor}</p>}
 
-      {durum.tur === 'hata' && <p className="state-msg">Bir sorun çıktı: {durum.mesaj}</p>}
+      {durum.tur === 'hata' && <p className="state-msg">{messages().kiyas.sorun(durum.mesaj)}</p>}
 
       {durum.tur === 'yok' && (
         <div className="state-empty">
-          <p className="state-empty-title">Bu bağlantı artık geçerli değil</p>
-          <p>Liste sahibi paylaşımı kapatmış ya da bağlantıyı yenilemiş olabilir.</p>
-          <Link href="/" className="btn-quiet">Listelerime dön</Link>
+          <p className="state-empty-title">{messages().kiyas.gecersiz}</p>
+          <p>{messages().kiyas.gecersizMetin}</p>
+          <Link href="/" className="btn-quiet">{messages().liste.listelerimeDon}</Link>
         </div>
       )}
 
       {durum.tur === 'kendi' && (
         <div className="state-empty">
-          <p className="state-empty-title">Bu senin listen</p>
-          <p>Bağlantıyı arkadaşlarına gönder: kendi sıralamalarını yapıp seninkiyle karşılaştırabilirler.</p>
-          <Link href={`/l/${durum.liste.slug}`} className="btn-quiet">Listeye git</Link>
+          <p className="state-empty-title">{messages().kiyas.kendiListen}</p>
+          <p>{messages().kiyas.seninListenMetin}</p>
+          <Link href={`/l/${durum.liste.slug}`} className="btn-quiet">{messages().kiyas.listeyeGit}</Link>
         </div>
       )}
 

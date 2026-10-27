@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Item } from '../types/item';
 import { hataMetni } from '../lib/hata';
 import { onayla, uyar } from '../lib/pencere';
+import { messages } from '../lib/i18n';
 import type { useListStore } from './useListStore';
 
 type Magaza = Pick<
@@ -63,7 +64,7 @@ export function useSecim({ magaza, gorunenKayitlar, bildir }: {
       setSecim(new Set());
       setCubukKip('islemler');
     } catch (e: unknown) {
-      void uyar('İşlem tamamlanamadı: ' + hataMetni(e));
+      void uyar(messages().islem.tamamlanamadi(hataMetni(e)));
       // Yarım kalmış bir iyimser durum ekranda kalmasın: ekranı veritabanıyla eşitle.
       void load();
     } finally {
@@ -77,7 +78,7 @@ export function useSecim({ magaza, gorunenKayitlar, bildir }: {
     const ad = categoryId ? kategoriler.find(k => k.id === categoryId)?.ad : null;
     void islemYap(
       () => kategoriAta(ids, categoryId),
-      ad ? `${ids.length} kayıt “${ad}” kategorisine taşındı` : `${ids.length} kayıt kategoriden çıkarıldı`
+      ad ? messages().islem.kategoriyeTasindi(ids.length, ad) : messages().islem.kategoridenCikti(ids.length)
     );
   };
 
@@ -88,7 +89,7 @@ export function useSecim({ magaza, gorunenKayitlar, bildir }: {
     if (hedef.length === 0) return;
     void islemYap(
       () => bolumDegistir(hedef.map(i => i.id), aslaya),
-      aslaya ? `${hedef.length} kayıt Bir daha asla'ya taşındı` : `${hedef.length} kayıt sıralamaya alındı`
+      aslaya ? messages().islem.aslayaTasindi(hedef.length) : messages().islem.siralamayaAlindi(hedef.length)
     );
   };
 
@@ -96,7 +97,7 @@ export function useSecim({ magaza, gorunenKayitlar, bildir }: {
   const denedimToplu = () => {
     if (!secim?.size) return;
     const ids = [...secim];
-    void islemYap(() => denendiYap(ids), `${ids.length} kayıt sıralamanın sonuna eklendi`);
+    void islemYap(() => denendiYap(ids), messages().islem.sonaEklendi(ids.length));
   };
 
   const silToplu = async () => {
@@ -104,12 +105,12 @@ export function useSecim({ magaza, gorunenKayitlar, bildir }: {
     const adet = seciliKayitlar.length;
     const fotolu = seciliKayitlar.some(i => i.fotograf_url);
     if (!(await onayla({
-      metin: `${adet} kayıt${fotolu ? ' ve fotoğrafları' : ''} kalıcı olarak silinecek. Emin misin?`,
-      onay: 'Sil',
+      metin: messages().islem.silinecek(adet, fotolu),
+      onay: messages().genel.sil,
       tehlikeli: true,
     }))) return;
     const ids = seciliKayitlar.map(i => i.id);
-    void islemYap(() => topluSil(ids), `${adet} kayıt silindi`);
+    void islemYap(() => topluSil(ids), messages().islem.silindi(adet));
   };
 
   return {

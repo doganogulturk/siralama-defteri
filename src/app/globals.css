@@ -2862,6 +2862,10 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
 .metin-tarih { margin-top: 8px; font-size: 0.82rem; color: var(--mute) !important; }
 .metin-bar { justify-content: space-between; gap: 12px; }
 .metin-dil { margin-left: auto; }
+/* Dar telefonda üst çubuğa marka, dil seçici ve dönüş bağlantısı birlikte sığmıyor: markadan yalnızca işaret kalıyor. */
+@media (max-width: 440px) {
+  .metin-bar .marka-ad { display: none; }
+}
 .metin-ceviri {
   margin-top: 14px;
   padding: 10px 14px;

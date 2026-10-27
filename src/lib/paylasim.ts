@@ -71,8 +71,8 @@ export const paylasimBasligi = (liste: Pick<PaylasilanListe, 'ad' | 'sahip'>) =>
  * Kayıttaki fotoğraf adresi yalnızca uygulamanın kendi kovasındaysa kullanılıyor.
  * `fotograf_url`'i sahibi API'den istediği gibi yazabilir: başka bir adres
  * paylaşım sayfasında ziyaretçinin tarayıcısını, önizleme görselinde sunucuyu
- * oraya istek atmaya yöneltirdi. Supabase projesi başka uygulamalarla paylaşıldığı
- * için yalnızca adres kökü yetmiyor: onların herkese açık kovaları da aynı kökte.
+ * oraya istek atmaya yöneltirdi. Yalnızca adres kökü yetmiyor: projedeki başka
+ * herkese açık kovalar da aynı kökte.
  */
 export function guvenliFoto(url?: string | null): string | null {
   const taban = process.env.NEXT_PUBLIC_SUPABASE_URL;

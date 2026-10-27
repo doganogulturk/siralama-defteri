@@ -7,9 +7,8 @@
 | # | İş | Not |
 |---|---|---|
 | 1 | **Domain** | Satın al, Vercel'e bağla; Supabase → Authentication → URL Configuration → Redirect URLs'e ekle. Eklenmezse Google girişi yeni domainde **sessizce** bozulur (giriş `redirectTo` olarak `window.location.origin` kullanıyor). `metadataBase`, story ve Kör Sıralama görsellerindeki adres domaine kendiliğinden geçer. |
-| 2 | **Google giriş ekranının markası** | Google Cloud Console → OAuth onay ekranı: uygulama adı, logo, gizlilik politikası (`/gizlilik`) ve koşullar (`/kullanim-kosullari`) adresleri, domain doğrulaması. Doğrulanmamışken ekranda "…supabase.co'ya devam et" yazar. Google sağlayıcısı Supabase projesine bağlı ve proje başka uygulamalarla paylaşıldığı için onay ekranı onlarla ortak — ad ikisini de kapsamalı. |
-| 3 | **Sahipsiz eski fotoğraflar** | Kovada (`ayran`) `owner_id`'si boş, hiçbir kayda bağlı olmayan 24 dosya (eski fotoğraflar küçültülürken, 18 Ekim 2026). Uygulama silemiyor; Supabase → Storage'dan silinebilir. |
-| 4 | **Gerçek cihazda deneme** | Başka bir hesapla "Ben de sıralayayım" ve karşılaştırma, story'yi Instagram'a paylaşma, Kör Sıralama bağlantısının WhatsApp önizlemesi ve arkadaş modu, ana ekrana ekleme (PWA). |
+| 2 | **Google giriş ekranının markası** | Google Cloud Console → OAuth onay ekranı: uygulama adı, logo, gizlilik politikası (`/gizlilik`) ve koşullar (`/kullanim-kosullari`) adresleri, domain doğrulaması. Doğrulanmamışken ekranda "…supabase.co'ya devam et" yazar. Uygulamanın kendi Google Cloud projesi ve OAuth istemcisi Ekim 2026'da kuruldu (adı ve adresleri girildi); kalan logo ve domain doğrulaması. |
+| 3 | **Gerçek cihazda deneme** | Başka bir hesapla "Ben de sıralayayım" ve karşılaştırma, story'yi Instagram'a paylaşma, Kör Sıralama bağlantısının WhatsApp önizlemesi ve arkadaş modu, ana ekrana ekleme (PWA). |
 
 ## Mobil uygulama (Capacitor, App Store / Play Store)
 

@@ -2,14 +2,14 @@ import { createClient } from '@supabase/supabase-js';
 import { SEMA } from './sema';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
 /**
  * Uygulama tamamen istemci tarafında çalıştığı için oturum da tarayıcıda tutuluyor:
  * @supabase/ssr ve sunucu tarafı cookie akışına ihtiyaç yok.
  * `detectSessionInUrl` OAuth dönüşündeki `?code=` parametresini otomatik işler.
  */
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(supabaseUrl, supabaseKey, {
   db: { schema: SEMA },
   auth: {
     flowType: 'pkce',

@@ -1,5 +1,5 @@
--- Sıralama Defteri'nin tüm tabloları ve fonksiyonları kendi şemasında durur; aynı Supabase projesindeki
--- diğer uygulamalarla karışmaz. İstemci bu şemaya bağlanır (src/lib/sema.ts); şemanın Dashboard'da
+-- Sıralama Defteri'nin tüm tabloları ve fonksiyonları kendi şemasında durur (proje Ekim 2026'ya kadar başka
+-- uygulamalarla paylaşılıyordu; şema adı oradan kaldı). İstemci bu şemaya bağlanır (src/lib/sema.ts); şemanın Dashboard'da
 -- Project Settings → Data API → Exposed schemas listesinde olması gerekir.
 --
 -- Supabase, public'te kurulan her nesneye anon ve authenticated için otomatik yetki verir; bu şemada öyle bir

@@ -35,7 +35,7 @@ npm run dev
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
 Denetimler — her push ve PR'da GitHub Actions'ta da çalışıyor (`.github/workflows/denetim.yml`):
@@ -52,7 +52,7 @@ Testler (Vitest) `src/lib`'teki saf mantığı kapsıyor: toplu giriş ayrışt�
 
 ## Kurulum
 
-**Veritabanı** — Supabase projesi başka uygulamalarla paylaşıldığı için her şey `do_siralama_defteri` şemasında. Supabase SQL Editor'da sırayla `supabase/schema.sql` ve `supabase/storage.sql` çalıştırılır (ikisi de idempotent). Ardından Project Settings → Data API → **Exposed schemas** listesine `do_siralama_defteri` eklenir; yoksa her istek `PGRST106 Invalid schema` verir.
+**Veritabanı** — Her şey `do_siralama_defteri` şemasında (proje Ekim 2026'ya kadar başka uygulamalarla paylaşılıyordu). Supabase SQL Editor'da sırayla `supabase/schema.sql` ve `supabase/storage.sql` çalıştırılır (ikisi de idempotent). Ardından Project Settings → Data API → **Exposed schemas** listesine `do_siralama_defteri` eklenir; yoksa her istek `PGRST106 Invalid schema` verir.
 
 **Google girişi** — Supabase Auth üzerinden:
 - Google Cloud'da OAuth client → Authorized redirect URI: `https://<proje-ref>.supabase.co/auth/v1/callback`

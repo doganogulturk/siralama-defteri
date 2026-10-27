@@ -4,7 +4,7 @@ Veri, kimlik ve sınırlar: Supabase şeması, RLS, giriş akışı ve kötüye 
 
 ## Veri
 
-Supabase projesi başka uygulamalarla paylaşıldığı için her şey uygulamanın kendi şemasında: `do_siralama_defteri`. Şemada `lists` / `categories` / `items` tabloları (RLS ile), ana ekranın özetlerini hazırlayan `liste_ozetleri`, sıralama değişikliklerini tek transaction'da yazan `siralamayi_yaz` ve paylaşılan listeyi okuyan `paylasilan_liste` fonksiyonları var. Tanımın tamamı `supabase/schema.sql`; fotoğraf kovasının ayarları ve politikaları `supabase/storage.sql` (ondan sonra çalıştırılır).
+Her şey uygulamanın kendi şemasında: `do_siralama_defteri` (Supabase projesi Ekim 2026'ya kadar başka uygulamalarla paylaşılıyordu; ad oradan kaldı). Şemada `lists` / `categories` / `items` tabloları (RLS ile), ana ekranın özetlerini hazırlayan `liste_ozetleri`, sıralama değişikliklerini tek transaction'da yazan `siralamayi_yaz` ve paylaşılan listeyi okuyan `paylasilan_liste` fonksiyonları var. Tanımın tamamı `supabase/schema.sql`; fotoğraf kovasının ayarları ve politikaları `supabase/storage.sql` (ondan sonra çalıştırılır).
 
 ## Kimlik
 

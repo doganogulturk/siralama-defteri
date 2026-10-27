@@ -82,10 +82,10 @@ describe('paylaşım', () => {
 
   it('yalnızca kendi kovasındaki fotoğraf geçiyor', () => {
     const kok = 'https://test.supabase.co/storage/v1/object/public';
-    expect(guvenliFoto(`${kok}/ayran/u/1.jpg`)).toBe(`${kok}/ayran/u/1.jpg`);
+    expect(guvenliFoto(`${kok}/fotograflar/u/1.jpg`)).toBe(`${kok}/fotograflar/u/1.jpg`);
     expect(guvenliFoto(`${kok}/baska-uygulama/1.jpg`)).toBeNull();
-    expect(guvenliFoto(`${kok}/ayran/../baska-uygulama/1.jpg`)).toBeNull();
-    expect(guvenliFoto('https://kotu.example/storage/v1/object/public/ayran/1.jpg')).toBeNull();
+    expect(guvenliFoto(`${kok}/fotograflar/../baska-uygulama/1.jpg`)).toBeNull();
+    expect(guvenliFoto('https://kotu.example/storage/v1/object/public/fotograflar/1.jpg')).toBeNull();
     expect(guvenliFoto('javascript:alert(1)')).toBeNull();
     expect(guvenliFoto(null)).toBeNull();
   });

@@ -22,7 +22,8 @@ import FilterPanel from '../../../../components/FilterPanel';
 import DetailPane from '../../../../components/DetailPane';
 import WishlistPanel from '../../../../components/WishlistPanel';
 import ItemForm, { FormMode } from '../../../../components/ItemForm';
-import ListeRayi from '../../../../components/ListeRayi';
+import ListeRayi, { RayKategorileri } from '../../../../components/ListeRayi';
+import AramaKutusu, { AraIkon } from '../../../../components/liste/AramaKutusu';
 import ListeAyarlariModal from '../../../../components/ListeAyarlariModal';
 import PaylasMenusu from '../../../../components/PaylasMenusu';
 import { BosSahne } from '../../../../components/Sahne';
@@ -32,8 +33,13 @@ import SecimCubugu from '../../../../components/liste/SecimCubugu';
 import {
   AyarlarIkon, KartIkon, PaylasIkon, SatirIkon, TopluIkon,
 } from '../../../../components/liste/Ikonlar';
-import { uyar, onayla } from '../../../../lib/pencere';
+import { uyar } from '../../../../lib/pencere';
+import { useGeriAlinabilirSilme } from '../../../../hooks/useGeriAlinabilirSilme';
 import { dilEtiketi, messages } from '../../../../lib/i18n';
+
+/** Açık sekme adreste: Denenmemiş `?sekme=denenmemis`, sıralama yalın adres. */
+const sekmeAdresi = (sekme: 'siralama' | 'sirada') =>
+  window.location.pathname + (sekme === 'sirada' ? '?sekme=denenmemis' : '');
 
 export default function ListePage() {
   const isDesktop = useIsDesktop();
@@ -43,10 +49,31 @@ export default function ListePage() {
   const magaza = useListStore(SLUG);
   const {
     liste, kategoriler, items,
-    denenenler: ranked, aslaListesi, istekListesi,
     loading, error, isSaving,
     load, saveEntry, removeEntry, reorder,
   } = magaza;
+
+  /** Silinen kayıt birkaç saniye "Geri al" için bekliyor; o sürede hiçbir yerde görünmüyor. */
+  const silme = useGeriAlinabilirSilme({
+    sil: async (item: Item) => {
+      try {
+        await removeEntry(item);
+        listeleriTazele();
+      } catch (e: unknown) {
+        void uyar(t.silmeHatasi(hataMetni(e)));
+        void load();
+      }
+    },
+    // Bekleme sırasında bir sürükleme kaydı yerel durumdan düşürmüş olabilir: geri gelsin diye baştan oku.
+    geriAlindi: (item: Item) => { if (!items.some(i => i.id === item.id)) void load(); },
+  });
+  const silinenId = silme.bekleyen?.id;
+  const ranked = useMemo(
+    () => magaza.denenenler.filter(i => i.id !== silinenId), [magaza.denenenler, silinenId]);
+  const aslaListesi = useMemo(
+    () => magaza.aslaListesi.filter(i => i.id !== silinenId), [magaza.aslaListesi, silinenId]);
+  const istekListesi = useMemo(
+    () => magaza.istekListesi.filter(i => i.id !== silinenId), [magaza.istekListesi, silinenId]);
 
   const alanlar = useMemo(() => liste?.alanlar ?? [], [liste]);
   const taclanan = useTac(ranked[0]?.id, SLUG, !loading);
@@ -55,6 +82,8 @@ export default function ListePage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   /** Bekleyenler ayrı bir route değil, aynı sayfanın ikinci sekmesi. */
   const [sekme, setSekme] = useState<'siralama' | 'sirada'>('siralama');
+  /** Telefonda arama kutusu başlıktaki büyüteçle açılıyor; masaüstünde hep açık. */
+  const [aramaAcik, setAramaAcik] = useState(false);
 
   const { gorunum, gorunumSec, kart: kartGorunum } = useGorunum(isDesktop);
   const [bildirim, setBildirim] = useBildirim();
@@ -66,7 +95,8 @@ export default function ListePage() {
 
   /** Liste ayarları popup'ı. Başka bir listenin ayar simgesinden ya da yeni liste
    *  açılışından `?ayarlar=1` ile gelinirse açık doğuyor. `?sekme=denenmemis`
-   *  (şablondan açılan liste: kayıtların hepsi bekleyen) ikinci sekmeyle açıyor. */
+   *  ikinci sekmeyle açıyor; sekme değiştikçe adres de değişiyor (`sekmeSec`), böylece
+   *  yenileme ve paylaşılan bağlantı aynı sekmede açılıyor. */
   const [ayarlarAcik, setAyarlarAcik] = useState(false);
   const [paylasMenusu, setPaylasMenusu] = useState(false);
   useEffect(() => {
@@ -75,8 +105,8 @@ export default function ListePage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (params.has('ayarlar')) setAyarlarAcik(true);
     if (params.get('sekme') === 'denenmemis') setSekme('sirada');
-    // Parametre adreste kalırsa yenilemede popup yeniden açılırdı.
-    window.history.replaceState(null, '', window.location.pathname);
+    // `ayarlar` adreste kalırsa yenilemede popup yeniden açılırdı; `sekme` kalıyor.
+    if (params.has('ayarlar')) window.history.replaceState(null, '', sekmeAdresi(params.get('sekme') === 'denenmemis' ? 'sirada' : 'siralama'));
   }, []);
 
   /* ── Derived data ────────────────────────────────── */
@@ -127,6 +157,7 @@ export default function ListePage() {
 
   const sekmeSec = (next: 'siralama' | 'sirada') => {
     setSekme(next);
+    window.history.replaceState(null, '', sekmeAdresi(next));
     setSelectedId(null);
     // Seçim sekmeye ait: diğer sekmedeki görünmeyen kayıtlar yanlışlıkla taşınmasın.
     secimModu.temizle();
@@ -178,16 +209,25 @@ export default function ListePage() {
     }
   };
 
-  const handleDelete = async (item: Item) => {
-    if (!(await onayla({ metin: t.silinsinMi(item.ad), onay: m.genel.sil, tehlikeli: true }))) return;
-    try {
-      await removeEntry(item);
-      listeleriTazele();
-      setSelectedId(prev => (prev === item.id ? null : prev));
-      closeForm();
-    } catch (e: unknown) {
-      void uyar(t.silmeHatasi(hataMetni(e)));
-    }
+  /** Onay sormuyor: kayıt hemen gizleniyor, birkaç saniye "Geri al" bekliyor, sonra siliniyor. */
+  const handleDelete = (item: Item) => {
+    silme.baslat(item);
+    setSelectedId(prev => (prev === item.id ? null : prev));
+    closeForm();
+  };
+
+  const aramaDegistir = (metin: string) => setFiltre(f => ({ ...f, metin }));
+  const aramaKapat = () => { setAramaAcik(false); aramaDegistir(''); };
+
+  /** Masaüstü rayında açık listenin kategori ağacı: açık sekmenin sayılarıyla. */
+  const raySekmeKayitlari = sekme === 'sirada' ? istekListesi : denenenTum;
+  const rayKategorileri: RayKategorileri = {
+    kategoriler,
+    sayilar: kategoriSayilari(raySekmeKayitlari),
+    toplam: raySekmeKayitlari.length,
+    kategorisizAdet,
+    secili: filtre.kategoriler.size === 1 ? [...filtre.kategoriler][0] : null,
+    onSec: (id) => setFiltre(f => ({ ...f, kategoriler: new Set(id ? [id] : []) })),
   };
 
   /* ── Seçim modu ──────────────────────────────────── */
@@ -243,7 +283,7 @@ export default function ListePage() {
         return (
           <div className="state-empty">
             <p className="state-empty-title">{t.eslesenYok}</p>
-            <p>{t.filtreBekleyenYok}</p>
+            <p>{filtre.metin.trim() ? t.araSonucYok(filtre.metin.trim()) : t.filtreBekleyenYok}</p>
           </div>
         );
       }
@@ -277,7 +317,7 @@ export default function ListePage() {
       return (
         <div className="state-empty">
           <p className="state-empty-title">{t.eslesenYok}</p>
-          <p>{t.filtreKayitYok}</p>
+          <p>{filtre.metin.trim() ? t.araSonucYok(filtre.metin.trim()) : t.filtreKayitYok}</p>
         </div>
       );
     }
@@ -305,7 +345,7 @@ export default function ListePage() {
     // Seçili kayıt yokken detay sütunu kapanıyor (pane-kapali), sıralama genişliyor.
     <div className={`app${selectedItem ? '' : ' pane-kapali'}`}>
       {/* ── Sol ray: künye + liste indeksi (masaüstü) ── */}
-      <ListeRayi aktifSlug={SLUG} />
+      <ListeRayi aktifSlug={SLUG} aktifKategoriler={liste ? rayKategorileri : undefined} />
 
       {/* ── Center: ranked list ──────────────────────── */}
       <main className={`list${kartGorunum ? ' is-kart' : ''}`}>
@@ -329,6 +369,17 @@ export default function ListePage() {
             </em>
           </span>
           <div className="mobile-brand-yan">
+          {/* Telefonda arama başlıktaki büyüteçten açılıyor; masaüstünde araç satırında hep açık. */}
+          <button
+            type="button"
+            className={`mobile-brand-settings is-ara${aramaAcik || filtre.metin ? ' is-on' : ''}`}
+            aria-label={t.ara}
+            aria-expanded={aramaAcik}
+            onClick={() => (aramaAcik ? aramaKapat() : setAramaAcik(true))}
+            disabled={!liste}
+          >
+            {AraIkon}
+          </button>
           <button
             type="button"
             className="mobile-brand-settings"
@@ -353,6 +404,12 @@ export default function ListePage() {
           </button>
           </div>
         </div>
+
+        {aramaAcik && (
+          <div className="mobile-arama">
+            <AramaKutusu metin={filtre.metin} onChange={aramaDegistir} onKapat={aramaKapat} odaklan />
+          </div>
+        )}
 
         {total > 0 && (
           <p className="mobile-summary">
@@ -393,8 +450,10 @@ export default function ListePage() {
             </nav>
             <div className="liste-arac-filtre">
               <div className="mobile-filters">{renderFilterPanel('strip', 'inline')}</div>
-              {/* Masaüstünde filtreler rayda değil, başlığın altında bir şerit */}
-              <div className="desk-filters">{renderFilterPanel('desk', 'inline')}</div>
+              {/* Masaüstünde kategoriler rayın ağacında; burada arama kutusu. */}
+              <div className="desk-arama">
+                <AramaKutusu metin={filtre.metin} onChange={aramaDegistir} />
+              </div>
             </div>
             {isDesktop && (sekme === 'sirada' ? istekListesi.length : total) > 0 && (
               <div className="gorunum-secici" role="group" aria-label={t.gorunum}>
@@ -540,7 +599,12 @@ export default function ListePage() {
         />
       )}
 
-      {isSaving || secimModu.atamaSuruyor
+      {silme.bekleyen ? (
+        <div className="toast toast-geri" role="status">
+          <span>{t.silindi(silme.bekleyen.ad)}</span>
+          <button type="button" onClick={silme.geriAl}>{t.geriAl}</button>
+        </div>
+      ) : isSaving || secimModu.atamaSuruyor
         ? <div className="toast">{secimModu.atamaSuruyor ? t.uygulaniyor : t.siraKaydediliyor}</div>
         : bildirim && <div className="toast" role="status">{bildirim}</div>}
 

@@ -4,7 +4,11 @@ Uygulamanın ne yaptığı ve neden öyle yaptığı, ekran ekran. Uyuşmazlıkt
 
 ## Arayüz
 
-İki ekran: `/` liste indeksi ve `/l/[slug]` sıralama. Liste ayarları ayrı bir sayfa değil, sıralama ekranının üstünde açılan bir popup; eski `/l/[slug]/ayarlar` adresi listeye yönlendirip popup'ı açıyor. Bekleyenler de ayrı bir route değil, sıralama ekranının ikinci sekmesi ("Denenmemiş"). Masaüstünde bir kayda tıklayınca sağda detay paneli açılıyor, seçim kalkınca kapanıyor. Sol ray satırları sıralanmış kayıt sayısı + liste adı + şampiyon taşıyor; liste ayarları sıralama başlığındaki düğmeden açılıyor.
+İki ekran: `/` liste indeksi ve `/l/[slug]` sıralama. Liste ayarları ayrı bir sayfa değil, sıralama ekranının üstünde açılan bir popup; eski `/l/[slug]/ayarlar` adresi listeye yönlendirip popup'ı açıyor. Bekleyenler de ayrı bir route değil, sıralama ekranının ikinci sekmesi ("Denenmemiş"). Masaüstünde bir kayda tıklayınca sağda detay paneli açılıyor, seçim kalkınca kapanıyor. Masaüstünde sol ray bir liste ağacı: açık listenin dalında kategoriler (filtre), diğer listelerin dalında ilk üçü; liste ayarları sıralama başlığındaki düğmeden açılıyor. "Denenmemiş" sekmesi adreste (`?sekme=denenmemis`).
+
+**Arama** — Listenin içinde ad, çeşit ve notta, harf farkı gözetmeden arıyor ("cay" "Çay"ı bulur; `lib/filtre.ts` → `aramaBicimi`). Masaüstünde araç satırında hep açık, "/" ile odaklanıyor; telefonda başlıktaki büyüteç açıyor, kapatınca arama temizleniyor. Esc önce metni siliyor. Arama da bir filtre: açıkken sıralama sürüklenemiyor, "Tümünü seç" yalnızca bulunanları seçiyor.
+
+**Silme ve geri alma** — Tek kayıt silmek onay sormuyor: kayıt hemen kayboluyor, üstte "… silindi · Geri al" bildirimi 5 saniye duruyor; süre dolunca kayıt ve fotoğrafı siliniyor. Toplu silme hâlâ onay penceresinden geçiyor.
 
 Listeler ve kategoriler kayıt sayısına göre sıralı — elle sıralama diye bir iş yok. Listelerde ölçü "kaç şeyi denedim": bekleyenler sayılmıyor, "Bir daha asla" bölümündekiler sayılıyor; bir kayıt "Denedim" ile sıralamaya geçtiğinde rakam artıyor. Ray ve indeks sayıları sayfadan ayrı bir sorgudan geldiği için `useListeler`'de küçük bir haber kanalı var: sayfa bir mutasyondan sonra `listeleriTazele()` çağırıyor.
 

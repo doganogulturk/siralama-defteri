@@ -7,9 +7,18 @@ export interface Filtre {
   kategoriler: Set<string>;
   /** Alan anahtarı → seçili durum. Eksik anahtar 'hepsi' sayılır. */
   bayraklar: Record<string, BayrakDurumu>;
+  /** Arama kutusundaki metin; ad, çeşit ve notta aranıyor. Boşsa arama yok. */
+  metin: string;
 }
 
-export const bosFiltre = (): Filtre => ({ kategoriler: new Set(), bayraklar: {} });
+export const bosFiltre = (): Filtre => ({ kategoriler: new Set(), bayraklar: {}, metin: '' });
+
+/**
+ * Aramada harf farkları sayılmıyor: "cay" "Çay"ı, "Ihlamur" "ıhlamur"u buluyor.
+ * Türkçe küçük harfe çevirip aksanları atıyor; noktasız ı da i'ye iniyor.
+ */
+export const aramaBicimi = (s: string): string =>
+  s.toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i').trim();
 
 /**
  * Kategori filtresinde "kategorisi olmayan kayıtlar" seçeneği. Kategori id'leri
@@ -22,7 +31,9 @@ export const bayrakDurumu = (f: Filtre, anahtar: string): BayrakDurumu =>
 
 /** Filtresiz görünüm — sürükleyerek sıralama yalnızca bu durumda mümkün. */
 export const filtreBos = (f: Filtre): boolean =>
-  f.kategoriler.size === 0 && Object.values(f.bayraklar).every(v => v === 'hepsi');
+  f.kategoriler.size === 0
+  && Object.values(f.bayraklar).every(v => v === 'hepsi')
+  && aramaBicimi(f.metin) === '';
 
 const bayrakUyar = (item: Item, anahtar: string, durum: BayrakDurumu): boolean => {
   if (durum === 'hepsi') return true;
@@ -30,7 +41,11 @@ const bayrakUyar = (item: Item, anahtar: string, durum: BayrakDurumu): boolean =
 };
 
 export function filtreUygula(items: Item[], f: Filtre): Item[] {
+  const aranan = aramaBicimi(f.metin);
   return items.filter(item => {
+    if (aranan && !aramaBicimi([item.ad, item.alt_ad, item.notlar].filter(Boolean).join(' ')).includes(aranan)) {
+      return false;
+    }
     if (f.kategoriler.size > 0) {
       const uyar = item.category_id
         ? f.kategoriler.has(item.category_id)

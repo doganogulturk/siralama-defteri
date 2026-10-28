@@ -70,6 +70,21 @@ describe('filtre', () => {
     const f = { ...bosFiltre(), kategoriler: new Set([KATEGORISIZ]) };
     expect(filtreUygula(items, f).map(i => i.id)).toEqual(['b']);
   });
+
+  it('arama harf farkı gözetmeden ad, çeşit ve notta arıyor', () => {
+    const kayitlar = [
+      item({ id: 'c', ad: 'Çaykur Rize' }),
+      item({ id: 'd', ad: 'Ihlamur', alt_ad: 'Doğadan' }),
+      item({ id: 'e', ad: 'Kola', notlar: 'Fazla şekerli' }),
+    ];
+    const ara = (metin: string) => filtreUygula(kayitlar, { ...bosFiltre(), metin }).map(i => i.id);
+    expect(ara('cay')).toEqual(['c']);
+    expect(ara('ıhla')).toEqual(['d']);
+    expect(ara('dogadan')).toEqual(['d']);
+    expect(ara('SEKER')).toEqual(['e']);
+    expect(filtreBos({ ...bosFiltre(), metin: '  ' })).toBe(true);
+    expect(filtreBos({ ...bosFiltre(), metin: 'a' })).toBe(false);
+  });
 });
 
 describe('paylaşım', () => {

@@ -53,6 +53,7 @@ export default function ListelerPage() {
   const toplamKayit = Object.values(sayilar).reduce((a, s) => a + s.toplam, 0);
   const bekleyen = Object.values(sayilar).reduce((a, s) => a + s.bekleyen, 0);
   const siralananToplam = toplamKayit - bekleyen;
+  const denendiYuzde = toplamKayit > 0 ? Math.round((siralananToplam / toplamKayit) * 100) : 0;
 
   // Selamlamada yalnızca ilk ad: Google adı yoksa e-postanın kullanıcı adı kısmı.
   const meta = user?.user_metadata as { full_name?: string; name?: string } | undefined;
@@ -83,11 +84,29 @@ export default function ListelerPage() {
           {ilkAd && <p className="home-hello">{a.merhaba(ilkAd)}</p>}
           <h1 className="home-title">{a.baslik}</h1>
           {listeler.length > 0 && (
-            <ul className="home-stats">
-              <li><strong>{listeler.length}</strong> {a.liste}</li>
-              <li><strong>{siralananToplam}</strong> {a.siralandi}</li>
-              <li><strong>{bekleyen}</strong> {a.denenmemis}</li>
-            </ul>
+            // Üç gösterge kutusu: iri serif sayı, altında etiket; Sıralandı kutusunda denenme oranı çubuğu.
+            <dl className="home-stats" aria-label={a.ozetEtiket}>
+              <div className="home-stat">
+                <dt>{a.liste}</dt>
+                <dd>{listeler.length}</dd>
+              </div>
+              <div className="home-stat is-vurgu">
+                <dt>{a.siralandi}</dt>
+                <dd>{siralananToplam}</dd>
+                {toplamKayit > 0 && (
+                  <span className="home-stat-oran">
+                    <span className="home-stat-cubuk" aria-hidden="true">
+                      <span style={{ width: `${denendiYuzde}%` }} />
+                    </span>
+                    {a.denendiOrani(denendiYuzde)}
+                  </span>
+                )}
+              </div>
+              <div className="home-stat">
+                <dt>{a.denenmemis}</dt>
+                <dd>{bekleyen}</dd>
+              </div>
+            </dl>
           )}
         </header>
 

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Item, alanKisa, bayrak, filtreAlanlari } from '../../../../types/item';
+import { Item } from '../../../../types/item';
 import {
   KATEGORISIZ, bosFiltre, filtreBos, filtreUygula, kategoriSayilari, bayrakSayilari,
 } from '../../../../lib/filtre';
@@ -23,7 +23,7 @@ import DetailPane from '../../../../components/DetailPane';
 import WishlistPanel from '../../../../components/WishlistPanel';
 import ItemForm, { FormMode } from '../../../../components/ItemForm';
 import ListeRayi, { RayKategorileri } from '../../../../components/ListeRayi';
-import AramaKutusu, { AraIkon } from '../../../../components/liste/AramaKutusu';
+import AramaKutusu from '../../../../components/liste/AramaKutusu';
 import ListeAyarlariModal from '../../../../components/ListeAyarlariModal';
 import PaylasMenusu from '../../../../components/PaylasMenusu';
 import { BosSahne } from '../../../../components/Sahne';
@@ -35,7 +35,7 @@ import {
 } from '../../../../components/liste/Ikonlar';
 import { uyar } from '../../../../lib/pencere';
 import { useGeriAlinabilirSilme } from '../../../../hooks/useGeriAlinabilirSilme';
-import { dilEtiketi, messages } from '../../../../lib/i18n';
+import { messages } from '../../../../lib/i18n';
 
 /** Açık sekme adreste: Denenmemiş `?sekme=denenmemis`, sıralama yalın adres. */
 const sekmeAdresi = (sekme: 'siralama' | 'sirada') =>
@@ -82,8 +82,6 @@ export default function ListePage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   /** Bekleyenler ayrı bir route değil, aynı sayfanın ikinci sekmesi. */
   const [sekme, setSekme] = useState<'siralama' | 'sirada'>('siralama');
-  /** Telefonda arama kutusu başlıktaki büyüteçle açılıyor; masaüstünde hep açık. */
-  const [aramaAcik, setAramaAcik] = useState(false);
 
   const { gorunum, gorunumSec, kart: kartGorunum } = useGorunum(isDesktop);
   const [bildirim, setBildirim] = useBildirim();
@@ -121,9 +119,6 @@ export default function ListePage() {
   const katSayilari = useMemo(() => kategoriSayilari(denenenTum), [denenenTum]);
   const baySayilari = useMemo(() => bayrakSayilari(denenenTum, alanlar), [denenenTum, alanlar]);
 
-  // Mobil özet satırı ilk filtrelenebilir bool alanı üzerinden kuruluyor.
-  const ozetAlan = filtreAlanlari(alanlar)[0];
-  const ozetEvet = ozetAlan ? denenenTum.filter(i => bayrak(i, ozetAlan.anahtar)).length : 0;
 
   const selectedItem = useMemo(
     () => [...denenenTum, ...istekListesi].find(i => i.id === selectedId) ?? null,
@@ -217,7 +212,6 @@ export default function ListePage() {
   };
 
   const aramaDegistir = (metin: string) => setFiltre(f => ({ ...f, metin }));
-  const aramaKapat = () => { setAramaAcik(false); aramaDegistir(''); };
 
   /** Masaüstü rayında açık listenin kategori ağacı: açık sekmenin sayılarıyla. */
   const raySekmeKayitlari = sekme === 'sirada' ? istekListesi : denenenTum;
@@ -358,28 +352,18 @@ export default function ListePage() {
               <path d="M15 5l-7 7 7 7" />
             </svg>
           </Link>
+          {/* Başlıkta yalnızca ad: şampiyon hemen aşağıda 1. sırada, sayılar sekmelerde. */}
           <span className="mobile-brand-text">
             {/* Yüklenirken boş: yedek ad ("Sıralama") bir an görünüp listenin adına sıçramasın. */}
             <strong>{loading && !liste ? '\u00a0' : listeAdi}</strong>
-            {/* Yüklenirken boş satır: başlık yüksekliği oynamasın, "Henüz sıralama yok" bir an görünmesin. */}
-            <em>
-              {loading || !liste
-                ? ' '
-                : ranked[0] ? <>{t.sampiyon}<b>{ranked[0].ad}</b></> : t.siralamaYok}
-            </em>
+            {/* "Ben de sıralayayım" ile kopyalanan listede kaynağıyla karşılaştırmaya kısa yol. */}
+            {liste?.kaynak_kod && (
+              <Link href={`/kiyasla/${liste.kaynak_kod}`} className="mobile-brand-kiyas">{t.karsilastir}</Link>
+            )}
           </span>
+          {/* Masaüstünde Paylaş ve Liste ayarları başlıkta; telefonda Paylaş arama kutusunun yanında,
+              ayarlar alt menüde (CSS). */}
           <div className="mobile-brand-yan">
-          {/* Telefonda arama başlıktaki büyüteçten açılıyor; masaüstünde araç satırında hep açık. */}
-          <button
-            type="button"
-            className={`mobile-brand-settings is-ara${aramaAcik || filtre.metin ? ' is-on' : ''}`}
-            aria-label={t.ara}
-            aria-expanded={aramaAcik}
-            onClick={() => (aramaAcik ? aramaKapat() : setAramaAcik(true))}
-            disabled={!liste}
-          >
-            {AraIkon}
-          </button>
           <button
             type="button"
             className="mobile-brand-settings"
@@ -390,7 +374,6 @@ export default function ListePage() {
             {PaylasIkon}
             <span className="mobile-brand-settings-ad">{t.paylas}</span>
           </button>
-          {/* Telefonda ayarlar alt menüde; başlıkta yalnızca masaüstünde (CSS). */}
           <button
             type="button"
             className="mobile-brand-settings is-ayarlar"
@@ -404,28 +387,6 @@ export default function ListePage() {
           </button>
           </div>
         </div>
-
-        {aramaAcik && (
-          <div className="mobile-arama">
-            <AramaKutusu metin={filtre.metin} onChange={aramaDegistir} onKapat={aramaKapat} odaklan />
-          </div>
-        )}
-
-        {total > 0 && (
-          <p className="mobile-summary">
-            <strong>{t.ozet(total)[0]}</strong>{t.ozet(total)[1]}
-            {ozetAlan && (
-              <>
-                {' '}· <strong>{ozetEvet}</strong> {t.ozetEvet(alanKisa(ozetAlan).toLocaleLowerCase(dilEtiketi())).join('')} ·{' '}
-                <strong>{total - ozetEvet}</strong> {t.ozetHayir}
-              </>
-            )}
-            {/* "Ben de sıralayayım" ile kopyalanan listede kaynağıyla karşılaştırmaya kısa yol. */}
-            {liste?.kaynak_kod && (
-              <> · <Link href={`/kiyasla/${liste.kaynak_kod}`} className="mobile-summary-link">{t.karsilastir}</Link></>
-            )}
-          </p>
-        )}
 
           {/* Masaüstünde tek satır: sekmeler solda, kategori şeridi ortada, görünüm ve "Seç" sağda.
               Mobilde satır sarıyor: sekmeler kendi satırında ortalı, altında filtreler. */}
@@ -491,6 +452,17 @@ export default function ListePage() {
               </button>
             )}
           </div>
+
+          {/* Telefonda kategorilerin altında: hep açık arama kutusu ve yanında Paylaş. */}
+          {liste && (
+            <div className="mobile-arama">
+              <AramaKutusu metin={filtre.metin} onChange={aramaDegistir} />
+              <button type="button" className="mobile-paylas" onClick={paylas} aria-label={t.paylasEtiket}>
+                {PaylasIkon}
+                <span>{t.paylas}</span>
+              </button>
+            </div>
+          )}
 
           {sekme === 'siralama' && !canReorder && (
             <p className="list-note">

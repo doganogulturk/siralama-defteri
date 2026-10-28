@@ -117,8 +117,9 @@ function RowShell({
         {alt && <span className="row-sub">{alt}</span>}
       </span>
 
-      {/* Rozetler tek sarmalayıcıda; rozet yoksa CSS sarmalayıcıyı gizliyor. */}
-      <span className="row-tags">
+      {/* Rozetler tek sarmalayıcıda; rozet yoksa CSS sarmalayıcıyı gizliyor. Satır görünümünde
+          kartın sağ üst köşesine yapışık bir sekme (adın yerini yemesin), kart görünümünde adın altında. */}
+      <span className="row-tags is-kose">
         {tags.map(t => <span key={t} className="row-tag">{t}</span>)}
       </span>
     </div>

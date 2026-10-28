@@ -110,10 +110,7 @@ export const en: Mesajlar = {
     merhaba: (ad: string) => `Hi ${ad},`,
     baslik: 'Your lists',
     liste: 'Lists',
-    siralandi: 'Ranked',
-    denenmemis: 'Untried',
-    /** Sıralandı kutusunun altındaki oran: kayıtların ne kadarı denendi. */
-    denendiOrani: (yuzde: number) => `${yuzde}% tried`,
+    siralanan: 'Ranked',
     ozetEtiket: 'Summary',
     tekrarDene: 'Try again',
     bosBaslik: 'No lists yet',

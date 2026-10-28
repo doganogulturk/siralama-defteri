@@ -4,7 +4,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { AlanTanimi, Item, altBilgi, brandInitials, rozetler } from '../types/item';
+import { AlanTanimi, Item, Kategori, altBilgi, brandInitials, kategoriBul, rozetler } from '../types/item';
 import { messages } from '../lib/i18n';
 
 /** Sıralama ile "Bir daha asla" bölümünü ayıran çizginin sıralanabilir listedeki kimliği. */
@@ -20,6 +20,8 @@ const AslaIkon = (
 interface RowProps {
   item: Item;
   alanlar: AlanTanimi[];
+  /** Verilirse kaydın kategorisi kartın sağ üst köşesinde yazıyor. */
+  kategoriler?: Kategori[];
   rank: number;
   /** "Bir daha asla" bölümündeki kart: numara yerine çarpı. */
   asla?: boolean;
@@ -46,7 +48,7 @@ export const SecimIkon = (
 );
 
 function RowShell({
-  item, alanlar, rank, asla, isSelected, onSelect, draggable, secimModu, taclandi,
+  item, alanlar, kategoriler, rank, asla, isSelected, onSelect, draggable, secimModu, taclandi,
   handleProps, nodeRef, style, dragging,
 }: RowProps & {
   handleProps?: Record<string, unknown>;
@@ -57,6 +59,15 @@ function RowShell({
   const isPodium = !asla && rank <= 3;
   const alt = altBilgi(item, alanlar);
   const tags = rozetler(item, alanlar);
+  const kat = kategoriler ? kategoriBul(kategoriler, item.category_id) : undefined;
+
+  const siraNo = asla ? (
+    <span className="row-rank is-asla" aria-label={messages().satir.birDahaAsla}>{AslaIkon}</span>
+  ) : (
+    <span className={`row-rank${isPodium ? ' is-podium' : ''}`} data-rank={rank}>
+      {rank}
+    </span>
+  );
 
   return (
     <div
@@ -65,7 +76,7 @@ function RowShell({
       role="button"
       tabIndex={0}
       aria-pressed={isSelected}
-      className={`row${asla ? ' is-asla' : ''}${rank === 1 && !asla ? ' is-sampiyon' : ''}${isSelected ? ' is-selected' : ''}${dragging ? ' is-dragging' : ''}${secimModu ? ' is-secim' : ''}${taclandi ? ' is-taclandi' : ''}`}
+      className={`row${kat || tags.length ? ' has-kose' : ''}${asla ? ' is-asla' : ''}${rank === 1 && !asla ? ' is-sampiyon' : ''}${isSelected ? ' is-selected' : ''}${dragging ? ' is-dragging' : ''}${secimModu ? ' is-secim' : ''}${taclandi ? ' is-taclandi' : ''}`}
       onClick={() => onSelect(item)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -74,31 +85,26 @@ function RowShell({
         }
       }}
     >
-      {draggable && (
+      {secimModu && <span className="row-check" aria-hidden="true">{SecimIkon}</span>}
+      {taclandi && <span className="row-tac">{TacIkon}</span>}
+
+      {/* Sürükleme solda, sıra numarasından: basılı tutup çekmek kaydı taşıyor. Sağ taraf
+          kategori ve rozetlere kaldı. Tutamaktaki dokunuş satırı seçmiyor. */}
+      {draggable ? (
         <span
-          className="row-grip"
+          className="row-tutamak"
           aria-label={messages().satir.surukle}
           onClick={(e) => e.stopPropagation()}
           {...handleProps}
         >
-          <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true">
-            <circle cx="2" cy="2" r="1.4" /><circle cx="8" cy="2" r="1.4" />
-            <circle cx="2" cy="8" r="1.4" /><circle cx="8" cy="8" r="1.4" />
-            <circle cx="2" cy="14" r="1.4" /><circle cx="8" cy="14" r="1.4" />
+          <svg className="row-grip" width="8" height="14" viewBox="0 0 8 14" fill="currentColor" aria-hidden="true">
+            <circle cx="1.6" cy="1.6" r="1.3" /><circle cx="6.4" cy="1.6" r="1.3" />
+            <circle cx="1.6" cy="7" r="1.3" /><circle cx="6.4" cy="7" r="1.3" />
+            <circle cx="1.6" cy="12.4" r="1.3" /><circle cx="6.4" cy="12.4" r="1.3" />
           </svg>
+          {siraNo}
         </span>
-      )}
-
-      {secimModu && <span className="row-check" aria-hidden="true">{SecimIkon}</span>}
-      {taclandi && <span className="row-tac">{TacIkon}</span>}
-
-      {asla ? (
-        <span className="row-rank is-asla" aria-label={messages().satir.birDahaAsla}>{AslaIkon}</span>
-      ) : (
-        <span className={`row-rank${isPodium ? ' is-podium' : ''}`} data-rank={rank}>
-          {rank}
-        </span>
-      )}
+      ) : siraNo}
 
       {item.fotograf_url
         ? <img src={item.fotograf_url} className="row-thumb" alt="" />
@@ -117,8 +123,14 @@ function RowShell({
         {alt && <span className="row-sub">{alt}</span>}
       </span>
 
-      {/* Rozetler tek sarmalayıcıda; rozet yoksa CSS sarmalayıcıyı gizliyor. Satır görünümünde
-          kartın sağ üst köşesine yapışık bir sekme (adın yerini yemesin), kart görünümünde adın altında. */}
+      {/* Kategori sağ üst, rozetler sağ alt köşeye yapışık sekmeler (adın yerini yemesin).
+          Kart görünümünde kategori fotoğrafın sağ üstünde, rozetler adın altında. */}
+      {kat && (
+        <span className="row-kat" style={{ '--kat': kat.renk } as React.CSSProperties}>
+          <i aria-hidden="true" />{kat.ad}
+        </span>
+      )}
+      {/* Rozet yoksa CSS sarmalayıcıyı gizliyor. */}
       <span className="row-tags is-kose">
         {tags.map(t => <span key={t} className="row-tag">{t}</span>)}
       </span>

@@ -109,10 +109,7 @@ export const tr = {
     merhaba: (ad: string) => `Merhaba ${ad},`,
     baslik: 'Listelerin',
     liste: 'Liste',
-    siralandi: 'Sıralandı',
-    denenmemis: 'Denenmemiş',
-    /** Sıralandı kutusunun altındaki oran: kayıtların ne kadarı denendi. */
-    denendiOrani: (yuzde: number) => `%${yuzde} denendi`,
+    siralanan: 'Sıralanan',
     ozetEtiket: 'Özet',
     tekrarDene: 'Tekrar dene',
     bosBaslik: 'Henüz listen yok',

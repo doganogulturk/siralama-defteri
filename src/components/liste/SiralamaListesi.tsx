@@ -8,7 +8,7 @@ import {
 import {
   SortableContext, verticalListSortingStrategy, rectSortingStrategy, arrayMove, sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
-import { AlanTanimi, Item } from '../../types/item';
+import { AlanTanimi, Item, Kategori } from '../../types/item';
 import { titret } from '../../lib/his';
 import {
   ASLA_SINIRI, AslaSiniri, DraggableRow, StaticRow, SuruklenebilirAslaSiniri,
@@ -21,7 +21,7 @@ import { messages } from '../../lib/i18n';
  * aynı satırların statik hâli (filtre uygulanmış `gorunen` / `gorunenAsla`).
  */
 export default function SiralamaListesi({
-  ranked, aslaListesi, gorunen, gorunenAsla, alanlar,
+  ranked, aslaListesi, gorunen, gorunenAsla, alanlar, kategoriler,
   kart, suruklenebilir, secimModu, secili, onSelect, taclanan, onReorder,
 }: {
   ranked: Item[];
@@ -29,6 +29,7 @@ export default function SiralamaListesi({
   gorunen: Item[];
   gorunenAsla: Item[];
   alanlar: AlanTanimi[];
+  kategoriler: Kategori[];
   kart: boolean;
   suruklenebilir: boolean;
   secimModu: boolean;
@@ -76,6 +77,7 @@ export default function SiralamaListesi({
             key={item.id}
             item={item}
             alanlar={alanlar}
+            kategoriler={kategoriler}
             rank={ranked.findIndex(r => r.id === item.id) + 1}
             secimModu={secimModu}
             isSelected={secili(item.id)}
@@ -90,6 +92,7 @@ export default function SiralamaListesi({
                 key={item.id}
                 item={item}
                 alanlar={alanlar}
+                kategoriler={kategoriler}
                 rank={0}
                 asla
                 secimModu={secimModu}
@@ -121,6 +124,7 @@ export default function SiralamaListesi({
               key={item.id}
               item={item}
               alanlar={alanlar}
+              kategoriler={kategoriler}
               rank={i + 1}
               isSelected={secili(item.id)}
               onSelect={onSelect}
@@ -137,6 +141,7 @@ export default function SiralamaListesi({
               key={item.id}
               item={item}
               alanlar={alanlar}
+              kategoriler={kategoriler}
               rank={0}
               asla
               isSelected={secili(item.id)}

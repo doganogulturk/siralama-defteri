@@ -575,22 +575,25 @@ a { color: var(--accent-ink); }
 .row.is-selected .row-check,
 .wish-row.is-selected .row-check { background: var(--primary); box-shadow: none; color: var(--on-primary); }
 
-.row-grip {
-  order: 20;
-  display: grid;
-  place-items: center;
-  width: 28px;
+/* Sürükleme tutamağı solda: noktalar ve sıra numarası birlikte. Satırın sol kenarına
+   kadar uzanıyor ki parmakla yakalamak kolay olsun; sayfa kaydırması satırın geri kalanında. */
+.row-tutamak {
+  display: flex;
+  align-items: center;
+  gap: 3px;
   align-self: stretch;
-  margin-right: -4px;
-  border-radius: 10px;
-  color: var(--faint);
-  cursor: grab;
   flex-shrink: 0;
+  margin: -8px -4px -8px -6px;
+  padding: 0 4px 0 7px;
+  border-radius: var(--r-md) 0 0 var(--r-md);
+  cursor: grab;
   touch-action: none;
-  transition: color var(--t) var(--ease), background var(--t) var(--ease);
+  transition: background var(--t) var(--ease);
 }
-.row-grip:hover { color: var(--mute); background: var(--tint); }
-.row-grip:active { cursor: grabbing; }
+.row-tutamak:hover { background: var(--tint); }
+.row-tutamak:active, .row.is-dragging .row-tutamak { cursor: grabbing; }
+.row-grip { flex-shrink: 0; color: var(--faint); transition: color var(--t) var(--ease); }
+.row-tutamak:hover .row-grip { color: var(--mute); }
 
 .row-thumb {
   width: 54px;
@@ -627,17 +630,41 @@ a { color: var(--accent-ink); }
 
 .row-tags { order: 15; display: flex; gap: 6px; flex-shrink: 0; }
 .row-tags:empty { display: none; }
-/* Satır görünümünde rozetler adın yanında yer kaplamıyor: kartın sağ üst köşesine yapışık,
-   alt-sol köşesi yuvarlak tek bir sekme. Kart görünümü (.rows-kart) eski yerinde bırakıyor. */
-.row-tags.is-kose {
+/* Satır görünümünde kategori ve rozetler adın yanında yer kaplamıyor: kategori sağ üst,
+   rozetler sağ alt köşeye yapışık sekmeler; içe bakan köşeleri yuvarlak. Köşe sekmesi olan
+   satır biraz daha uzun ki iki satırlık ad sekmelere değmesin. */
+.row.has-kose { min-height: 78px; }
+.row-kat {
   position: absolute;
   top: 0;
+  right: 0;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 50%;
+  padding: 2px 9px 3px 8px;
+  border-radius: 0 var(--r-md) 0 10px;
+  background: var(--tint);
+  color: var(--soft);
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+.row-kat i { width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: var(--kat); }
+.row-tags.is-kose {
+  position: absolute;
+  bottom: 0;
   right: 0;
   z-index: 1;
   max-width: 60%;
   gap: 0;
   overflow: hidden;
-  border-radius: 0 var(--r-md) 0 10px;
+  border-radius: 10px 0 var(--r-md) 0;
   pointer-events: none;
 }
 .row-tags.is-kose .row-tag {
@@ -754,13 +781,12 @@ a { color: var(--accent-ink); }
   line-height: 0.95;
   margin-top: 4px;
 }
-/* Özet göstergeler: üç eşit kutu, etiket üstte, iri serif sayı altta. Sıralandı kutusu
-   vurgu renginde ve altında kayıtların ne kadarının denendiğini gösteren ince bir çubuk. */
+/* Özet göstergeler: iki eşit kutu, etiket üstte, iri serif sayı altta; Sıralanan vurgu renginde. */
 .home-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  max-width: 560px;
+  max-width: 380px;
   margin-top: 20px;
 }
 .home-stat {
@@ -793,17 +819,6 @@ a { color: var(--accent-ink); }
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 28%, transparent), var(--shadow-sm);
 }
 .home-stat.is-vurgu dd { color: var(--accent-ink); }
-.home-stat-oran {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-top: 9px;
-  font-size: 0.72rem;
-  color: var(--mute);
-  white-space: nowrap;
-}
-.home-stat-cubuk { display: block; height: 4px; border-radius: var(--pill); background: var(--tint); overflow: hidden; }
-.home-stat-cubuk span { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
 @media (min-width: 640px) {
   .home-stat { padding: 16px 18px; }
   .home-stat dd { font-size: 3rem; }
@@ -1823,26 +1838,25 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
     linear-gradient(to bottom, var(--accent-wash), transparent 70%),
     var(--surface);
 }
-.rows-kart .row-grip {
-  position: absolute;
+/* Kartta tutamak sıra hapının kendisi (fotoğrafın sol üstü); noktalar gizli. Kategori
+   fotoğrafın sağ üstünde cam hap; seçim modunda yerini seçim kutusu alıyor. */
+.rows-kart .row-tutamak { display: contents; }
+.rows-kart .row-tutamak .row-rank { cursor: grab; touch-action: none; }
+.rows-kart .row-grip { display: none; }
+.rows-kart .row-kat {
   top: 14px;
   right: 14px;
-  z-index: 1;
-  width: 34px;
-  height: 34px;
-  margin: 0;
+  max-width: calc(100% - 90px);
+  padding: 5px 10px 5px 9px;
   border-radius: var(--pill);
   background: var(--glass);
   -webkit-backdrop-filter: var(--blur);
   backdrop-filter: var(--blur);
   box-shadow: var(--hair), var(--shadow-sm);
-  color: var(--mute);
-  opacity: 0;
-  transition: opacity var(--t) var(--ease);
+  font-size: 0.72rem;
 }
-.rows-kart .row:hover .row-grip,
-.rows-kart .row-grip:focus-visible,
-.rows-kart .row.is-dragging .row-grip { opacity: 1; }
+.rows-kart .row.is-secim .row-kat { display: none; }
+.rows-kart .row.has-kose { min-height: 0; }
 .rows-kart .row-check,
 .wish-kart .row-check { position: absolute; top: 14px; right: 14px; z-index: 1; background: var(--surface); }
 

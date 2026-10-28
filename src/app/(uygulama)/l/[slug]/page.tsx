@@ -323,6 +323,7 @@ export default function ListePage() {
         gorunen={visible}
         gorunenAsla={visibleAsla}
         alanlar={alanlar}
+        kategoriler={kategoriler}
         kart={kartGorunum}
         // Seçim modunda da sürükleme yok: dokunmak seçmek demek, iki hareket karışmasın.
         suruklenebilir={canReorder && !secim}

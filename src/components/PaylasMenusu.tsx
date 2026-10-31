@@ -5,6 +5,7 @@ import Sheet from './Sheet';
 import { Liste } from '../types/item';
 import { paylasimAdresi, paylasimMetni } from '../lib/paylasim';
 import { slugify } from '../lib/slug';
+import { KOR_ADET, korBaglantisiGonder, korUygun } from '../lib/kor-liste';
 import { DIL_PARAMETRE, messages, simdikiDil } from '../lib/i18n';
 
 /**
@@ -13,8 +14,10 @@ import { DIL_PARAMETRE, messages, simdikiDil } from '../lib/i18n';
  * paylaşım menüsünü yalnızca dokunuşun hemen ardından açıyor, dokunuştan sonra
  * indirmeye başlamak menüyü engellerdi.
  */
-export default function PaylasMenusu({ liste, onClose, onAyarlar, onBildirim }: {
+export default function PaylasMenusu({ liste, korAdet, onClose, onAyarlar, onBildirim }: {
   liste: Liste;
+  /** Paylaşımda görünen kayıt sayısı (sıralama + "Bir daha asla"): kör sıralama en az on ister. */
+  korAdet: number;
   onClose: () => void;
   onAyarlar: () => void;
   onBildirim: (mesaj: string) => void;
@@ -100,6 +103,22 @@ export default function PaylasMenusu({ liste, onClose, onAyarlar, onBildirim }: 
                 ? t.storyAciklama
                 : t.hazirlaniyor}
           </em>
+        </button>
+        {/* Kör sıralat: arkadaş listeyi sahibinin sırasını görmeden diziyor (`/p/[kod]/kor`).
+            On kayıttan kısa listede görünüyor ama kapalı, nedeniyle. */}
+        <button
+          type="button"
+          className="paylas-secenek"
+          disabled={!korUygun(korAdet)}
+          onClick={async () => {
+            const sonuc = await korBaglantisiGonder(kod, liste.ad);
+            if (sonuc === 'kopyalandi') onBildirim(t.baglantiKopyalandi);
+            if (sonuc !== 'olmadi') onClose();
+          }}
+        >
+          <strong>{t.korSiralat}</strong>
+          <em>{korUygun(korAdet) ? t.korAciklama : t.korKisa(korAdet)}</em>
+          {!korUygun(korAdet) && <span className="paylas-secenek-cubuk" aria-hidden="true"><span style={{ width: `${(korAdet / KOR_ADET) * 100}%` }} /></span>}
         </button>
         <button type="button" className="btn-quiet" onClick={onAyarlar}>{t.ayarlar}</button>
       </div>

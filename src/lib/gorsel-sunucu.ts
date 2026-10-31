@@ -43,23 +43,32 @@ export async function fotoVerisi(url?: string | null): Promise<string | null> {
   if (!adres) return null;
   try {
     const yanit = await fetch(adres, { signal: AbortSignal.timeout(FOTO_SURE_MS), redirect: 'error' });
-    const tur = yanit.headers.get('content-type')?.split(';')[0].trim() ?? '';
-    const cevrilecek = CEVRILEN_TURLER.includes(tur);
-    if (!yanit.ok || (!FOTO_TURLERI.includes(tur) && !cevrilecek)) return null;
+    const bildirilen = yanit.headers.get('content-type')?.split(';')[0].trim() ?? '';
+    if (!yanit.ok || (!FOTO_TURLERI.includes(bildirilen) && !CEVRILEN_TURLER.includes(bildirilen))) return null;
     if (Number(yanit.headers.get('content-length') ?? 0) > FOTO_EN_BUYUK) return null;
-    const veri = await yanit.arrayBuffer();
+    const veri = Buffer.from(await yanit.arrayBuffer());
     if (veri.byteLength > FOTO_EN_BUYUK) return null;
-    if (cevrilecek) {
-      const png = await sharp(Buffer.from(veri))
-        .resize(CEVIRI_KENAR, CEVIRI_KENAR, { fit: 'inside', withoutEnlargement: true })
-        .png()
-        .toBuffer();
-      return `data:image/png;base64,${png.toString('base64')}`;
-    }
-    return `data:${tur};base64,${Buffer.from(veri).toString('base64')}`;
+    // Tür başlığa değil dosyanın ilk baytlarına göre: eski yüklemelerin bir kısmı `.jpg`
+    // adıyla ve `image/jpeg` başlığıyla sunulan WebP. Motor onu JPEG sanınca bütün görsel
+    // düşüyordu; tanınan üç biçimin dışındaki her şey PNG'ye çevriliyor.
+    const tur = gercekTur(veri);
+    if (tur) return `data:${tur};base64,${veri.toString('base64')}`;
+    const png = await sharp(veri)
+      .resize(CEVIRI_KENAR, CEVIRI_KENAR, { fit: 'inside', withoutEnlargement: true })
+      .png()
+      .toBuffer();
+    return `data:image/png;base64,${png.toString('base64')}`;
   } catch {
     return null;
   }
+}
+
+/** Görsel motorunun doğrudan çizebildiği biçim, dosyanın imzasından; değilse null. */
+function gercekTur(b: Buffer): string | null {
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image/jpeg';
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return 'image/png';
+  if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46) return 'image/gif';
+  return null;
 }
 
 /** Yazı tipi verilince motorun kendi Geist'i devreden çıkıyor: ikisi birlikte (OFL, `src/fonts/`). */

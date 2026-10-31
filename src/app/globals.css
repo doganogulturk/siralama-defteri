@@ -2880,6 +2880,10 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
 .paylas-secenek:hover { box-shadow: 0 0 0 1px var(--faint); }
 .paylas-secenek:active { transform: scale(0.98); }
 .paylas-secenek:disabled { cursor: progress; }
+/* Kör sıralat kısa listede kapalı: soluk ve altında on kayda ne kadar kaldığını gösteren çubuk. */
+.paylas-secenek:disabled:has(.paylas-secenek-cubuk) { cursor: not-allowed; opacity: 0.7; }
+.paylas-secenek-cubuk { display: block; height: 4px; margin-top: 6px; border-radius: var(--pill); background: var(--tint); overflow: hidden; }
+.paylas-secenek-cubuk span { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
 .paylas-secenek strong { font-weight: 600; }
 .paylas-secenek em { font-style: normal; font-size: 0.86rem; line-height: 1.45; color: var(--mute); }
 
@@ -3190,6 +3194,40 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
 .kor-secim-kart strong { margin-top: 6px; font-family: var(--serif); font-size: 1.35rem; font-weight: 400; line-height: 1.1; }
 .kor-secim-kart em { font-style: normal; font-size: 0.78rem; color: var(--mute); }
 @media (min-width: 640px) { .kor-secim { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* Kör Sıralama ekranında giriş yapmış kullanıcının kendi listeleri: kapak, ad, Gönder. */
+.kor-kendi-bolum { display: flex; flex-direction: column; gap: 6px; margin-top: 24px; }
+.kor-kendi-bolum h2 { font-family: var(--serif); font-size: 1.6rem; font-weight: 400; line-height: 1.1; }
+.kor-kendi-bolum > p { font-size: 0.86rem; line-height: 1.45; color: var(--mute); }
+.kor-kendi-listeler { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; list-style: none; }
+.kor-kendi-listeler li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 8px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--hair), var(--shadow-sm);
+}
+.kor-kendi-kapak {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--surface-2);
+  object-fit: cover;
+  color: var(--mute);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.kor-kendi-ad { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.kor-kendi-ad strong { font-family: var(--serif); font-size: 1.25rem; font-weight: 400; line-height: 1.1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.kor-kendi-ad em { font-style: normal; font-size: 0.78rem; color: var(--mute); }
+.kor-kendi-gonder { min-height: 38px; padding: 0 18px; flex-shrink: 0; }
+.kor-kendi-daha { align-self: flex-start; padding: 4px 2px; font-size: 0.84rem; font-weight: 600; color: var(--accent-ink); }
+.kor-kendi-ac { flex-shrink: 0; padding: 0 6px; font-size: 0.82rem; font-weight: 600; color: var(--accent-ink); text-decoration: none; }
+
 /* Sayılar kartı boydan boya: simge solda, ad ve alt satır yanında; zemini oyunun renginde hafif. */
 .kor-secim li.is-sayilar { grid-column: 1 / -1; }
 .kor-secim li.is-sayilar .kor-secim-kart {
@@ -3322,6 +3360,43 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   animation: kor-gel 0.5s var(--spring) both;
 }
 .kor-kart-no { font-size: 0.74rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.75; }
+/* Kendi listenin kör sıralaması: kartta kaydın fotoğrafı solda, adı yanında; yuvalarda ve
+   sonuçta küçük fotoğraf. Fotoğrafsız kayıtta baş harfler. */
+.kor-kart.kor-kart-foto { flex-direction: row; justify-content: flex-start; gap: 16px; padding: 14px; text-align: left; }
+.kor-kart-resim {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  background: #fff;
+  object-fit: contain;
+  color: color-mix(in oklab, var(--kor) 70%, black);
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+.kor-kart-metin { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.kor-kart-foto strong { font-size: clamp(1.7rem, 8vw, 2.3rem); }
+.kor-kart-metin small { font-size: 0.9rem; opacity: 0.85; }
+.kor-yuva-resim {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--surface-2);
+  object-fit: cover;
+  color: var(--mute);
+  font-size: 0.62rem;
+  font-weight: 600;
+}
+.kor-kendi .kor-yuva span, .kor-kendi-liste span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.kor-kendi-liste span { flex: 1; }
+.kor-kendi-liste abbr { text-decoration: none; }
+.kor-kendi-sahip { font-size: 0.9rem; font-weight: 500; color: var(--kor); }
+.kor-kendi-davet { max-width: 34ch; font-size: 0.95rem; line-height: 1.45; color: var(--soft); }
 .kor-kart strong { font-family: var(--serif); font-size: clamp(2.2rem, 10vw, 2.9rem); font-weight: 400; line-height: 1.02; overflow-wrap: anywhere; }
 .kor-kart.is-gidiyor { animation: kor-git 0.36s var(--ease) both; }
 @keyframes kor-gel {

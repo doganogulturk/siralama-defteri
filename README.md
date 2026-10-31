@@ -11,7 +11,7 @@ Canlı: <https://siralama-defteri.vercel.app>
 - **Toplu ekleme ve toplu işlemler** — satır satır yazarak kayıt ve kategori açma; seçim modunda kategori atama, taşıma, silme.
 - **Paylaşım** — giriş istemeyen salt okunur bağlantı (`/p/[kod]`), WhatsApp önizleme görseli, Instagram story görseli.
 - **Ben de sıralayayım ve karşılaştırma** — paylaşılan listeyi kendi sıranla kopyala, uyum yüzdesini gör (Kendall).
-- **Kör Sıralama** — girişsiz oyun: on kayıt birer birer gelir, yeri bir daha değişmez (`/kor`). **Sayılar** aynı oyunun doğru cevabı olanı: 1–100 arası on sayıyı küçükten büyüğe dizmek, günün sayıları herkese aynı (`/kor/sayilar`).
+- **Kör Sıralama** — girişsiz oyun: on kayıt birer birer gelir, yeri bir daha değişmez (`/kor`). **Sayılar** aynı oyunun doğru cevabı olanı: 1–100 arası on sayıyı küçükten büyüğe dizmek, günün sayıları herkese aynı (`/kor/sayilar`). Paylaşılan 10+ kayıtlı kendi listeni de arkadaşına kör sıralatabilirsin (`/p/[kod]/kor`); sonunda sahibiyle uyum.
 - **Türkçe / English** — arayüz cihaz diliyle açılır, seçilip hatırlanır; paylaşımlar paylaşanın dilinde (`?l=en`).
 - **Hesabın tamamen silinmesi** — Hesap Silme sayfasından; mağazaların istediği gibi giriş kaydı dahil.
 - **Hazır şablonlar, PWA, açık/koyu tema, iki dilli yasal sayfalar.**

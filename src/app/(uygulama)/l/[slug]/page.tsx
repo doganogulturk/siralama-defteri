@@ -555,6 +555,7 @@ export default function ListePage() {
       {paylasMenusu && liste?.paylasim_kodu && (
         <PaylasMenusu
           liste={liste}
+          korAdet={total}
           onClose={() => setPaylasMenusu(false)}
           onAyarlar={() => { setPaylasMenusu(false); setAyarlarAcik(true); }}
           onBildirim={setBildirim}

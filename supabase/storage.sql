@@ -5,7 +5,9 @@
 -- sunuluyor (uygulama, paylaşım sayfası ve önizleme görseli böyle okuyor). Aşağıdaki politikalar
 -- yalnızca API üzerinden yükleme, listeleme ve silmeyi düzenliyor:
 --
---   • yükleme yalnızca giriş yapmış kullanıcıya açık — anonim anahtar tarayıcı paketinde herkese açık;
+--   • yükleme yalnızca giriş yapmış kullanıcıya ve yalnızca kendi klasörüne (`<kullanıcı kimliği>/…`)
+--     açık — anonim anahtar tarayıcı paketinde herkese açık. Klasör kuralından önce yüklenmiş eski
+--     dosyalar kovanın kökünde; okuma ve silme sahibine göre olduğu için onlar da çalışmaya devam ediyor;
 --   • listeleme ve silme yalnızca dosyanın sahibine (yükleyen kullanıcı, owner_id). Silme Storage
 --     API'de hem delete hem select yetkisi istiyor;
 --   • kovanın kendisi yalnızca küçük JPEG kabul ediyor ve kullanıcı başına dosya sayısı sınırlı
@@ -48,10 +50,16 @@ $$;
 revoke all on function do_siralama_defteri.foto_sayisi() from public, anon;
 grant execute on function do_siralama_defteri.foto_sayisi() to authenticated;
 
+-- Klasör kuralı (Kasım 2026): uygulamanın klasöre yükleyen sürümü (src/lib/items.ts → uploadFotograf)
+-- yayına çıktıktan sonra çalıştırılmalı; öncesinde köke yükleyen eski sürüm reddedilirdi.
 drop policy if exists "siralama-defteri yükleme" on storage.objects;
 create policy "siralama-defteri yükleme" on storage.objects
   for insert to authenticated
-  with check (bucket_id = 'fotograflar' and do_siralama_defteri.foto_sayisi() < 1000);
+  with check (
+    bucket_id = 'fotograflar'
+    and (storage.foldername(name))[1] = (select auth.uid())::text
+    and do_siralama_defteri.foto_sayisi() < 1000
+  );
 
 drop policy if exists "siralama-defteri kendi fotoğrafları" on storage.objects;
 create policy "siralama-defteri kendi fotoğrafları" on storage.objects

@@ -293,10 +293,16 @@ export async function updateItemsKategori(ids: string[], categoryId: string | nu
 
 /* ── Fotoğraf ───────────────────────────────────────── */
 
-/** Fotoğraf küçültülüp yükleniyor (`lib/foto.ts`); kova yalnızca küçük JPEG kabul ediyor. */
+/**
+ * Fotoğraf küçültülüp yükleniyor (`lib/foto.ts`); kova yalnızca küçük JPEG kabul ediyor.
+ * Dosya kullanıcının klasörüne (`<kimlik>/<uuid>.jpg`): yükleme politikası başka klasöre izin
+ * vermiyor (`storage.sql`), ad tahmin edilemiyor. Kova herkese açık okunduğu için adın
+ * tahmin edilemez olması paylaşılmamış listelerin fotoğraflarını da koruyor.
+ */
 export async function uploadFotograf(file: File): Promise<string> {
   const blob = await fotoKucult(file);
-  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+  const kimlik = await oturumdakiKimlik();
+  const fileName = `${kimlik}/${crypto.randomUUID()}.jpg`;
 
   const { error } = await supabase.storage
     .from(KOVA)
@@ -326,12 +332,33 @@ export async function deleteFotograf(url?: string | null): Promise<void> {
   if (error) console.warn('Fotoğraf silinemedi:', error.message);
 }
 
+/** Yerel oturumdan, ağa gitmeden; kimliği asıl denetleyen kova politikası. */
+async function oturumdakiKimlik(): Promise<string> {
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  if (!data.session) throw new Error(messages().hata.oturumYok);
+  return data.session.user.id;
+}
+
+/** Bir klasördeki bütün dosyaları siler; silindikçe sayfa kaydığı için hep baştan, dosya kalmayana kadar. */
+async function klasoruBosalt(klasor: string): Promise<void> {
+  const onek = klasor ? `${klasor}/` : '';
+  for (let tur = 0; tur < 20; tur++) {
+    const { data: dosyalar, error } = await supabase.storage.from(KOVA).list(klasor, { limit: 1000 });
+    if (error) throw error;
+    // Klasörlerin `id`'si yok; yalnızca dosyalar.
+    const adlar = (dosyalar ?? []).filter(d => d.id).map(d => onek + d.name);
+    if (adlar.length === 0) return;
+    const { error: e } = await supabase.storage.from(KOVA).remove(adlar);
+    if (e) throw e;
+  }
+}
+
 /* ── Hesap ──────────────────────────────────────────── */
 
 /**
  * Hesabı silme: kullanıcının bu uygulamadaki her şeyi ve giriş kaydı. Önce kovadaki
- * bütün dosyaları (kayıtlara bağlı olmayan yetimler dahil — listeleme politikası
- * yalnızca sahibine açık, `storage.sql`), sonra hesabı (`hesabimi_sil`): listeler,
+ * bütün dosyaları (kayıtlara bağlı olmayan yetimler dahil), sonra hesabı (`hesabimi_sil`): listeler,
  * kategoriler ve kayıtlar auth.users'tan cascade ile gidiyor. Hesap sunucuda silinince
  * oturum geçersiz kalıyor; çıkış yalnızca bu cihazda yapılıyor (sunucuya sorulacak
  * oturum kalmadı).
@@ -341,15 +368,9 @@ export async function hesabiSil(): Promise<void> {
   if (userError) throw userError;
   if (!userData.user) throw new Error(messages().hata.oturumYok);
 
-  // Silindikçe sayfa kayıyor: hep baştan, dosya kalmayana kadar.
-  for (let tur = 0; tur < 20; tur++) {
-    const { data: dosyalar, error } = await supabase.storage.from(KOVA).list('', { limit: 1000 });
-    if (error) throw error;
-    const adlar = (dosyalar ?? []).filter(d => d.id).map(d => d.name);
-    if (adlar.length === 0) break;
-    const { error: e } = await supabase.storage.from(KOVA).remove(adlar);
-    if (e) throw e;
-  }
+  // Kendi klasörü ve klasör kuralından önce köke yüklenmiş eski dosyaları (listeleme yalnızca sahibine açık).
+  await klasoruBosalt(userData.user.id);
+  await klasoruBosalt('');
 
   const { error } = await supabase.rpc('hesabimi_sil');
   if (error) throw error;

@@ -3,6 +3,8 @@ import { AlanTanimi, Item, Kategori, Liste } from '@/types/item';
 import { fotoKucult } from './foto';
 import { KOVA } from './kova';
 import { messages } from './i18n';
+import { VARSAYILAN_KADEMELER, siralamadanDagit } from './kademe';
+import { siraliSiralama } from './siralama';
 
 const T_LISTS = 'lists';
 const T_CATS = 'categories';
@@ -377,4 +379,17 @@ export async function hesabiSil(): Promise<void> {
   const { error } = await supabase.rpc('hesabimi_sil');
   if (error) throw error;
   await supabase.auth.signOut({ scope: 'local' });
+}
+
+/* ── Kademeler ──────────────────────────────────────── */
+
+/**
+ * Kademeleri açar: varsayılan S–D ve sıralama onlara sırasıyla dağıtılıyor (sıra değişmiyor).
+ * Önce liste, sonra kayıtlar: kayıtlar yazılamazsa hepsi kademesiz kalıyor, yine tutarlı.
+ * Liste ayarları ve liste ekranındaki "Tier" seçicisi aynı yoldan.
+ */
+export async function kademeleriAc(listeId: string, items: Item[]): Promise<void> {
+  await updateListe(listeId, { kademeler: VARSAYILAN_KADEMELER });
+  await updateItemsSira(siralamadanDagit(siraliSiralama(items, null), VARSAYILAN_KADEMELER)
+    .map(i => ({ id: i.id, sira: i.sira ?? 0, kademe: i.kademe ?? null })));
 }

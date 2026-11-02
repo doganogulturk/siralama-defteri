@@ -30,14 +30,6 @@ export const PaylasIkon = (
 );
 export const SatirIkon = <Ikon><path d="M4 6h16M4 12h16M4 18h16" /></Ikon>;
 
-/** Kademe görünümü: solda etiket kutuları, sağda satırlar (tier list). */
-export const KademeIkon = (
-  <Ikon>
-    <rect x="3" y="4" width="5" height="4.5" rx="1.2" /><rect x="3" y="15.5" width="5" height="4.5" rx="1.2" />
-    <rect x="3" y="9.75" width="5" height="4.5" rx="1.2" /><path d="M11 6.25h10M11 12h7M11 17.75h4" />
-  </Ikon>
-);
-
 /** Liste ayarları: başlıkta (masaüstü) ve alt menüde (telefon). */
 export const AyarlarIkon = (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"

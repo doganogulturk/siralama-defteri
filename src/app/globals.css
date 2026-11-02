@@ -2629,7 +2629,7 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   .list {
     display: flex;
     flex-direction: column;
-    padding: 0 32px;
+    padding: 0 24px;
     overflow-y: auto;
     scrollbar-width: thin;
   }
@@ -2659,8 +2659,9 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   .mobile-brand-settings-ad { display: inline; }
   .mobile-brand-settings:active { transform: scale(0.97); }
 
-  .sticky-top { margin: 0 -32px; padding: 0 32px; }
-  .desk-arama { display: block; max-width: 340px; margin-left: auto; }
+  .sticky-top { margin: 0 -24px; padding: 0 24px; }
+  .desk-arama { display: flex; justify-content: flex-end; flex-shrink: 0; margin-left: auto; }
+  .desk-arama .arama { width: 220px; }
   .mobile-arama { display: none; }
   .tabs { margin-top: 18px; }
 
@@ -2710,14 +2711,13 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   .form-screen > .tabs { margin: 10px 24px 0; }
   .form-screen-actions { margin: auto -24px 0; padding: 16px 24px 20px; }
 
-  /* Seçili kayıt yokken detay sütunu kapanıyor; sıralama genişliyor ama okunur
-     ölçüde ortalanıyor. Başlık şeridi kendi yatay dolgusunu taşıdığı için 64px geniş. */
+  /* Seçili kayıt yokken detay sütunu kapanıyor; sıralama raydan ekranın sağına kadar
+     bütün genişliği kullanıyor (kenarlarda yalnızca sütunun 24px dolgusu). Çok geniş
+     ekranda satır görünümü okunur ölçüde kalsın diye 1400px'te duruyor. */
   .app.pane-kapali { grid-template-columns: 280px minmax(0, 1fr); }
-  .app.pane-kapali .list > :not(.fab) { width: 100%; max-width: 760px; margin-left: auto; margin-right: auto; }
-  .app.pane-kapali .list > .sticky-top { max-width: 824px; }
-  /* Kart görünümünde sütun genişliyor ki ızgaraya daha çok kart sığsın. */
-  .app.pane-kapali .list.is-kart > :not(.fab) { max-width: 1080px; }
-  .app.pane-kapali .list.is-kart > .sticky-top { max-width: 1144px; }
+  .app.pane-kapali .list > :not(.fab) { width: 100%; max-width: 1400px; }
+  /* Başlık şeridi sütunun dolgusuna taşıyor (negatif kenar boşluğu): genişliği kendiliğinden. */
+  .app.pane-kapali .list > .sticky-top { width: auto; max-width: calc(1400px + 48px); }
   /* Masaüstü araç satırı tek satır: sekmeler solda, kategori şeridi kalan alanda ortalı
      (taşarsa soldan kesilmesin diye "safe"), görünüm ve "Seç" sağda. */
   .liste-arac { flex-wrap: nowrap; justify-content: flex-start; column-gap: 12px; padding: 14px 0 4px; }
@@ -2732,7 +2732,11 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
     .liste-arac > .tabs { margin-right: auto; }
     .liste-arac-filtre { order: 10; flex: 1 0 100%; }
     .liste-arac .filters-inline { justify-content: flex-start; margin-inline: -14px; }
-    .liste-arac .desk-arama { max-width: none; margin: 10px 0 0; }
+    .liste-arac .desk-arama { flex: 1 1 100%; justify-content: flex-start; margin: 10px 0 0; }
+    .liste-arac .desk-arama .arama { width: 100%; }
+    /* Kapalı arama yalnızca bir düğme: kendi satırına inmesin, üst satırda kalsın. */
+    .liste-arac-filtre:has(.arama-kap) { order: 0; flex: 0 0 auto; }
+    .liste-arac .desk-arama:has(.arama-kap) { margin: 0; }
   }
 
   /* Liste ayarları penceresi kayıt formundan biraz geniş */
@@ -4153,9 +4157,36 @@ body:has(.mobil-menu) .kor-sayfa { padding-bottom: calc(110px + env(safe-area-in
 .kademe-ayar-islemler .btn-quiet { min-height: 40px; padding: 0 14px; font-size: 0.88rem; }
 .kademe-kapat { color: var(--accent-ink); }
 
-/* Araç satırındaki Kademe / Liste seçici. Telefonda filtre şeridiyle "Seç" arasına sığsın diye
-   şerit o kadar daralıyor (şerit zaten yatay kayıyor). */
-.liste-arac:has(.kademe-gorunum-secici) .liste-arac-filtre { flex-basis: calc(100% - 96px - 84px); }
+/* "1→n / Tier" seçicisi: yazılı iki parça. Telefonda arama satırında (araç satırındaki gizli),
+   orada Paylaş yalnızca simge kalıyor ki arama kutusu ezilmesin. Masaüstünde araç satırında. */
+.sira-tier button { width: auto; min-width: 44px; padding: 0 11px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+.sira-tier { align-self: center; }
+.liste-arac .sira-tier { display: none; }
+/* Kapalı arama: yalnızca büyüteç. Telefonda seçici sağa yaslanıyor; arama açılınca kutu
+   satırı dolduruyor ve Paylaş yalnızca simge kalıyor. */
+.arama-ac {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--pill);
+  background: var(--surface);
+  box-shadow: var(--hair);
+  color: var(--soft);
+}
+.arama-ac:hover { color: var(--ink); box-shadow: 0 0 0 1px var(--faint), var(--shadow-sm); }
+.arama-kap { display: flex; }
+.mobile-arama .sira-tier { margin-left: auto; }
+.mobile-arama:has(.arama):has(.sira-tier) .mobile-paylas { width: 40px; padding: 0; justify-content: center; }
+.mobile-arama:has(.arama):has(.sira-tier) .mobile-paylas span { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .arama { animation: arama-acil 0.18s var(--ease); }
+  @keyframes arama-acil { from { opacity: 0.4; clip-path: inset(0 0 0 calc(100% - 40px) round 999px); } }
+}
+@media (min-width: 1024px) {
+  .liste-arac .sira-tier { display: flex; }
+}
 
 /* ── Doğru Sıra (components/DogruSiraOyun.tsx) ─────────────────────
    Kör Sıralama'nın kabuğu (`kor-*`), listenin rengi `--kor`. Oyunda on satır sürükleniyor

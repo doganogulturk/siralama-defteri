@@ -107,7 +107,8 @@ export const en: Mesajlar = {
     bilinmeyen: 'Unknown error',
   },
   ana: {
-    merhaba: (ad: string) => `Hi ${ad},`,
+    /** Selamlama: önce, ad (italik), sonra. */
+    merhaba: ['Hi ', ','] as [string, string],
     baslik: 'Your lists',
     liste: 'Lists',
     siralanan: 'Ranked',

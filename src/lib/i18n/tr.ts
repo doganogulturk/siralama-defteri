@@ -106,7 +106,8 @@ export const tr = {
     bilinmeyen: 'Bilinmeyen hata',
   },
   ana: {
-    merhaba: (ad: string) => `Merhaba ${ad},`,
+    /** Selamlama: önce, ad (italik), sonra. */
+    merhaba: ['Merhaba ', ','] as [string, string],
     baslik: 'Listelerin',
     liste: 'Liste',
     siralanan: 'Sıralanan',

@@ -45,7 +45,7 @@ export function rastgeleTohum(): string {
 }
 
 /** Metinden 32 bitlik tohum (FNV-1a), sonra mulberry32: her tarayıcıda aynı dizi. */
-function uretec(tohum: string): () => number {
+export function uretec(tohum: string): () => number {
   let h = 2166136261;
   for (let i = 0; i < tohum.length; i++) {
     h ^= tohum.charCodeAt(i);

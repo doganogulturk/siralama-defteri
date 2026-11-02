@@ -1,1 +1,29 @@
 @AGENTS.md
+
+# Sıralama Defteri — çalışma notları
+
+Claude Code bu dosyayı her oturumun başında okuyor. Projenin bilgi birikimi `docs/` altında; burası oraya giden kısa yol ve çalışma alışkanlıkları. (`next dev` yalnızca `AGENTS.md`'deki işaretli bloğu yeniliyor; bu dosyaya dokunmuyor.)
+
+## Yeni bir işe başlamadan
+
+1. `docs/yol-haritasi.md` → **Durum** (son yapılanlar) ve **Sıradaki adım** (bekleyenler, sırasıyla). Ne yapıldığı ve neyin beklediği orada; konuşmalarda verilen kararlar da oraya işleniyor.
+2. Dokunacağın özelliğin bölümü: `docs/ozellikler.md` (nasıl çalışıyor, neden öyle).
+3. `docs/kararlar.md` — bilinçli kararlar ve kabul edilmiş sınırlar; birini değiştirmeden önce gerekçesini oku.
+4. Veri modeli ve şema: `docs/mimari.md`; görünüm kuralları: `docs/tasarim.md`.
+
+## Son eklenen büyük özellikler (Kasım 2026)
+
+- **Kameralı Kör Sıralama** — `components/KorKamera.tsx`, `lib/kamera.ts`. Ön kamera, başın üstünde kart, tek tuvalden sesli 9:16 video; video cihazdan çıkmıyor. iPhone'da denendi ve beğenildi; Android ve paylaşım hedefleri denenmedi.
+- **Kademeler (tier list)** — `lib/kademe.ts`, `components/kademe/`, şemada `lists.kademeler` ve `items.kademe`. Kural: `sira` her zaman kademe sırasıyla tutarlı; özetler, paylaşım, karşılaştırma ve Kör Sıralama bu yüzden kademeyi bilmeden doğru sırayı okuyor. Uygulamada vurgunun tonları, paylaşım görselinde klasik tier renkleri.
+- **Doğru Sıra** — `lib/dogru-sira.ts`, `lib/dogru-sira-listeler.ts`, `/kor/dogru-sira/[liste]`. Doğru cevabı olan sıralamalar; veriler kaynaklı, yıllık bakım istiyor (TÜİK il nüfusları her Şubat).
+- Sırada: kör tier list (kameralı ve kamerasız), bkz. yol haritası → Video ve tier list.
+
+## Alışkanlıklar
+
+- **Dil:** kod adları, yorumlar, belgeler ve commit mesajları Türkçe. Arayüz iki dilli: metinler `lib/i18n/tr.ts` ve `en.ts`'te, ikisi aynı yapıda olmak zorunda (derleme denetliyor).
+- **Belgeler işin parçası:** her özellik değişikliğinde `docs/ozellikler.md`, `docs/yol-haritasi.md` (Durum ve Sıradaki adım) ve gerekirse kararlar, mimari, tasarım güncelleniyor; README'deki "Neler var" listesi de.
+- **Saf mantık `src/lib`'te, Vitest testiyle.** React bileşeni hesap yapmıyor; hesap test edilen bir fonksiyonda.
+- **Şema:** `supabase/schema.sql` tek dosya, idempotent. Canlıya kodla gitmiyor: sahibi Supabase SQL Editor'da elle çalıştırıyor. Bu yüzden yeni kod eski şemayla da bozulmadan çalışmalı ve gereken sıra yol haritasına yazılmalı. Şema değişikliğine `supabase/test/rls.sql`'de denetim ekleniyor.
+- **Denetimler:** `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:db` (boş bir Postgres ister; CI'da her push'ta çalışıyor).
+- **Görseller (next/og):** emoji kullanılmıyor (motor emojiyi çalışma anında bir CDN'den indiriyor); fotoğraflar yalnızca kendi kovadan (`lib/gorsel-sunucu.ts`).
+- **Yayın:** `main` Vercel'de canlıya çıkıyor; birleştirilen dallar GitHub'da kendiliğinden siliniyor.

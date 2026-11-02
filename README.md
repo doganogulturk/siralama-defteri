@@ -14,6 +14,7 @@ Canlı: <https://siralama-defteri.vercel.app>
 - **Kör Sıralama** — girişsiz oyun: on kayıt birer birer gelir, yeri bir daha değişmez (`/kor`). **Sayılar** aynı oyunun doğru cevabı olanı: 1–100 arası on sayıyı küçükten büyüğe dizmek, günün sayıları herkese aynı (`/kor/sayilar`). Paylaşılan 10+ kayıtlı kendi listeni de arkadaşına kör sıralatabilirsin (`/p/[kod]/kor`); sonunda sahibiyle uyum.
 - **Kademeler (tier list)** — sıralamayı S, A, B… kademelerine böl: listede kademe başlıkları, "Tier" görünümünde her kademe bir satır, dokunup kademe seçme; paylaşım sayfası kademeli, story görseli tier tablosu.
 - **Kameralı Kör Sıralama** — "Kamerayla oyna": ön kamerayla kendini çek, kayıtlar başının üstünde belirsin; sesli dikey video, paylaşım menüsüyle Instagram / TikTok / WhatsApp'a. Video cihazdan çıkmıyor.
+- **Doğru Sıra** — doğru cevabı olan sıralamalar: ülkelerin nüfusu, iller, dağlar, padişahlar, tarihî olaylar… On madde karışık gelir, sürükleyerek dizilir, sonunda gerçek değerler açılır; puan gerçek sırayla uyum. Günün Doğru Sırası herkese aynı (`/kor/dogru-sira/[liste]`).
 - **Türkçe / English** — arayüz cihaz diliyle açılır, seçilip hatırlanır; paylaşımlar paylaşanın dilinde (`?l=en`).
 - **Hesabın tamamen silinmesi** — Hesap Silme sayfasından; mağazaların istediği gibi giriş kaydı dahil.
 - **Hazır şablonlar, PWA, açık/koyu tema, iki dilli yasal sayfalar.**

@@ -10,6 +10,7 @@ Son yapılanlar:
 
 | Ne | Ayrıntı |
 |---|---|
+| **Oyna: oyunlar öne çıktı (Oyunlar planı 1)** | Ana ekranda "Bugün" (günün iki oyunu) ve "Oyunlar" şeridi; Kör Sıralama sayfası "Oyna" oldu (`/oyna`, mod mod bölümler); alt menüde "Oyna"; giriş yapmamış ziyaretçi ana sayfada oyunları görüyor, tanıtım `/tanitim`'de. Oyunlar `/kor`'dan `/oyna`'ya taşındı, eski bağlantılar yönlendiriliyor. Ayrıntılar [özellikler](ozellikler.md) → Oyna ve ana ekran. |
 | **Liste ekranı: "1→n / Tier" ve geniş masaüstü** | Kademelere ayarlara girmeden geçiş: sıralama sekmesinde her listede "1→n / Tier" seçicisi; kademeleri kapalı listede "Tier" onları açıp S–D'ye dağıtıyor. Masaüstünde sıralama tam genişlik (24px kenar). Arama kapalıyken yalnızca büyüteç düğmesi, basınca kutuya açılıyor. Seçicide "n" yerine sıralamadaki kayıt sayısı ("1→11"). |
 | **Doğru Sıra** | Doğru cevabı olan sıralama oyunu: sekiz liste (ülke nüfusu ve yüzölçümü, il nüfusu, dağlar, padişahlar, tarihî olaylar, elementler, Güneş Sistemi), her seferinde havuzdan on madde, sürükleyerek dizme, Kendall uyumu, değerlerin açılışı, Günün Doğru Sırası, arkadaş bağlantısı ve sonuç görseli. Veriler arama sonuçlarıyla doğrulandı, kaynakları listede ([özellikler](ozellikler.md) → Doğru Sıra). Tarayıcıda denendi; gerçek telefonda denenmedi. |
 | **Kademeler (tier list)** | Liste ayarlarından açılan S–D kademeleri: listede kademe başlıkları ve sürükleme, "Tier" görünümü ve dokun-kademe-seç, kademeli paylaşım sayfası, tier tablosu olarak story görseli (klasik renkler). Şemaya `lists.kademeler` ve `items.kademe` eklendi; `siralamayi_yaz` ve `paylasilan_liste` güncellendi. Ayrıntılar [özellikler](ozellikler.md) → Kademeler. Sahte veriyle tarayıcıda denendi; gerçek hesapla denenmedi. |
@@ -24,14 +25,34 @@ Canlıda denenmedi (gerçek hesap istiyor, sahibin yapması gerekiyor): İngiliz
 ## Sıradaki adım
 
 0. **Kademeler için şema** *(yapılmadıysa önce bu)*: `supabase/schema.sql` Supabase SQL Editor'da çalıştırılmalı (idempotent; yeni kolonlar, kısıtlar ve iki fonksiyon). Kademeli sürüm canlıda; şema çalıştırılana kadar uygulamanın geri kalanı etkilenmiyor ama kademeler açılamıyor (kolon yok). Ardından gerçek hesapla kademeleri aç, sürükle, kademe seç, story görselini paylaş.
-1. **Doğru Sıra verilerine göz at:** `src/lib/dogru-sira-listeler.ts` — değerler ve kaynaklar; telefonda sürükleme ve ok düğmeleri.
-2. **Kameralı Kör Sıralama: kalan cihaz denemeleri** (Video ve tier list 1): iPhone'da denendi; bir Android (Chrome) ve paylaşım hedefleri (Instagram, TikTok, WhatsApp) kaldı. Sorun çıkarsa önce onu düzelt.
-3. Yukarıdaki üç canlı denemeyi yap; sorun çıkarsa önce onu düzelt.
-4. **Video ve tier list 3 — kör tier list** (aşağıda).
-5. **Bekleyen temizlik** (aşağıda) — kısa, ama anahtarlar güvenlik için önemli.
-6. **Mobil 1 — mimari kararı**: bütün mobil işler buna bağlı.
-7. **Mobil 4 — bildir ve engelle** (Apple 1.2): mimariden bağımsız, web'de şimdiden yapılabilir.
-8. **Yayına çıkış 1 — domain**: Google marka doğrulaması (Yayına çıkış 2) ve uygulama içi bağlantılar (Mobil 6) ona bağlı. Videoların son kartındaki adres de: videoda bağlantıya tıklanamıyor, kısa ve akılda kalan bir adres gerekiyor.
+1. **Oyunlar planı 2 — ortak katalog, Tier ve Kör Tier modları** (aşağıda, "Oyunlar planı").
+2. **Doğru Sıra verilerine göz at:** `src/lib/dogru-sira-listeler.ts` — değerler ve kaynaklar; telefonda sürükleme ve ok düğmeleri.
+3. **Kameralı Kör Sıralama: kalan cihaz denemeleri** (Video ve tier list 1): iPhone'da denendi; bir Android (Chrome) ve paylaşım hedefleri (Instagram, TikTok, WhatsApp) kaldı. Sorun çıkarsa önce onu düzelt.
+4. Yukarıdaki üç canlı denemeyi yap; sorun çıkarsa önce onu düzelt.
+5. ~~Video ve tier list 3 — kör tier list~~: Oyunlar planı 2'ye katıldı.
+6. **Bekleyen temizlik** (aşağıda) — kısa, ama anahtarlar güvenlik için önemli.
+7. **Mobil 1 — mimari kararı**: bütün mobil işler buna bağlı.
+8. **Mobil 4 — bildir ve engelle** (Apple 1.2): mimariden bağımsız, web'de şimdiden yapılabilir.
+9. **Yayına çıkış 1 — domain**: Google marka doğrulaması (Yayına çıkış 2) ve uygulama içi bağlantılar (Mobil 6) ona bağlı. Videoların son kartındaki adres de: videoda bağlantıya tıklanamıyor, kısa ve akılda kalan bir adres gerekiyor.
+
+## Oyunlar planı
+
+Kasım 2026'da kararlaştırıldı. Uygulama iki ayak üzerinde: Listelerim ve Oyna. Oyunlarda **mod** (nasıl sıralıyorsun) ile **liste** (neyi sıralıyorsun) ayrılıyor; bir liste birden çok modda oynanıyor.
+
+| Mod | Ne | Hangi listelerle |
+|---|---|---|
+| Kör Sıralama | Birer birer gelir, yeri değişmez | Hepsi |
+| Tier | Maddeleri S–D kademelerine koy, tier tablosunu paylaş | Hepsi |
+| Kör Tier | Birer birer gelir, kademeye konur, yeri değişmez; kademelerin sınırı var | Hepsi |
+| Doğru Sıra | Sürükleyerek diz, gerçek sıra açılır | Yalnızca doğru cevabı (değeri) olanlar |
+| Sayılar | Tek ve sabit | Kendi içeriği |
+
+| # | İş | Not |
+|---|---|---|
+| 1 | **İskelet** *(yapıldı)* | Ana ekranda Bugün ve Oyunlar, `/oyna` ve yönlendirmeler, alt menüde Oyna, oturumsuz ziyaretçiye oyunlar ([özellikler](ozellikler.md) → Oyna ve ana ekran). |
+| 2 | **Ortak katalog, Tier ve Kör Tier** | Kör ve Doğru Sıra listeleri tek katalogda (kodda): her listenin maddeleri, isteğe bağlı değerleri (doğru cevap), rengi ve simgesi. Değeri olan liste Kör'de de oynanır ve sonda "gerçek sırayla %70" der. Tier modu (açık: maddeleri kademelere koy) ve Kör Tier (birer birer, sınırlı kademe) katalog listeleriyle; tier görseli ve kamera altyapısı yeniden kullanılıyor. Kişisel listelerdeki kademeler (Kademeler) ayrı bir özellik olarak kalıyor. |
+| 3 | **Katalog veritabanına, liste önerme** | Listeler Supabase'e (`taslak / onay bekliyor / yayında`, öneren, maddeler, kaynak); yönetici rolü ve onay ekranı; kullanıcı liste önerir, onaylanınca herkese açık katalogda. Önerilen liste onaysız da öneren kişinin bağlantısıyla oynanabilir (bugünkü "kendi listeni kör sıralat" gibi). Yayımlanan liste değişmez (sonuç bağlantıları sıraya bağlı); düzeltme yeni sürüm. Doğru Sıra önerisinde kaynak zorunlu. Onay kuyruğu Apple 1.2'ye de yardım ediyor. |
+| 4 | **Herkesin ortalaması** | Sonuçların anonim toplanması; "Türk yemeklerinde herkesle %64 uyumlusun" (Özellikler 1). Katalog veritabanında olunca kolaylaşıyor. |
 
 ## Video ve tier list
 
@@ -73,7 +94,7 @@ Apple Developer hesabı onaylanınca. Harita Avcısı aynı yoldan geçti (Capac
 | 3 | **Google girişi sistem tarayıcısında** | Google gömülü web görünümünde girişi engelliyor (`disallowed_useragent`). Giriş sistem tarayıcısında açılmalı (`@capacitor/browser` / ASWebAuthenticationSession), derin bağlantıyla uygulamaya dönmeli; dönüş adresi Supabase Redirect URLs'e eklenmeli. |
 | 4 | **Kullanıcı içeriği: bildir ve engelle** | Apple 1.2: paylaşılan listelerde (fotoğraflar dahil) uygunsuz içeriği bildirme, kötüye kullananı engelleme ve iletişim bilgisi gerekiyor. Şu an yalnızca iletişim var; paylaşım ve karşılaştırma sayfalarına "Bildir" ve bir inceleme yolu. |
 | 5 | **Android geri tuşu** | Açık pencereler (formlar, liste ayarları, Hesabım, paylaşım menüsü) geri tuşuyla kapanmalı. "Denenmemiş" sekmesi adreste ama `replaceState` ile — geri tuşu listeden çıkıyor; sekmeye dönmesi istenirse `pushState`'e çevrilmeli (bkz. [kabul edilmiş sınırlar](kararlar.md)). Harita Avcısı'ndaki `NativeBackButton` uyarlanabilir. |
-| 6 | **Bağlantıların uygulamada açılması** | `/p/…`, `/kiyasla/…` ve `/kor/…?s=` uygulama yüklüyse uygulamada açılmalı: domaine `apple-app-site-association` (Universal Links) ve `assetlinks.json` (App Links). Domain gerekiyor. |
+| 6 | **Bağlantıların uygulamada açılması** | `/p/…`, `/kiyasla/…` ve `/oyna/…?s=` uygulama yüklüyse uygulamada açılmalı: domaine `apple-app-site-association` (Universal Links) ve `assetlinks.json` (App Links). Domain gerekiyor. |
 | 7 | **Analitik uygulamada kapalı** | Harita Avcısı'ndaki gibi `Capacitor.isNativePlatform()` ise `Analitik` hiç yüklenmesin; mağaza beyanlarında "analitik yok" denebilsin. Gizlilik ve KVKK metinlerine "yalnızca web sitesinde" notu. |
 | 8 | **Yerel özellikler** | 4.2'ye karşı da kalkan: titreşim (`@capacitor/haptics`; iOS Safari Vibration API'yi desteklemiyor, `lib/his.ts`), sistemin paylaşım menüsü (`@capacitor/share`; story dosyası ve Kameralı Kör Sıralama videosu), kamera ile fotoğraf. Kameralı Kör Sıralama Capacitor'da aynı web koduyla çalışır (WKWebView'de kamera iOS 14.3+, kayıt 14.5+); gerekirse yüz takibi ARKit / ML Kit'e taşınır ve video doğrudan galeriye kaydedilir — 4.2'ye karşı güçlü bir yerel özellik. |
 | 9 | **Mağaza formları** | App Store gizlilik etiketi ve Play "Veri güvenliği": ad, e-posta, fotoğraflar, kullanıcı içeriği. Yaş derecelendirmesinde "kullanıcıların oluşturduğu içerik". iOS'ta kamera ve fotoğraf arşivi izin metinleri (Türkçe). Mağaza kaydına `/gizlilik` ve `/hesap-silme` adresleri. Mağaza sayfası metinleri Türkçe ve İngilizce (uygulama iki dilli). |

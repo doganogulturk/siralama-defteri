@@ -39,7 +39,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       title: baslik,
       description: aciklama,
       siteName: sozluk(dil).marka,
-      images: [{ url: `/kor/dogru-sira/${slug}/gorsel?${gorsel}`, width: 1200, height: 630 }],
+      images: [{ url: `/oyna/dogru-sira/${slug}/gorsel?${gorsel}`, width: 1200, height: 630 }],
     },
   };
 }

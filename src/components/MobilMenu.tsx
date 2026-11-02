@@ -63,7 +63,7 @@ export default function MobilMenu({ aktif }: { aktif: 'listeler' | 'kor' }) {
           <span>{m.yeniListe}</span>
         </button>
         <Link
-          href="/kor"
+          href="/oyna"
           className={`mobil-menu-oge${aktif === 'kor' ? ' is-on' : ''}`}
           aria-current={aktif === 'kor' ? 'page' : undefined}
         >

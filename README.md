@@ -11,10 +11,10 @@ Canlı: <https://siralama-defteri.vercel.app>
 - **Toplu ekleme ve toplu işlemler** — satır satır yazarak kayıt ve kategori açma; seçim modunda kategori atama, taşıma, silme.
 - **Paylaşım** — giriş istemeyen salt okunur bağlantı (`/p/[kod]`), WhatsApp önizleme görseli, Instagram story görseli.
 - **Ben de sıralayayım ve karşılaştırma** — paylaşılan listeyi kendi sıranla kopyala, uyum yüzdesini gör (Kendall).
-- **Kör Sıralama** — girişsiz oyun: on kayıt birer birer gelir, yeri bir daha değişmez (`/kor`). **Sayılar** aynı oyunun doğru cevabı olanı: 1–100 arası on sayıyı küçükten büyüğe dizmek, günün sayıları herkese aynı (`/kor/sayilar`). Paylaşılan 10+ kayıtlı kendi listeni de arkadaşına kör sıralatabilirsin (`/p/[kod]/kor`); sonunda sahibiyle uyum.
+- **Kör Sıralama** — girişsiz oyun: on kayıt birer birer gelir, yeri bir daha değişmez (`/oyna`). **Sayılar** aynı oyunun doğru cevabı olanı: 1–100 arası on sayıyı küçükten büyüğe dizmek, günün sayıları herkese aynı (`/oyna/sayilar`). Paylaşılan 10+ kayıtlı kendi listeni de arkadaşına kör sıralatabilirsin (`/p/[kod]/kor`); sonunda sahibiyle uyum.
 - **Kademeler (tier list)** — sıralamayı S, A, B… kademelerine böl: listede kademe başlıkları, "Tier" görünümünde her kademe bir satır, dokunup kademe seçme; paylaşım sayfası kademeli, story görseli tier tablosu.
 - **Kameralı Kör Sıralama** — "Kamerayla oyna": ön kamerayla kendini çek, kayıtlar başının üstünde belirsin; sesli dikey video, paylaşım menüsüyle Instagram / TikTok / WhatsApp'a. Video cihazdan çıkmıyor.
-- **Doğru Sıra** — doğru cevabı olan sıralamalar: ülkelerin nüfusu, iller, dağlar, padişahlar, tarihî olaylar… On madde karışık gelir, sürükleyerek dizilir, sonunda gerçek değerler açılır; puan gerçek sırayla uyum. Günün Doğru Sırası herkese aynı (`/kor/dogru-sira/[liste]`).
+- **Doğru Sıra** — doğru cevabı olan sıralamalar: ülkelerin nüfusu, iller, dağlar, padişahlar, tarihî olaylar… On madde karışık gelir, sürükleyerek dizilir, sonunda gerçek değerler açılır; puan gerçek sırayla uyum. Günün Doğru Sırası herkese aynı (`/oyna/dogru-sira/[liste]`).
 - **Türkçe / English** — arayüz cihaz diliyle açılır, seçilip hatırlanır; paylaşımlar paylaşanın dilinde (`?l=en`).
 - **Hesabın tamamen silinmesi** — Hesap Silme sayfasından; mağazaların istediği gibi giriş kaydı dahil.
 - **Hazır şablonlar, PWA, açık/koyu tema, iki dilli yasal sayfalar.**
@@ -73,7 +73,7 @@ Testler (Vitest) `src/lib`'teki saf mantığı kapsıyor: toplu giriş ayrışt�
 ```
 src/app/(uygulama)/   giriş isteyen ekranlar (AuthGate arkasında): liste indeksi, /l/[slug], /kiyasla/[kod]
 src/app/p/[kod]/      paylaşım sayfası, önizleme ve story görselleri (sunucuda çizilir)
-src/app/kor/          Kör Sıralama ve görselleri
+src/app/oyna/         Oyunlar: Kör Sıralama, Sayılar, Doğru Sıra ve görselleri
 src/app/…             yasal sayfalar, ikonlar, manifest, globals.css (tüm stiller)
 src/components/       arayüz bileşenleri; liste/ sıralama ekranının parçaları
 src/hooks/            oturum, liste verisi, liste indeksi, seçim modu, görünüm tercihi

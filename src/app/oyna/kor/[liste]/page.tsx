@@ -28,7 +28,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       title: baslik,
       description: aciklama,
       siteName: t.marka,
-      images: [{ url: `/kor/${liste.slug}/gorsel?${gorsel}`, width: 1200, height: 630 }],
+      images: [{ url: `/oyna/kor/${liste.slug}/gorsel?${gorsel}`, width: 1200, height: 630 }],
     },
   };
 }

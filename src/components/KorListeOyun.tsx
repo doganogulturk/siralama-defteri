@@ -3,14 +3,14 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { KOR_ADET, KorKayit, korSec, korSonucYaz, korUyum } from '../lib/kor-liste';
-import { uyumEtiketi } from '../lib/kiyas';
-import { iyelik } from '../lib/paylasim';
-import { slugify } from '../lib/slug';
-import { brandInitials } from '../types/item';
-import { DIL_PARAMETRE, messages, simdikiDil } from '../lib/i18n';
-import { titret } from '../lib/his';
-import { useAuth } from '../hooks/useAuth';
+import { KOR_ADET, KorKayit, korSec, korSonucYaz, korUyum } from '@/lib/kor-liste';
+import { uyumEtiketi } from '@/lib/kiyas';
+import { iyelik } from '@/lib/paylasim';
+import { slugify } from '@/lib/slug';
+import { brandInitials } from '@/types/item';
+import { DIL_PARAMETRE, messages, simdikiDil } from '@/lib/i18n';
+import { titret } from '@/lib/his';
+import { useAuth } from '@/hooks/useAuth';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { eksikKategoriler, topluAyristir, topluKayitSayisi, topluSorun } from './toplu';
 import { SINIR } from './sinirlar';
-import { Kategori } from '../types/item';
+import { Kategori } from '@/types/item';
 
 describe('topluAyristir', () => {
   it('her satır bir kayıt, boş satırlar atlanıyor', () => {

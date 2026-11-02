@@ -1,4 +1,4 @@
-import { AlanTanimi, Item } from '../types/item';
+import { AlanTanimi, Item } from '@/types/item';
 import { KOVA } from './kova';
 import { DIL_PARAMETRE, simdikiDil, sozluk, type Dil } from './i18n';
 

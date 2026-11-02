@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import HesapPenceresi from './HesapPenceresi';
-import { dilEtiketi, messages } from '../lib/i18n';
+import { dilEtiketi, messages } from '@/lib/i18n';
 
 /** Google hesabının adı varsa o, yoksa e-postanın kullanıcı adı kısmı; ve profil fotoğrafı. */
 export function hesapBilgisi(user: User): { ad: string; foto?: string } {

@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import KorListeOyun from '../../../../components/KorListeOyun';
-import Marka from '../../../../components/Marka';
-import { paylasilanListe } from '../../../../lib/paylasim-sunucu';
-import { iyelik } from '../../../../lib/paylasim';
-import { korKayitlari, korSonucCoz, korUygun, korUyum } from '../../../../lib/kor-liste';
-import { DIL_PARAMETRE, sozluk } from '../../../../lib/i18n';
-import { sunucuDili } from '../../../../lib/i18n/sunucu';
+import KorListeOyun from '@/components/KorListeOyun';
+import Marka from '@/components/Marka';
+import { paylasilanListe } from '@/lib/paylasim-sunucu';
+import { iyelik } from '@/lib/paylasim';
+import { korKayitlari, korSonucCoz, korUygun, korUyum } from '@/lib/kor-liste';
+import { DIL_PARAMETRE, sozluk } from '@/lib/i18n';
+import { sunucuDili } from '@/lib/i18n/sunucu';
 
 export const dynamic = 'force-dynamic';
 

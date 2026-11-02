@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { AlanTanimi, Item, Kategori, Liste } from '../types/item';
+import { AlanTanimi, Item, Kategori, Liste } from '@/types/item';
 import { fotoKucult } from './foto';
 import { KOVA } from './kova';
 import { messages } from './i18n';

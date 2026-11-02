@@ -1,4 +1,4 @@
-import { ikonGorseli } from '../lib/ikon-cizim';
+import { ikonGorseli } from '@/lib/ikon-cizim';
 
 /** iOS ana ekran ikonu: köşeleri iOS yuvarlıyor, zemin kenara kadar. */
 export const size = { width: 180, height: 180 };

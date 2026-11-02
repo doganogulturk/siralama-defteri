@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Marka from './Marka';
 import DilSecici from './DilSecici';
-import { messages } from '../lib/i18n';
+import { messages } from '@/lib/i18n';
 
 /*
  * Oturumsuz açılış: tek ekranlık, kaydırılabilir tanıtım. Dört adım yatayda yan yana

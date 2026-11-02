@@ -2,14 +2,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import Marka from '../../../components/Marka';
-import { AlanTanimi, altBilgi, brandInitials, rozetler } from '../../../types/item';
+import Marka from '@/components/Marka';
+import { AlanTanimi, altBilgi, brandInitials, rozetler } from '@/types/item';
 import {
   PaylasilanKayit, PaylasilanListe, guvenliFoto, paylasimBasligi, sahibinSiralamasi,
-} from '../../../lib/paylasim';
-import { paylasilanListe } from '../../../lib/paylasim-sunucu';
-import { DIL_PARAMETRE, sozluk, type Mesajlar } from '../../../lib/i18n';
-import { sunucuDili } from '../../../lib/i18n/sunucu';
+} from '@/lib/paylasim';
+import { paylasilanListe } from '@/lib/paylasim-sunucu';
+import { DIL_PARAMETRE, sozluk, type Mesajlar } from '@/lib/i18n';
+import { sunucuDili } from '@/lib/i18n/sunucu';
 
 /** Canlı: sahibi sıralamayı değiştirdikçe bağlantı da değişsin, önbellekte kalmasın. */
 export const dynamic = 'force-dynamic';

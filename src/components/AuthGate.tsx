@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { GIRIS_SONRASI, signInWithGoogle } from '../lib/auth';
-import { hataMetni } from '../lib/hata';
+import { GIRIS_SONRASI, signInWithGoogle } from '@/lib/auth';
+import { hataMetni } from '@/lib/hata';
 import Hesap from './Hesap';
 import Tanitim from './Tanitim';
-import { messages } from '../lib/i18n';
+import { messages } from '@/lib/i18n';
 
 const GoogleIkon = (
   <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true">

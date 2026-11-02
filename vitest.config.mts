@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 /*
@@ -6,6 +7,8 @@ import { defineConfig } from 'vitest/config';
  * Supabase'e dokunan testler istemciyi taklit ediyor.
  */
 export default defineConfig({
+  // tsconfig'teki `@/*` takma adı.
+  resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   test: {
     include: ['src/**/*.test.ts'],
     env: {

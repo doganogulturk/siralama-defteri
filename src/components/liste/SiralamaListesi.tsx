@@ -8,12 +8,12 @@ import {
 import {
   SortableContext, verticalListSortingStrategy, rectSortingStrategy, arrayMove, sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
-import { AlanTanimi, Item, Kategori } from '../../types/item';
-import { titret } from '../../lib/his';
+import { AlanTanimi, Item, Kategori } from '@/types/item';
+import { titret } from '@/lib/his';
 import {
   ASLA_SINIRI, AslaSiniri, DraggableRow, StaticRow, SuruklenebilirAslaSiniri,
-} from '../ItemRow';
-import { messages } from '../../lib/i18n';
+} from '@/components/ItemRow';
+import { messages } from '@/lib/i18n';
 
 /**
  * "Sıralamam" sekmesinin kayıtları: sıralama, vurgu çizgisi ve "Bir daha asla" bölümü.

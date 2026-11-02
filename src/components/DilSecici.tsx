@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { diliSec, messages, type Dil } from '../lib/i18n';
-import { useDil } from '../lib/i18n/useDil';
+import { diliSec, messages, type Dil } from '@/lib/i18n';
+import { useDil } from '@/lib/i18n/useDil';
 
 const DILLER: Dil[] = ['tr', 'en'];
 

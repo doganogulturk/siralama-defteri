@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { messages } from '../../lib/i18n';
+import { messages } from '@/lib/i18n';
 
 const AraIkon = (
   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"

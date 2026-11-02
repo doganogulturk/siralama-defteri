@@ -1,4 +1,4 @@
-import { AlanTanimi, Item, bayrak, filtreAlanlari } from '../types/item';
+import { AlanTanimi, Item, bayrak, filtreAlanlari } from '@/types/item';
 
 export type BayrakDurumu = 'hepsi' | 'evet' | 'hayir';
 

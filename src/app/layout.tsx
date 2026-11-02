@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Instrument_Serif } from "next/font/google";
 import "./globals.css";
-import Analitik from "../components/Analitik";
-import Pencereler from "../components/Pencereler";
-import DilKoku from "../components/DilKoku";
+import Analitik from "@/components/Analitik";
+import Pencereler from "@/components/Pencereler";
+import DilKoku from "@/components/DilKoku";
 
 /*
  * Yazı tipleri derleme anında indirilip uygulamayla birlikte sunuluyor: tarayıcı

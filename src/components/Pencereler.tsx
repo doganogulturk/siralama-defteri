@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useSyncExternalStore } from 'react';
-import { pencereAbone, pencereKapat, siradakiPencere } from '../lib/pencere';
-import { messages } from '../lib/i18n';
+import { pencereAbone, pencereKapat, siradakiPencere } from '@/lib/pencere';
+import { messages } from '@/lib/i18n';
 
 /**
  * `lib/pencere.ts`'teki uyarı ve onay isteklerini çizen tek pencere; kök düzende bağlı.

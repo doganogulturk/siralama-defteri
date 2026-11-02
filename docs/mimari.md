@@ -60,7 +60,15 @@ Kurulumda iki şey dosyanın dışında:
 - **Exposed schemas** — Project Settings → Data API → Exposed schemas listesinde `do_siralama_defteri` olmalı (Save'e basmayı unutma). Yoksa istemcinin her isteği `PGRST106 Invalid schema` hatası verir. "Extra search path" alanı bu iş için değil.
 - **Yetkiler açıkça veriliyor** — Supabase `public` dışındaki şemalarda `anon` / `authenticated`'a otomatik yetki vermiyor. Tablolar yalnızca `authenticated`'a açık (satırları RLS süzüyor); `anon` tablolara hiç erişemiyor, yalnızca `paylasilan_liste`'yi çağırabiliyor.
 
-Fotoğraflar `storage` şemasındaki kovada; şema dosyası ona dokunmuyor.
+Fotoğraflar `storage` şemasındaki kovada; şema dosyası ona dokunmuyor. Her kullanıcı kendi klasörüne yüklüyor (`<kullanıcı kimliği>/<uuid>.jpg`); yükleme politikası başka klasöre izin vermiyor. Klasör kuralından önceki fotoğraflar kovanın kökünde duruyor; okuma ve silme sahibine göre olduğu için onlar da çalışıyor. Kova herkese açık okunuyor: paylaşılmamış listelerin fotoğrafını da adresi bilen açabilir, adın tahmin edilemez olması bu yüzden önemli.
+
+### Erişim kurallarının testi
+
+`npm run test:db` boş bir Postgres'te (15+) Supabase'in şemanın dayandığı parçalarını taklit ediyor (`supabase/test/supabase-taklidi.sql`: roller, `auth.users`, `auth.uid()`, storage tabloları), üstüne gerçek `schema.sql` ve `storage.sql`'i kuruyor, sonra `supabase/test/rls.sql`'deki denetimleri iki kullanıcı ve anonim ziyaretçiyle çalıştırıyor: başkasının verisini görememe ve değiştirememe, paylaşım fonksiyonunun döndürdükleri, sınırlar, hesap silme, kova politikaları. CI'da ayrı bir iş (`postgres:16` servisi). Şema dosyasına yeni bir tablo, politika ya da fonksiyon eklenince denetimi de buraya eklenmeli.
+
+```bash
+DATABASE_URL=postgres://postgres@localhost:5432/postgres npm run test:db
+```
 
 
 ## Kimlik doğrulama

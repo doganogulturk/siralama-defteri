@@ -4,9 +4,9 @@ import React from 'react';
 import Link from 'next/link';
 import type { User } from '@supabase/supabase-js';
 import Sheet from './Sheet';
-import { signOut } from '../lib/auth';
-import { yasalSayfalar } from '../lib/iletisim';
-import { messages } from '../lib/i18n';
+import { signOut } from '@/lib/auth';
+import { yasalSayfalar } from '@/lib/iletisim';
+import { messages } from '@/lib/i18n';
 import DilSecici from './DilSecici';
 
 const CikisIkon = (

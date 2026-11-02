@@ -1,21 +1,21 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Item, Kategori, Liste } from '../types/item';
+import { Item, Kategori, Liste } from '@/types/item';
 import {
   getListeBySlug, getKategoriler, getItems,
   createItem, updateItem, deleteItem, deleteItems,
   updateItemsSira, updateItemsKategori, deleteFotograf,
-} from '../lib/items';
-import { sortSirali, sortIstekListesi } from '../lib/sort';
+} from '@/lib/items';
+import { sortSirali, sortIstekListesi } from '@/lib/sort';
 import {
   SiraSonucu, bolumDegistir as bolumHesapla, denendiYap as denendiHesapla,
   denenenleriDegistir, siralamada, siralamayaSok,
-} from '../lib/siralama';
-import { hataMetni } from '../lib/hata';
+} from '@/lib/siralama';
+import { hataMetni } from '@/lib/hata';
 import { listeleriTazele } from './useListeler';
-import { uyar } from '../lib/pencere';
-import { messages } from '../lib/i18n';
+import { uyar } from '@/lib/pencere';
+import { messages } from '@/lib/i18n';
 
 /**
  * Bir listenin tüm verisi: liste kaydı, kategorileri ve öğeleri.

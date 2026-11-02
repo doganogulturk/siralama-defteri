@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { TopluBlok, topluKayitSayisi } from '../lib/toplu';
-import { messages } from '../lib/i18n';
+import { TopluBlok, topluKayitSayisi } from '@/lib/toplu';
+import { messages } from '@/lib/i18n';
 
 interface TopluAlanProps {
   deger: string;

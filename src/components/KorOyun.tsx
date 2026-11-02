@@ -2,11 +2,11 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { KorListe, korListesi, sonucYaz } from '../lib/kor';
-import { DIL_PARAMETRE, messages, simdikiDil } from '../lib/i18n';
-import { kiyasAnahtari, kiyasla, uyumEtiketi } from '../lib/kiyas';
-import { titret } from '../lib/his';
-import { useAuth } from '../hooks/useAuth';
+import { KorListe, korListesi, sonucYaz } from '@/lib/kor';
+import { DIL_PARAMETRE, messages, simdikiDil } from '@/lib/i18n';
+import { kiyasAnahtari, kiyasla, uyumEtiketi } from '@/lib/kiyas';
+import { titret } from '@/lib/his';
+import { useAuth } from '@/hooks/useAuth';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 

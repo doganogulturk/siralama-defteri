@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Liste } from '../types/item';
-import { kodUret, paylasimAdresi, paylasimMetni } from '../lib/paylasim';
-import { useAuth } from '../hooks/useAuth';
-import { onayla } from '../lib/pencere';
-import { messages } from '../lib/i18n';
+import { Liste } from '@/types/item';
+import { kodUret, paylasimAdresi, paylasimMetni } from '@/lib/paylasim';
+import { useAuth } from '@/hooks/useAuth';
+import { onayla } from '@/lib/pencere';
+import { messages } from '@/lib/i18n';
 
 interface PaylasimBolumuProps {
   liste: Liste;

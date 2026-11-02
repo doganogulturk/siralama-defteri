@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import YasalSayfa, { Eposta } from '../../components/yasal/YasalSayfa';
-import VeriSilmePaneli from '../../components/yasal/VeriSilmePaneli';
-import { VERI_SORUMLUSU } from '../../lib/iletisim';
+import YasalSayfa, { Eposta } from '@/components/yasal/YasalSayfa';
+import VeriSilmePaneli from '@/components/yasal/VeriSilmePaneli';
+import { VERI_SORUMLUSU } from '@/lib/iletisim';
 
 export const metadata: Metadata = {
   title: 'Hesap Silme',

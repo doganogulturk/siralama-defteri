@@ -2,8 +2,8 @@
 
 import { usePathname } from 'next/navigation';
 import { Fragment, useEffect } from 'react';
-import { diliUygula, messages } from '../lib/i18n';
-import { useDil } from '../lib/i18n/useDil';
+import { diliUygula, messages } from '@/lib/i18n';
+import { useDil } from '@/lib/i18n/useDil';
 
 /**
  * Bütün sayfanın dilini belirler: dil değişince altındaki her şey baştan, o dilde kurulur (anahtar değişir).

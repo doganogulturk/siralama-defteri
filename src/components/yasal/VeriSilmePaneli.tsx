@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { hesabiSil } from '../../lib/items';
-import { hataMetni } from '../../lib/hata';
-import { hesapBilgisi } from '../Hesap';
-import { uyar } from '../../lib/pencere';
-import { dilEtiketi, messages } from '../../lib/i18n';
+import { useAuth } from '@/hooks/useAuth';
+import { hesabiSil } from '@/lib/items';
+import { hataMetni } from '@/lib/hata';
+import { hesapBilgisi } from '@/components/Hesap';
+import { uyar } from '@/lib/pencere';
+import { dilEtiketi, messages } from '@/lib/i18n';
 
 /**
  * Hesap Silme sayfasının sonundaki silme kutusu: ne silineceği okunduktan sonra.

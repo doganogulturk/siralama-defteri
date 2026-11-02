@@ -5,10 +5,10 @@ import Link from 'next/link';
 import {
   ADET, SAYILAR_RENK, gunlukMu, gununTohumu, puanla, rastgeleTohum, sayilariUret, tarihYaz,
   tohumTarihi, yerlesimCoz, yerlesimYaz,
-} from '../lib/sayilar';
-import { DIL_PARAMETRE, dilEtiketi, messages, simdikiDil } from '../lib/i18n';
-import { titret } from '../lib/his';
-import { useAuth } from '../hooks/useAuth';
+} from '@/lib/sayilar';
+import { DIL_PARAMETRE, dilEtiketi, messages, simdikiDil } from '@/lib/i18n';
+import { titret } from '@/lib/his';
+import { useAuth } from '@/hooks/useAuth';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 

@@ -1,4 +1,4 @@
-import AuthGate from "../../components/AuthGate";
+import AuthGate from "@/components/AuthGate";
 
 /**
  * Uygulamanın kendisi: oturum ister. Paylaşım sayfaları (`/p/[kod]`) bu grubun

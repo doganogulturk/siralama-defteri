@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { messages } from '../lib/i18n';
+import { messages } from '@/lib/i18n';
 
 /**
  * Uygulamanın arayüzünden küçük parçalar (.oz-*): giriş ekranındaki özellik

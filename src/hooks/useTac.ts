@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { titret } from '../lib/his';
+import { titret } from '@/lib/his';
 
 /**
  * Şampiyon değiştiğinde kısa bir taç anı: yeni birincinin kimliği ~1.6 sn dönüyor,

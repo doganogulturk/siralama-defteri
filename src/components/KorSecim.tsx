@@ -5,14 +5,14 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Marka from './Marka';
 import MobilMenu from './MobilMenu';
-import { korListeleri } from '../lib/kor';
-import { SAYILAR_RENK } from '../lib/sayilar';
-import { korBaglantisiGonder, korUygun } from '../lib/kor-liste';
-import { guvenliFoto } from '../lib/paylasim';
-import { useAuth } from '../hooks/useAuth';
-import { useListeler, siralanan } from '../hooks/useListeler';
-import { brandInitials } from '../types/item';
-import { messages } from '../lib/i18n';
+import { korListeleri } from '@/lib/kor';
+import { SAYILAR_RENK } from '@/lib/sayilar';
+import { korBaglantisiGonder, korUygun } from '@/lib/kor-liste';
+import { guvenliFoto } from '@/lib/paylasim';
+import { useAuth } from '@/hooks/useAuth';
+import { useListeler, siralanan } from '@/hooks/useListeler';
+import { brandInitials } from '@/types/item';
+import { messages } from '@/lib/i18n';
 
 /** Kör Sıralama'nın liste seçimi; sayfa statik, metinler arayüz dilinde istemcide çiziliyor. */
 export default function KorSecim() {

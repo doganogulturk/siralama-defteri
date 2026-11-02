@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Item } from '../types/item';
+import { Item } from '@/types/item';
 import { bolumDegistir, denendiYap, denenenleriDegistir, siralamayaSok } from './siralama';
 import { sortSirali } from './sort';
 

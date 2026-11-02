@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import { createItems, createKategori, createListe, getListeler, updateListe, uploadFotograf } from './items';
 import { KOD_BICIMI, PaylasilanKayit, PaylasilanListe, guvenliFoto } from './paylasim';
 import { benzersizSlug, slugify } from './slug';
-import { AlanTanimi, Kategori, Liste } from '../types/item';
+import { AlanTanimi, Kategori, Liste } from '@/types/item';
 import { SINIR } from './sinirlar';
 import { messages } from './i18n';
 

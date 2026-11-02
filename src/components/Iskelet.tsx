@@ -1,5 +1,5 @@
 import React from 'react';
-import { messages } from '../lib/i18n';
+import { messages } from '@/lib/i18n';
 
 /**
  * Yüklenirken içeriğin yerini tutan soluk taslaklar: sayfa boş bir "Yükleniyor…"

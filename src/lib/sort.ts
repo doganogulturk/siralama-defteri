@@ -1,4 +1,4 @@
-import { Item } from '../types/item';
+import { Item } from '@/types/item';
 
 /** Denenmiş kayıtlar: kullanıcının sürükleyerek belirlediği sıra. */
 export function sortSirali(items: Item[]): Item[] {

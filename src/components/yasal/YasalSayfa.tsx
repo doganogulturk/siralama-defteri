@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import Marka from '../Marka';
-import DilSecici from '../DilSecici';
-import { ILETISIM_EPOSTA, yasalSayfalar } from '../../lib/iletisim';
-import { diliSec, messages } from '../../lib/i18n';
-import { useDil } from '../../lib/i18n/useDil';
+import Marka from '@/components/Marka';
+import DilSecici from '@/components/DilSecici';
+import { ILETISIM_EPOSTA, yasalSayfalar } from '@/lib/iletisim';
+import { diliSec, messages } from '@/lib/i18n';
+import { useDil } from '@/lib/i18n/useDil';
 
 export const Eposta = () => <a href={`mailto:${ILETISIM_EPOSTA}`}>{ILETISIM_EPOSTA}</a>;
 

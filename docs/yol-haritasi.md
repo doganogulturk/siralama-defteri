@@ -32,7 +32,7 @@ Canlıda denenmedi (gerçek hesap istiyor, sahibin yapması gerekiyor): İngiliz
 | 1 | **DoganOgulturk'te kalanlar** | Storage → `ayran` kovası: önce Empty, sonra Delete (kullanılan fotoğraflar yeni projede). Yalnızca Sıralama Defteri'ni kullanmış 1 kullanıcı ve hiçbir uygulamada verisi olmayan 4 Google hesabı `auth.users`'ta duruyor; silinecekse sorgu hazırlanmalı (Harita Avcısı'nda verisi olan hesaplara dokunulmamalı). |
 | 2 | **Vercel** | `NEXT_PUBLIC_SUPABASE_ANON_KEY` artık kullanılmıyor, silinebilir. |
 | 3 | **Anahtarlar** | Taşıma için açılan iki secret key (SiralamaDefteri ve DoganOgulturk) silinmeli. SiralamaDefteri'nin legacy anahtarları (anon / service_role) kapatılmalı: eski Sensetorial yayınlarının kodunda herkese açık duruyorlar. |
-| 4 | **Yerel dosyalar** | `scripts/tasi-kendi-projesine.mjs` (tek seferlik taşıma betiği, commit edilmedi) ve `.env.local.eski` (eski DoganOgulturk değerleri) silinebilir. `supabase/migrate-public-to-do_siralama_defteri.sql` eski bir geçişin kaydı; artık işe yaramıyor. |
+| 4 | **Yerel dosyalar** | `scripts/tasi-kendi-projesine.mjs` (tek seferlik taşıma betiği, commit edilmedi) ve `.env.local.eski` (eski DoganOgulturk değerleri) silinebilir. |
 
 ## Yayına çıkış (panellerde yapılacaklar)
 

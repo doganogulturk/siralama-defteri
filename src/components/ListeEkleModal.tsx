@@ -2,18 +2,18 @@
 
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { KATEGORI_PALET, createKategori, createListe, getListeler } from '../lib/items';
-import { benzersizSlug, slugify } from '../lib/slug';
-import { topluAyristir, topluKaydet, topluKayitSayisi, topluSorun } from '../lib/toplu';
-import { hataMetni } from '../lib/hata';
-import { SINIR } from '../lib/sinirlar';
-import { sablonlar, Sablon } from '../lib/sablonlar';
-import { Kategori } from '../types/item';
+import { KATEGORI_PALET, createKategori, createListe, getListeler } from '@/lib/items';
+import { benzersizSlug, slugify } from '@/lib/slug';
+import { topluAyristir, topluKaydet, topluKayitSayisi, topluSorun } from '@/lib/toplu';
+import { hataMetni } from '@/lib/hata';
+import { SINIR } from '@/lib/sinirlar';
+import { sablonlar, Sablon } from '@/lib/sablonlar';
+import { Kategori } from '@/types/item';
 import TopluAlan from './TopluAlan';
 import Sheet from './Sheet';
-import { useIsDesktop } from '../hooks/useIsDesktop';
-import { uyar } from '../lib/pencere';
-import { dilEtiketi, messages } from '../lib/i18n';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
+import { uyar } from '@/lib/pencere';
+import { dilEtiketi, messages } from '@/lib/i18n';
 
 const trAnahtar = (s: string) => s.trim().toLocaleLowerCase(dilEtiketi());
 

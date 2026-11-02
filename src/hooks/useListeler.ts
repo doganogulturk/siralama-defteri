@@ -1,9 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Liste } from '../types/item';
-import { getListeler, getListeSayilari, ListeSayisi } from '../lib/items';
-import { hataMetni } from '../lib/hata';
+import { Liste } from '@/types/item';
+import { getListeler, getListeSayilari, ListeSayisi } from '@/lib/items';
+import { hataMetni } from '@/lib/hata';
 
 /**
  * Ray, sayfayla aynı veriyi ayrı bir sorgudan okuyor; bir kayıt sıralamaya girip

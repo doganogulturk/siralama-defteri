@@ -4,16 +4,16 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   AlanTanimi, Item, Kategori, OzellikDeger, alanGorunur, alanKisa,
-} from '../types/item';
-import { uploadFotograf, deleteFotograf } from '../lib/items';
-import { TopluBlok, topluAyristir, topluKayitSayisi, topluSorun } from '../lib/toplu';
+} from '@/types/item';
+import { uploadFotograf, deleteFotograf } from '@/lib/items';
+import { TopluBlok, topluAyristir, topluKayitSayisi, topluSorun } from '@/lib/toplu';
 import TopluAlan from './TopluAlan';
 import Sheet from './Sheet';
-import { useIsDesktop } from '../hooks/useIsDesktop';
-import { hataMetni } from '../lib/hata';
-import { SINIR } from '../lib/sinirlar';
-import { uyar } from '../lib/pencere';
-import { messages } from '../lib/i18n';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
+import { hataMetni } from '@/lib/hata';
+import { SINIR } from '@/lib/sinirlar';
+import { uyar } from '@/lib/pencere';
+import { messages } from '@/lib/i18n';
 
 /**
  * 'siralama' — denenmiş kayıt (varsayılan akış)

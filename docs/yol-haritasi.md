@@ -1,8 +1,8 @@
 # Yol haritası
 
-Yeni bir çalışmaya buradan başla: önce **Durum**, sonra **Sıradaki adım**. Altındaki gruplar: bekleyen temizlik, yayına çıkış için panellerde (Vercel, Supabase, Google Cloud) yapılacaklar, mobil uygulamaya (App Store / Play Store) geçiş ve sıradaki özellikler. Gruplar kendi içinde öncelik sırasında.
+Yeni bir çalışmaya buradan başla: önce **Durum**, sonra **Sıradaki adım**. Altındaki gruplar: video ve tier list, bekleyen temizlik, yayına çıkış için panellerde (Vercel, Supabase, Google Cloud) yapılacaklar, mobil uygulamaya (App Store / Play Store) geçiş ve sıradaki özellikler. Gruplar kendi içinde öncelik sırasında.
 
-## Durum (27 Ekim 2026)
+## Durum (2 Kasım 2026)
 
 Web sürümü canlıda: <https://siralama-defteri.vercel.app> (Vercel, `main`). Mağazalarda değil.
 
@@ -10,6 +10,7 @@ Son yapılanlar:
 
 | Ne | Ayrıntı |
 |---|---|
+| **Kameralı Kör Sıralama** *(deneme)* | "Kamerayla oyna": ön kamera, başın üstünde kart, solda yuvalar; sesli 9:16 video, sistemin paylaşım menüsüyle paylaşma ya da indirme. Hazır listelerde ve kendi listeni kör sıralatmada. Video cihazdan çıkmıyor; gizlilik politikasına "Kamera ve mikrofon" bölümü eklendi (yasal sayfaların tarihi 2 Kasım 2026). Ayrıntılar [özellikler](ozellikler.md) → Kameralı Kör Sıralama. Geliştirme ortamında sahte kamerayla uçtan uca denendi; **gerçek cihazda denenmedi**. |
 | **Kendi Supabase projesi** | Veritabanı DoganOgulturk'ten (Harita Avcısı ve başka uygulamalarla paylaşılıyordu) yalnızca bu uygulamaya ait projeye taşındı: eski Sensetorial projesi, adı **SiralamaDefteri**, ref `fcttucpqmarcgktrvibb`. Şema adı aynı (`do_siralama_defteri`), Exposed schemas'ta. 3 kullanıcı aynı kimliklerle, 18 liste / 18 kategori / 246 kayıt ve 131 fotoğraf kopyalandı; kova `ayran` → `fotograflar`, kayıtlardaki adresler yeniden yazıldı. İstemci publishable anahtarla bağlanıyor (`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`). DoganOgulturk'teki `do_siralama_defteri` şeması silindi. |
 | **Kendi Google Cloud projesi** | Google girişi "Sıralama Defteri" adlı ayrı bir Google Cloud projesindeki OAuth istemcisinden (eskiden Harita Avcısı'nın projesiydi, giriş ekranında o ad yazıyordu). Onay ekranında ad, ana sayfa, gizlilik ve koşul adresleri girili, yayında (In production); logo ve marka doğrulaması yok. |
 | **Hesabın tamamen silinmesi** | "Hesabımı sil" (Hesabım → Hesap silme → sayfanın altı): fotoğraflar Storage API'yle, sonra `hesabimi_sil` (security definer) `auth.users` satırını siliyor; listeler cascade ile gidiyor. App Store 5.1.1(v) ve Play'in hesap silme şartı bununla karşılandı (mobil listesindeki eski madde kaldırıldı). |
@@ -19,11 +20,24 @@ Canlıda denenmedi (gerçek hesap istiyor, sahibin yapması gerekiyor): İngiliz
 
 ## Sıradaki adım
 
-1. Yukarıdaki üç canlı denemeyi yap; sorun çıkarsa önce onu düzelt.
-2. **Bekleyen temizlik** (aşağıda) — kısa, ama anahtarlar güvenlik için önemli.
-3. **Mobil 1 — mimari kararı**: bütün mobil işler buna bağlı.
-4. **Mobil 4 — bildir ve engelle** (Apple 1.2): mimariden bağımsız, web'de şimdiden yapılabilir.
-5. **Yayına çıkış 1 — domain**: Google marka doğrulaması (Yayına çıkış 2) ve uygulama içi bağlantılar (Mobil 6) ona bağlı.
+1. **Kameralı Kör Sıralama'yı gerçek cihazda dene** (Video ve tier list 1): iPhone (Safari) ve bir Android (Chrome); sorun çıkarsa önce onu düzelt.
+2. Yukarıdaki üç canlı denemeyi yap; sorun çıkarsa önce onu düzelt.
+3. **Video ve tier list 2 — tier list** (aşağıda).
+4. **Bekleyen temizlik** (aşağıda) — kısa, ama anahtarlar güvenlik için önemli.
+5. **Mobil 1 — mimari kararı**: bütün mobil işler buna bağlı.
+6. **Mobil 4 — bildir ve engelle** (Apple 1.2): mimariden bağımsız, web'de şimdiden yapılabilir.
+7. **Yayına çıkış 1 — domain**: Google marka doğrulaması (Yayına çıkış 2) ve uygulama içi bağlantılar (Mobil 6) ona bağlı. Videoların son kartındaki adres de: videoda bağlantıya tıklanamıyor, kısa ve akılda kalan bir adres gerekiyor.
+
+## Video ve tier list
+
+Paylaşımı ve uygulamaya yeni gelenleri artırmak için üzerinde anlaşılan sıra (Kasım 2026). İkisinin kesişimi, kameralı kör tier list, hedef.
+
+| # | İş | Not |
+|---|---|---|
+| 1 | **Kameralı Kör Sıralama: cihaz denemesi** *(yapıldı, denenecek)* | Deneme sürümü yazıldı ([özellikler](ozellikler.md) → Kameralı Kör Sıralama). Gerçek cihazda bakılacaklar: iPhone Safari'de kamera ve mikrofon izni, kayıt sırasında akıcılık (kare kaçırma), kaydedilen MP4'ün süresi ve sesi; Android Chrome'da MP4 (H.264) mi WebM mi yazdığı; videonun Instagram (Story / Reels), TikTok ve WhatsApp'a paylaşım menüsünden gitmesi ve oralarda kart ile yuvaların güvenli alanda kalması; ucuz bir Android'de takılma. Ana ekrana eklenmiş (PWA) hâlde de. |
+| 2 | **Tier list** | Sıralamanın üstünde kademeler: S, A, B, C, D başlıklı ayırıcılar, "Bir daha asla" çizgisinin genellemesi. Veri: `lists.kademeler` (etiketler) ve `items.kademe`; kademe içindeki sıra yine `sira`, yani sıra numaraları, karşılaştırma, "Hangisi?" ve paylaşım bozulmuyor. İki görünüm: bugünkü dikey sıralama (ayırıcılarla) ve klasik tier görünümü (her kademe bir satır, kayıtlar yan yana kareler; fotoğrafsız kayıt yazı hapı). Paylaşım görseli `lib/gorsel-sunucu.ts` ile. "Bir daha asla" kademelerin altında ayrı kalıyor. Karar bekleyen: kademe renkleri tek vurgu rengi ilkesine ([kabul edilmiş sınırlar](kararlar.md)) istisna mı, vurgunun tonları mı (öneri: görselde klasik renkler, uygulamada tonlar). Telefonda kademeler arası sürükleme yerine "dokun, kademeyi seç". |
+| 3 | **Kör tier list** | Kayıt geliyor, kişi onu bir kademeye koyuyor, yeri değişmiyor. Kademelerin sınırı olmalı (ör. on kayıtta kademe başına en fazla iki), yoksa her şey A'ya gider. Kameralı ve kamerasız; kamera tarafı `KorKamera`'nın tuvali ve kaydı, yalnızca tahtası (yuvalar yerine kademe satırları) farklı. Karşılaştırmada "aynı kademede: 6/10". |
+| 4 | **Cilalama** | Yüz takibi (MediaPipe ile cihaz içinde; kart başla birlikte hareket eder; yüz verisi saklanmaz, gizlilik metni buna göre), Sayılar'a kamera, videonun son kartında marka işareti ve kısa domain, ön kamera / arka kamera seçimi. |
 
 ## Bekleyen temizlik
 

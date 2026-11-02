@@ -8,6 +8,7 @@ import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 import { kiyasAnahtari, kiyasla, uyumEtiketi } from '@/lib/kiyas';
 import { titret } from '@/lib/his';
 import { useAuth } from '@/hooks/useAuth';
+import KorKamera, { KameraDugmesi, useKameraVar } from './KorKamera';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 
@@ -46,6 +47,10 @@ export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: numb
   /** Az önce dolan yuva: kısa bir parlama için. */
   const [yeniYuva, setYeniYuva] = useState<number | null>(null);
   const [kilit, setKilit] = useState(false);
+  /** Kameralı oyun açık mı; anahtar "Yeniden çek"te kamerayı baştan kuruyor. */
+  const [kamera, setKamera] = useState(false);
+  const [kameraAnahtari, setKameraAnahtari] = useState(0);
+  const kameraVar = useKameraVar();
 
   const basla = () => {
     titret('dokunus');
@@ -79,6 +84,12 @@ export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: numb
 
   const sira = asama === 'sonuc' ? (yuvalar as number[]) : null;
 
+  const kameraylaBasla = () => {
+    basla();
+    setKameraAnahtari(n => n + 1);
+    setKamera(true);
+  };
+
   return (
     <div className="kor" style={{ '--kor': liste.renk } as React.CSSProperties}>
       <header className="kor-bar">
@@ -99,7 +110,7 @@ export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: numb
       </header>
 
       {asama === 'giris' && (
-        <KorGiris liste={liste} arkadas={arkadas} onBasla={basla} />
+        <KorGiris liste={liste} arkadas={arkadas} onBasla={basla} onKamera={kameraVar ? kameraylaBasla : null} />
       )}
 
       {asama === 'oyun' && (
@@ -135,12 +146,32 @@ export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: numb
       {asama === 'sonuc' && sira && (
         <KorSonuc liste={liste} sira={sira} arkadas={arkadas} onTekrar={basla} />
       )}
+
+      {kamera && asama !== 'giris' && (
+        <KorKamera
+          key={kameraAnahtari}
+          etiket={`${liste.simge} ${liste.ad}`}
+          renk={liste.renk}
+          kayitlar={gelis.map(k => ({ ad: liste.kayitlar[k] }))}
+          yuvalar={yuvalar.map(k => (k === null ? null : gelis.indexOf(k)))}
+          adim={adim}
+          kilit={kilit}
+          bitti={asama === 'sonuc'}
+          onYerlestir={yerlestir}
+          adres={`${window.location.host}/kor/${liste.slug}`}
+          dosyaAdi={t.kamera.dosyaAdi(liste.slug)}
+          paylasimMetni={`${t.paylasimDuz(liste.ad)} ${window.location.origin}/kor/${liste.slug}${dil === 'tr' ? '' : `?${DIL_PARAMETRE}=${dil}`}`}
+          onSonuc={() => setKamera(false)}
+          onYenidenCek={kameraylaBasla}
+          onKapat={() => setKamera(false)}
+        />
+      )}
     </div>
   );
 }
 
-function KorGiris({ liste, arkadas, onBasla }: {
-  liste: KorListe; arkadas: number[] | null; onBasla: () => void;
+function KorGiris({ liste, arkadas, onBasla, onKamera }: {
+  liste: KorListe; arkadas: number[] | null; onBasla: () => void; onKamera: (() => void) | null;
 }) {
   const t = useMesajlar().kor;
   return (
@@ -158,6 +189,7 @@ function KorGiris({ liste, arkadas, onBasla }: {
         <li><b>3</b><span>{t.kural3}</span></li>
       </ul>
       <button type="button" className="btn-primary kor-basla" onClick={onBasla}>{t.basla}</button>
+      {onKamera && <KameraDugmesi onKamera={onKamera} />}
     </main>
   );
 }

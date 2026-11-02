@@ -16,7 +16,7 @@ import { useBildirim } from '@/hooks/useBildirim';
 import { useSecim } from '@/hooks/useSecim';
 import { TopluBlok, topluKaydet } from '@/lib/toplu';
 import { hataMetni } from '@/lib/hata';
-import { uploadFotograf, deleteFotograf } from '@/lib/items';
+import { uploadFotograf, deleteFotograf, kademeleriAc } from '@/lib/items';
 import { useIsDesktop } from '@/hooks/useIsDesktop';
 import { useTac } from '@/hooks/useTac';
 import FilterPanel from '@/components/FilterPanel';
@@ -33,7 +33,7 @@ import SiralamaListesi from '@/components/liste/SiralamaListesi';
 import SecimCubugu from '@/components/liste/SecimCubugu';
 import { PaylasIkon } from '@/components/liste/Ikonlar';
 import ListeBasligi from '@/components/liste/ListeBasligi';
-import ListeAraci, { type Sekme } from '@/components/liste/ListeAraci';
+import ListeAraci, { SiraTierSecici, type Sekme } from '@/components/liste/ListeAraci';
 import ListeAltMenusu from '@/components/liste/ListeAltMenusu';
 import { uyar } from '@/lib/pencere';
 import { useGeriAlinabilirSilme } from '@/hooks/useGeriAlinabilirSilme';
@@ -150,6 +150,27 @@ export default function ListePage() {
   const secili = (id: string) => (secim ? secim.has(id) : selectedId === id);
   /** Kademe görünümü: kademeler açık, sıralama sekmesi ve seçim modu kapalı. */
   const kademeGorunumu = !!kademeler && kademeGorunumuTercihi && sekme === 'siralama' && !secim;
+  const [kademeAciliyor, setKademeAciliyor] = useState(false);
+
+  /** "1→n / Tier" seçicisi. Kademeler kapalıyken "Tier" onları açıp sıralamayı S–D'ye dağıtıyor. */
+  const siraTierSec = async (tier: boolean) => {
+    if (!tier || kademeler) { kademeGorunumuSec(tier); return; }
+    if (!liste || kademeAciliyor) return;
+    setKademeAciliyor(true);
+    try {
+      await kademeleriAc(liste.id, items);
+      await load();
+      kademeGorunumuSec(true);
+      setBildirim(m.kademe.acildi);
+      listeleriTazele();
+    } catch (e: unknown) {
+      void uyar(m.kademe.acilamadi(hataMetni(e)));
+    } finally {
+      setKademeAciliyor(false);
+    }
+  };
+  /** Seçicinin değeri: sıralama sekmesinde ve kayıt varken; kademeler kapalıysa "1→n". */
+  const siraTierDegeri = sekme === 'siralama' && total > 0 ? !!kademeler && kademeGorunumuTercihi : undefined;
 
   const handleRowSelect = (item: Item) => {
     if (secim) { secimModu.degistir(item.id); return; }
@@ -385,8 +406,8 @@ export default function ListePage() {
             arama={<AramaKutusu metin={filtre.metin} onChange={aramaDegistir} />}
             gorunum={isDesktop ? gorunum : undefined}
             onGorunum={gorunumSec}
-            kademeGorunumu={kademeler && sekme === 'siralama' ? kademeGorunumuTercihi : undefined}
-            onKademeGorunumu={kademeGorunumuSec}
+            kademeGorunumu={siraTierDegeri}
+            onKademeGorunumu={siraTierSec}
             secimAcik={!!secim}
             onSecim={() => (secim ? secimModu.kapat() : secimAc())}
           />
@@ -395,6 +416,7 @@ export default function ListePage() {
           {liste && (
             <div className="mobile-arama">
               <AramaKutusu metin={filtre.metin} onChange={aramaDegistir} />
+              {siraTierDegeri !== undefined && !secim && <SiraTierSecici acik={siraTierDegeri} onSec={siraTierSec} />}
               <button type="button" className="mobile-paylas" onClick={paylas} aria-label={t.paylasEtiket}>
                 {PaylasIkon}
                 <span>{t.paylas}</span>

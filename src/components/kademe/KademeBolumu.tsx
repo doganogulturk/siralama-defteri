@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Item, Kademe, Liste } from '@/types/item';
-import { updateItemsSira, updateListe } from '@/lib/items';
+import { kademeleriAc, updateItemsSira, updateListe } from '@/lib/items';
 import {
   EN_FAZLA_KADEME, KADEME_ETIKET_UZUNLUK, VARSAYILAN_KADEMELER, kademeSil, kademeliMi, siralamadanDagit, yeniKademe,
 } from '@/lib/kademe';
@@ -42,10 +42,7 @@ export default function KademeBolumu({ liste, items, busy, calistir }: {
   const t = m.kademe;
   const kademeler = kademeliMi(liste.kademeler) ? liste.kademeler : null;
 
-  const ac = () => calistir(async () => {
-    await updateListe(liste.id, { kademeler: VARSAYILAN_KADEMELER });
-    await yaz(siralamadanDagit(siraliSiralama(items, null), VARSAYILAN_KADEMELER));
-  });
+  const ac = () => calistir(() => kademeleriAc(liste.id, items));
 
   if (!kademeler) {
     return (

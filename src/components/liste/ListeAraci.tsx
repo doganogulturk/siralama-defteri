@@ -2,7 +2,7 @@
 
 import React from 'react';
 import type { Gorunum } from '@/hooks/useGorunum';
-import { KademeIkon, KartIkon, SatirIkon } from './Ikonlar';
+import { KartIkon, SatirIkon } from './Ikonlar';
 import { messages } from '@/lib/i18n';
 
 export type Sekme = 'siralama' | 'sirada';
@@ -27,14 +27,13 @@ export default function ListeAraci({
   /** Yalnızca masaüstünde verilir; telefonda görünüm seçici yok. */
   gorunum?: Gorunum;
   onGorunum: (g: Gorunum) => void;
-  /** Kademeler açık listede Tier / Liste seçimi; verilmezse seçici yok. */
+  /** Sıralama sekmesinde 1→n / Tier seçimi (kademeler kapalıysa false); verilmezse seçici yok. */
   kademeGorunumu?: boolean;
   onKademeGorunumu: (acik: boolean) => void;
   secimAcik: boolean;
   onSecim: () => void;
 }) {
-  const m = messages();
-  const t = m.liste;
+  const t = messages().liste;
   const acikAdet = sekme === 'sirada' ? bekleyenAdet : siralamaAdet;
 
   const sekmeDugmesi = (s: Sekme, etiket: string) => (
@@ -72,16 +71,7 @@ export default function ListeAraci({
         <div className="desk-arama">{arama}</div>
       </div>
       {kademeGorunumu !== undefined && acikAdet > 0 && !secimAcik && (
-        <div className="gorunum-secici kademe-gorunum-secici" role="group" aria-label={t.gorunum}>
-          <button type="button" className={kademeGorunumu ? 'is-on' : ''} aria-pressed={kademeGorunumu}
-                  aria-label={m.kademe.tierGorunumu} title={m.kademe.tierGorunumu} onClick={() => onKademeGorunumu(true)}>
-            {KademeIkon}
-          </button>
-          <button type="button" className={kademeGorunumu ? '' : 'is-on'} aria-pressed={!kademeGorunumu}
-                  aria-label={m.kademe.listeGorunumu} title={m.kademe.listeGorunumu} onClick={() => onKademeGorunumu(false)}>
-            {SatirIkon}
-          </button>
-        </div>
+        <SiraTierSecici acik={kademeGorunumu} onSec={onKademeGorunumu} />
       )}
       {gorunum && acikAdet > 0 && !kademeGorunumu && (
         <div className="gorunum-secici" role="group" aria-label={t.gorunum}>
@@ -99,6 +89,25 @@ export default function ListeAraci({
           {secimAcik ? t.bitti : t.sec}
         </button>
       )}
+    </div>
+  );
+}
+
+/**
+ * Sıralamanın iki görünümü: "1→n" (numaralı sıralama; kademeler açıksa başlıklarıyla) ve
+ * "Tier" (her kademe bir satır). Kademeleri kapalı listede de görünüyor: "Tier" onları açıyor
+ * (sayfa, `kademeleriAc`). Masaüstünde araç satırında, telefonda arama satırında.
+ */
+export function SiraTierSecici({ acik, onSec }: { acik: boolean; onSec: (tier: boolean) => void }) {
+  const k = messages().kademe;
+  return (
+    <div className="gorunum-secici sira-tier" role="group" aria-label={messages().liste.gorunum}>
+      <button type="button" className={acik ? '' : 'is-on'} aria-pressed={!acik} title={k.listeGorunumu} onClick={() => onSec(false)}>
+        {k.siraEtiketi}
+      </button>
+      <button type="button" className={acik ? 'is-on' : ''} aria-pressed={acik} title={k.tierGorunumu} onClick={() => onSec(true)}>
+        {k.tierEtiketi}
+      </button>
     </div>
   );
 }

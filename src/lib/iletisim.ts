@@ -8,7 +8,7 @@ export const VERI_SORUMLUSU = 'Doğan Oğultürk';
 export const ILETISIM_EPOSTA = 'doganogulturk@gmail.com';
 
 /** Gizlilik, KVKK ve koşulların son güncellendiği gün — içerik değişince bu da değişmeli. */
-export const YASAL_TARIH = { tr: '27 Ekim 2026', en: '27 October 2026' };
+export const YASAL_TARIH = { tr: '2 Kasım 2026', en: '2 November 2026' };
 
 /** Yasal sayfaların sırası: sayfaların altındaki gezinme ve "Hesabım"daki bağlantılar; adlar arayüz dilinde. */
 /** `dil` verilmezse tarayıcıdaki dil (`messages()`); sunucuda da çizilen yerler dili vermeli. */

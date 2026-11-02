@@ -27,6 +27,15 @@ const TURKCE = (
       tutulmaz; Kör Sıralama sonucun yalnızca paylaştığın bağlantının içinde durur.
     </p>
 
+    <h2>Kamera ve mikrofon</h2>
+    <p>
+      Kör Sıralama&apos;yı &ldquo;Kamerayla oyna&rdquo; ile açarsan tarayıcın ön kamera ve mikrofon izni ister.
+      Görüntü ve ses yalnızca kendi cihazında işlenir: videon tarayıcının içinde bir dosyaya dönüşür, bize ya da
+      başka bir sunucuya gönderilmez ve saklanmaz. Videoyu paylaşmak ya da indirmek senin elindedir; paylaştığın
+      uygulamanın kendi kuralları geçerlidir. Yüzün tanınmaz, yüz verisi çıkarılmaz. İzni istediğin an
+      tarayıcının ayarlarından kaldırabilirsin; kamerasız oynamak her zaman mümkündür.
+    </p>
+
     <h2>İşlenen veriler</h2>
     <ul>
       <li>
@@ -117,6 +126,15 @@ const INGILIZCE = (
     <p>
       Blind Ranking and viewing shared lists do not require signing in. In that case no data about you is kept on
       the server; your Blind Ranking result exists only inside the link you share.
+    </p>
+
+    <h2>Camera and microphone</h2>
+    <p>
+      If you open Blind Ranking with &ldquo;Play on camera&rdquo;, your browser asks for front camera and microphone
+      access. Video and sound are processed only on your own device: your video becomes a file inside the browser
+      and is not sent to us or any other server, nor stored. Sharing or downloading the video is up to you; the
+      rules of the app you share it to apply. Your face is not recognised and no facial data is extracted. You can
+      revoke access in your browser settings at any time; playing without the camera is always possible.
     </p>
 
     <h2>Data we process</h2>

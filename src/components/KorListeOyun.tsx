@@ -12,6 +12,7 @@ import { DIL_PARAMETRE } from '@/lib/i18n';
 import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 import { titret } from '@/lib/his';
 import { useAuth } from '@/hooks/useAuth';
+import KorKamera, { KameraDugmesi, useKameraVar } from './KorKamera';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 
@@ -46,6 +47,9 @@ export default function KorListeOyun({ kod, listeAdi, sahip, kayitlar, arkadas }
   const [yuvalar, setYuvalar] = useState<(KorKayit | null)[]>(() => new Array(KOR_ADET).fill(null));
   const [yeniYuva, setYeniYuva] = useState<number | null>(null);
   const [kilit, setKilit] = useState(false);
+  const [kamera, setKamera] = useState(false);
+  const [kameraAnahtari, setKameraAnahtari] = useState(0);
+  const kameraVar = useKameraVar();
   const dil = useDilim();
   const kimin = sahip ? iyelik(sahip, dil) : null;
   const arkadasUyumu = useMemo(() => (arkadas ? korUyum(arkadas) : null), [arkadas]);
@@ -80,6 +84,12 @@ export default function KorListeOyun({ kod, listeAdi, sahip, kayitlar, arkadas }
 
   const simdiki = gelis[adim];
 
+  const kameraylaBasla = () => {
+    basla();
+    setKameraAnahtari(n => n + 1);
+    setKamera(true);
+  };
+
   return (
     <div className="kor kor-kendi" style={{ '--kor': 'var(--accent)' } as React.CSSProperties}>
       <header className="kor-bar">
@@ -110,6 +120,7 @@ export default function KorListeOyun({ kod, listeAdi, sahip, kayitlar, arkadas }
             <li><b>3</b><span>{k.kural3}</span></li>
           </ul>
           <button type="button" className="btn-primary kor-basla" onClick={basla}>{k.basla}</button>
+          {kameraVar && <KameraDugmesi onKamera={kameraylaBasla} />}
         </main>
       )}
 
@@ -154,6 +165,26 @@ export default function KorListeOyun({ kod, listeAdi, sahip, kayitlar, arkadas }
           sahip={sahip}
           sira={yuvalar as KorKayit[]}
           onTekrar={basla}
+        />
+      )}
+
+      {kamera && asama !== 'giris' && (
+        <KorKamera
+          key={kameraAnahtari}
+          etiket={listeAdi}
+          renk="var(--accent)"
+          kayitlar={gelis.map(g => ({ ad: g.ad, alt: g.alt_ad, foto: g.foto }))}
+          yuvalar={yuvalar.map(y => (y ? gelis.indexOf(y) : null))}
+          adim={adim}
+          kilit={kilit}
+          bitti={asama === 'sonuc'}
+          onYerlestir={yerlestir}
+          adres={`${window.location.host}/p/${kod}/kor`}
+          dosyaAdi={k.kamera.dosyaAdi(slugify(listeAdi) || 'liste')}
+          paylasimMetni={`${t.paylasim(listeAdi, null)} ${window.location.origin}/p/${kod}/kor${dil === 'tr' ? '' : `?${DIL_PARAMETRE}=${dil}`}`}
+          onSonuc={() => setKamera(false)}
+          onYenidenCek={kameraylaBasla}
+          onKapat={() => setKamera(false)}
         />
       )}
     </div>

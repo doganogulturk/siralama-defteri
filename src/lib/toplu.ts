@@ -1,4 +1,4 @@
-import { Item, Kategori, Liste } from '../types/item';
+import { Item, Kategori, Liste } from '@/types/item';
 import { KATEGORI_PALET, createItems, createKategori } from './items';
 import { SINIR } from './sinirlar';
 import { messages } from './i18n';

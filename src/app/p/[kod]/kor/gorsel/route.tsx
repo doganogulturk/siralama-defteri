@@ -1,11 +1,11 @@
 import { ImageResponse } from 'next/og';
-import { brandInitials } from '../../../../../types/item';
-import { iyelik } from '../../../../../lib/paylasim';
-import { paylasilanListe } from '../../../../../lib/paylasim-sunucu';
-import { KorKayit, korKayitlari, korSonucCoz, korUyum } from '../../../../../lib/kor-liste';
-import { DIL_PARAMETRE, sozluk } from '../../../../../lib/i18n';
-import { baglantiDili } from '../../../../../lib/i18n/sunucu';
-import { RENK, fotoVerisi, yaziTipleri } from '../../../../../lib/gorsel-sunucu';
+import { brandInitials } from '@/types/item';
+import { iyelik } from '@/lib/paylasim';
+import { paylasilanListe } from '@/lib/paylasim-sunucu';
+import { KorKayit, korKayitlari, korSonucCoz, korUyum } from '@/lib/kor-liste';
+import { DIL_PARAMETRE, sozluk } from '@/lib/i18n';
+import { baglantiDili } from '@/lib/i18n/sunucu';
+import { RENK, fotoVerisi, yaziTipleri } from '@/lib/gorsel-sunucu';
 
 /*
  * Kendi listenin kör sıralamasının sonuç görseli. Sonuç adreste (`?s=`), hiçbir şey

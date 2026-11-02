@@ -2,18 +2,18 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useState } from 'react';
-import Hesap from '../../components/Hesap';
-import Marka from '../../components/Marka';
-import { BosSahne } from '../../components/Sahne';
-import { IskeletKartlar } from '../../components/Iskelet';
+import Hesap from '@/components/Hesap';
+import Marka from '@/components/Marka';
+import { BosSahne } from '@/components/Sahne';
+import { IskeletKartlar } from '@/components/Iskelet';
 import Link from 'next/link';
-import { useListeler, siralanan } from '../../hooks/useListeler';
-import ListeEkleModal from '../../components/ListeEkleModal';
-import MobilMenu from '../../components/MobilMenu';
-import { useAuth } from '../../hooks/useAuth';
-import { brandInitials } from '../../types/item';
-import type { OzetKayit } from '../../lib/items';
-import { messages } from '../../lib/i18n';
+import { useListeler, siralanan } from '@/hooks/useListeler';
+import ListeEkleModal from '@/components/ListeEkleModal';
+import MobilMenu from '@/components/MobilMenu';
+import { useAuth } from '@/hooks/useAuth';
+import { brandInitials } from '@/types/item';
+import type { OzetKayit } from '@/lib/items';
+import { messages } from '@/lib/i18n';
 
 /**
  * Liste kartının vitrini: ilk üçün fotoğrafları kartın bütün yüksekliğinde, soldan

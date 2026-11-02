@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Item } from '../types/item';
+import { Item } from '@/types/item';
 
 interface Secenekler {
   /** Asıl silme: süre dolunca, yeni bir silme başlayınca ya da sayfadan çıkılınca. */

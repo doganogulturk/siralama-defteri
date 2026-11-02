@@ -4,16 +4,17 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   AlanTanimi, Item, Kategori, OzellikDeger, alanGorunur, alanKisa,
-} from '../types/item';
-import { uploadFotograf, deleteFotograf } from '../lib/items';
-import { TopluBlok, topluAyristir, topluKayitSayisi, topluSorun } from '../lib/toplu';
+} from '@/types/item';
+import { uploadFotograf, deleteFotograf } from '@/lib/items';
+import { TopluBlok, topluAyristir, topluKayitSayisi, topluSorun } from '@/lib/toplu';
 import TopluAlan from './TopluAlan';
+import HangisiEkrani from './HangisiEkrani';
 import Sheet from './Sheet';
-import { useIsDesktop } from '../hooks/useIsDesktop';
-import { hataMetni } from '../lib/hata';
-import { SINIR } from '../lib/sinirlar';
-import { uyar } from '../lib/pencere';
-import { messages } from '../lib/i18n';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
+import { hataMetni } from '@/lib/hata';
+import { SINIR } from '@/lib/sinirlar';
+import { uyar } from '@/lib/pencere';
+import { messages } from '@/lib/i18n';
 
 /**
  * 'siralama' — denenmiş kayıt (varsayılan akış)
@@ -104,7 +105,12 @@ export default function ItemForm({
   const [sekme, setSekme] = useState<'tek' | 'toplu'>(ilkSekme);
   const [toplu, setToplu] = useState('');
   const [topluKaydediliyor, setTopluKaydediliyor] = useState(false);
-  const [positionMode, setPositionMode] = useState<'top' | 'bottom' | 'after'>('top');
+  // İki ve daha çok kayıtlı sıralamada varsayılan "Hangisi?": yer birkaç soruyla bulunuyor (`lib/hangisi.ts`).
+  const [positionMode, setPositionMode] = useState<'hangisi' | 'top' | 'bottom' | 'after'>(
+    existingItems.length >= 2 ? 'hangisi' : 'top',
+  );
+  /** "Hangisi?" soruları sürerken kaydedilecek kayıt; doluysa form yerine soru ekranı çiziliyor. */
+  const [hangisiKaydi, setHangisiKaydi] = useState<Item | null>(null);
   const [afterItemId, setAfterItemId] = useState<string>(existingItems[0]?.id ?? '');
 
   const originalFotografUrl = useRef(editingItem?.fotograf_url ?? '');
@@ -156,7 +162,9 @@ export default function ItemForm({
 
     let targetIndex: number | undefined;
     if (showPosition) {
-      if (positionMode === 'top') {
+      if (positionMode === 'hangisi') {
+        // Konum soru ekranında bulunuyor; kayıt orada yazılıyor (`kaydet`).
+      } else if (positionMode === 'top') {
         targetIndex = 0;
       } else if (positionMode === 'bottom') {
         targetIndex = existingItems.length;
@@ -178,23 +186,29 @@ export default function ItemForm({
       }
     }
 
+    const kayit: Item = {
+      id: editingItem?.id || '',
+      list_id: editingItem?.list_id || '',
+      created_at: editingItem?.created_at,
+      category_id: categoryId,
+      ad: ad.trim(),
+      alt_ad: altAd.trim() || null,
+      fotograf_url: fotografUrl.trim() || null,
+      notlar: notlar.trim() || null,
+      ozellikler: temizOzellikler,
+      denendi: !isIstek,
+    };
+    if (showPosition && positionMode === 'hangisi') {
+      setHangisiKaydi(kayit);
+      return;
+    }
+    await kaydet(kayit, targetIndex);
+  };
+
+  const kaydet = async (kayit: Item, targetIndex?: number) => {
     setKaydediliyor(true);
     try {
-      await onSave(
-        {
-          id: editingItem?.id || '',
-          list_id: editingItem?.list_id || '',
-          created_at: editingItem?.created_at,
-          category_id: categoryId,
-          ad: ad.trim(),
-          alt_ad: altAd.trim() || null,
-          fotograf_url: fotografUrl.trim() || null,
-          notlar: notlar.trim() || null,
-          ozellikler: temizOzellikler,
-          denendi: !isIstek,
-        },
-        targetIndex
-      );
+      await onSave(kayit, targetIndex);
     } finally {
       // Başarıda form zaten kapanıyor; hata olursa sayfa uyarıyı gösterdi, yeniden denenebilsin.
       setKaydediliyor(false);
@@ -255,7 +269,7 @@ export default function ItemForm({
         ) : <span className="form-screen-header-spacer" />}
       </header>
 
-      {topluVar && (
+      {topluVar && !hangisiKaydi && (
         <nav className="tabs" aria-label={f.eklemeBicimi}>
           <button
             type="button"
@@ -307,7 +321,17 @@ export default function ItemForm({
         </form>
       )}
 
-      {!topluSekmede && (
+      {hangisiKaydi && (
+        <HangisiEkrani
+          yeni={hangisiKaydi}
+          siralama={existingItems}
+          kaydediliyor={kaydediliyor}
+          onBitti={(konum) => void kaydet(hangisiKaydi, konum)}
+          onForma={() => setHangisiKaydi(null)}
+        />
+      )}
+
+      {!topluSekmede && !hangisiKaydi && (
         <form onSubmit={handleSubmit} className="form-screen-body">
           {/* Fotoğraf solda, ad ve çeşit sağında: formun tepesi tek bir bant
               olunca "listeye ekleneceği yer" kaydırmadan görünüyor. */}
@@ -469,8 +493,17 @@ export default function ItemForm({
           {showPosition && (
             <div className="field">
               <span className="field-label">{f.yer}</span>
-              <p className="field-hint">{f.yerIpucu}</p>
+              <p className="field-hint">{positionMode === 'hangisi' ? f.hangisiYerIpucu : f.yerIpucu}</p>
               <div className="position-toggle">
+                {existingItems.length >= 2 && (
+                  <button
+                    type="button"
+                    className={positionMode === 'hangisi' ? 'selected' : ''}
+                    onClick={() => setPositionMode('hangisi')}
+                  >
+                    {f.hangisi}
+                  </button>
+                )}
                 <button
                   type="button"
                   className={positionMode === 'top' ? 'selected' : ''}
@@ -517,6 +550,7 @@ export default function ItemForm({
               {uploading
                 ? m.genel.yukleniyor
                 : kaydediliyor ? m.genel.kaydediliyor
+                : showPosition && positionMode === 'hangisi' ? f.hangisiDevam
                 : isDonusum ? f.siralamayaEkle
                 : editingItem ? f.guncelle
                 : isIstek ? f.listemeEkle

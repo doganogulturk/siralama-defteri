@@ -2,17 +2,17 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlanTanimi, AlanTipi, Item, Kategori, Liste } from '../types/item';
+import { AlanTanimi, AlanTipi, Item, Kategori, Liste } from '@/types/item';
 import {
   KATEGORI_PALET, createKategori, deleteKategori, deleteListe, updateKategori, updateListe,
-} from '../lib/items';
-import { listeleriTazele } from '../hooks/useListeler';
-import { hataMetni } from '../lib/hata';
-import { SINIR } from '../lib/sinirlar';
+} from '@/lib/items';
+import { listeleriTazele } from '@/hooks/useListeler';
+import { hataMetni } from '@/lib/hata';
+import { SINIR } from '@/lib/sinirlar';
 import Sheet from './Sheet';
 import PaylasimBolumu from './PaylasimBolumu';
-import { uyar, onayla } from '../lib/pencere';
-import { messages } from '../lib/i18n';
+import { uyar, onayla } from '@/lib/pencere';
+import { messages } from '@/lib/i18n';
 
 const KaldirIkon = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"

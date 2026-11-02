@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import KorOyun from '../../../components/KorOyun';
-import { korListesi, sonucCoz } from '../../../lib/kor';
-import { DIL_PARAMETRE, sozluk } from '../../../lib/i18n';
-import { sunucuDili } from '../../../lib/i18n/sunucu';
+import KorOyun from '@/components/KorOyun';
+import { korListesi, sonucCoz } from '@/lib/kor';
+import { DIL_PARAMETRE, sozluk } from '@/lib/i18n';
+import { sunucuDili } from '@/lib/i18n/sunucu';
 
 type Props = {
   params: Promise<{ liste: string }>;

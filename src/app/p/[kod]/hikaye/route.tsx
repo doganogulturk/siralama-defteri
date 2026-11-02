@@ -1,10 +1,10 @@
 import { ImageResponse } from 'next/og';
-import { brandInitials } from '../../../../types/item';
-import { PaylasilanKayit, iyelik } from '../../../../lib/paylasim';
-import { DIL_PARAMETRE, sozluk } from '../../../../lib/i18n';
-import { baglantiDili } from '../../../../lib/i18n/sunucu';
-import { paylasilanListe } from '../../../../lib/paylasim-sunucu';
-import { RENK, fotoVerisi, yaziTipleri } from '../../../../lib/gorsel-sunucu';
+import { brandInitials } from '@/types/item';
+import { PaylasilanKayit, iyelik } from '@/lib/paylasim';
+import { DIL_PARAMETRE, sozluk } from '@/lib/i18n';
+import { baglantiDili } from '@/lib/i18n/sunucu';
+import { paylasilanListe } from '@/lib/paylasim-sunucu';
+import { RENK, fotoVerisi, yaziTipleri } from '@/lib/gorsel-sunucu';
 
 /*
  * Instagram / WhatsApp story görseli (1080×1920): şampiyon büyük ve fotoğraflı,

@@ -46,6 +46,7 @@ Denetimler — her push ve PR'da GitHub Actions'ta da çalışıyor (`.github/wo
 npm run typecheck
 npm run lint
 npm test
+npm run test:db   # erişim kuralları; boş bir Postgres ister (DATABASE_URL), bkz. docs/mimari.md
 ```
 
 Testler (Vitest) `src/lib`'teki saf mantığı kapsıyor: toplu giriş ayrıştırma, karşılaştırma (Kendall), Kör Sıralama sonucu, Sayılar (tohum, puan), slug, filtre, paylaşım yardımcıları ve sıralama yazımı.

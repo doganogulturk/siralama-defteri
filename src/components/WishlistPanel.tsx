@@ -4,10 +4,10 @@
 import React from 'react';
 import {
   AlanTanimi, Item, Kategori, altBilgi, brandInitials, kategoriBul, rozetler,
-} from '../types/item';
+} from '@/types/item';
 import { SecimIkon } from './ItemRow';
 import { BosSahne } from './Sahne';
-import { messages } from '../lib/i18n';
+import { messages } from '@/lib/i18n';
 
 interface WishlistPanelProps {
   items: Item[];

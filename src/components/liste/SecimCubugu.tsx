@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { Kategori } from '../../types/item';
-import type { SecimModu } from '../../hooks/useSecim';
+import { Kategori } from '@/types/item';
+import type { SecimModu } from '@/hooks/useSecim';
 import {
   AslaIkon, DenedimIkon, GeriAlIkon, GeriIkon, KategoriIkon, SilIkon,
 } from './Ikonlar';
-import { messages } from '../../lib/i18n';
+import { messages } from '@/lib/i18n';
 
 /**
  * Seçim modunda ekleme düğmesinin yerini alan işlem çubuğu. Mobilde ekranın dibinde

@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import Sheet from './Sheet';
-import { Liste } from '../types/item';
-import { paylasimAdresi, paylasimMetni } from '../lib/paylasim';
-import { slugify } from '../lib/slug';
-import { KOR_ADET, korBaglantisiGonder, korUygun } from '../lib/kor-liste';
-import { DIL_PARAMETRE, messages, simdikiDil } from '../lib/i18n';
+import { Liste } from '@/types/item';
+import { paylasimAdresi, paylasimMetni } from '@/lib/paylasim';
+import { slugify } from '@/lib/slug';
+import { KOR_ADET, korBaglantisiGonder, korUygun } from '@/lib/kor-liste';
+import { DIL_PARAMETRE, messages, simdikiDil } from '@/lib/i18n';
 
 /**
  * Başlıktaki "Paylaş"ın menüsü (liste paylaşılıyorken): bağlantıyı göndermek ya da

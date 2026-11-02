@@ -2,11 +2,12 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { KorListe, korListesi, sonucYaz } from '../lib/kor';
-import { DIL_PARAMETRE, messages, simdikiDil } from '../lib/i18n';
-import { kiyasAnahtari, kiyasla, uyumEtiketi } from '../lib/kiyas';
-import { titret } from '../lib/his';
-import { useAuth } from '../hooks/useAuth';
+import { KorListe, korListesi, sonucYaz } from '@/lib/kor';
+import { DIL_PARAMETRE } from '@/lib/i18n';
+import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
+import { kiyasAnahtari, kiyasla, uyumEtiketi } from '@/lib/kiyas';
+import { titret } from '@/lib/his';
+import { useAuth } from '@/hooks/useAuth';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 
@@ -34,8 +35,9 @@ const kiyasKayitlari = (liste: KorListe, sira: number[]) =>
  * rastgele bir sıra iki tarafta farklı çıkardı.
  */
 export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: number[] | null }) {
-  const liste = korListesi(slug)!;
-  const t = messages().kor;
+  const dil = useDilim();
+  const liste = korListesi(slug, dil)!;
+  const t = useMesajlar().kor;
   const n = liste.kayitlar.length;
   const [asama, setAsama] = useState<Asama>('giris');
   const [gelis, setGelis] = useState<number[]>([]);
@@ -140,7 +142,7 @@ export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: numb
 function KorGiris({ liste, arkadas, onBasla }: {
   liste: KorListe; arkadas: number[] | null; onBasla: () => void;
 }) {
-  const t = messages().kor;
+  const t = useMesajlar().kor;
   return (
     <main className="kor-giris">
       <span className="kor-giris-simge" aria-hidden="true">{liste.simge}</span>
@@ -164,9 +166,9 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
   liste: KorListe; sira: number[]; arkadas: number[] | null; onTekrar: () => void;
 }) {
   const s = sonucYaz(sira);
-  const t = messages().kor;
+  const t = useMesajlar().kor;
   /** Paylaşılan bağlantı ve görsel paylaşanın dilinde. */
-  const dil = simdikiDil();
+  const dil = useDilim();
   const dilEki = dil === 'tr' ? '' : `&${DIL_PARAMETRE}=${dil}`;
   const { user } = useAuth();
   const [gorsel, setGorsel] = useState<File | null>(null);

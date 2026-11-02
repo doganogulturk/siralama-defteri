@@ -25,4 +25,5 @@ Bunlar iş değil, bilinçli kararlar. Birini değiştirmeden önce gerekçesini
 - **Kayıt silinmeden fotoğraf değişince eski dosya istemcide siliniyor** — sekme o an kapanırsa dosya yetim kalabilir. Kullanıcı başına 1000 dosya sınırı yetimleri de sayıyor.
 - **Karşılaştırmada kayıtlar adla eşleşiyor** — kimlikle değil: kopyada kimlikler yeni, bağımsız iki listede zaten farklı. Adı değiştirilen kayıt eşleşmeden düşer; aynı ad + çeşitle iki kayıt varsa biri sayılır.
 - **Kopyalanan listede sahibinin notları ve denenmemişleri yok** — okuma paylaşım sayfasıyla aynı kapıdan (`paylasilan_liste`).
+- **Şema tek dosyada, migration yok** — `supabase/schema.sql` idempotent ve SQL Editor'da çalıştırılıyor; Supabase CLI migration'larına geçiş (Kasım 2026) ertelendi. Kaymaya karşı güvence: CI her push'ta dosyayı boş bir Postgres'e kurup erişim kurallarını deniyor (`npm run test:db`). Mobil uygulama çalışmasında yeniden bakılabilir.
 - **Sunucu tarafı koruma yok** — uygulama tamamen istemci tarafında; `AuthGate` bir kapı, güvenlik RLS'te.

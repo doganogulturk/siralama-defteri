@@ -3803,3 +3803,83 @@ body:has(.mobil-menu) .kor-sayfa { padding-bottom: calc(110px + env(safe-area-in
   .mobil-menu { display: none; }
 }
 .mobil-menu-oge:disabled { opacity: 0.4; }
+
+/* ── "Hangisi?" ile yerleştirme (HangisiEkrani) ───────────────────────────
+   İki kart yan yana: solda yeni kayıt, sağda sıralamadan biri. Kart bütünüyle
+   düğme; dokunulan öne geçiyor. */
+.hangisi { gap: 18px; }
+.hangisi-ust { text-align: center; padding-top: 8px; }
+.hangisi-baslik {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 2rem;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+.hangisi-ust .field-hint { margin-top: 6px; }
+.hangisi-ikili {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
+}
+.hangisi-ya {
+  align-self: center;
+  color: var(--faint);
+  font-family: var(--serif);
+  font-size: 1.6rem;
+}
+.hangisi-kart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 10px 14px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--hair), var(--shadow-sm);
+  text-align: center;
+  transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease);
+}
+.hangisi-kart:hover:not(:disabled) { box-shadow: var(--ring), var(--shadow-sm); }
+.hangisi-kart:active:not(:disabled) { transform: scale(0.97); }
+.hangisi-kart:focus-visible { outline: none; box-shadow: var(--ring); }
+.hangisi-kart:disabled { cursor: default; opacity: 0.7; }
+.hangisi-kart.is-yeni { box-shadow: 0 0 0 1.5px var(--accent), var(--shadow-sm); }
+.hangisi-etiket {
+  align-self: flex-start;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.hangisi-kart.is-yeni .hangisi-etiket { color: var(--accent); }
+.hangisi-foto {
+  width: 100%;
+  aspect-ratio: 1;
+  margin: 2px 0 6px;
+  border-radius: var(--r-md);
+  object-fit: cover;
+  background: var(--surface-2);
+  font-size: 1.6rem;
+}
+.hangisi-ad {
+  max-width: 100%;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.hangisi-alt { max-width: 100%; font-size: 0.85rem; color: var(--mute); overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: no-preference) {
+  .hangisi-kart:not(.is-yeni) { animation: hangisi-gelis 220ms var(--ease) both; }
+  @keyframes hangisi-gelis {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+}

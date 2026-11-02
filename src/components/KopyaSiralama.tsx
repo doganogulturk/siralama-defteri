@@ -9,14 +9,14 @@ import {
   SortableContext, verticalListSortingStrategy, arrayMove, sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { DraggableRow, StaticRow, SuruklenebilirAslaSiniri, ASLA_SINIRI } from './ItemRow';
-import { KopyaSecimi, listeKopyala } from '../lib/kopya';
-import { PaylasilanKayit, PaylasilanListe, guvenliFoto, iyelik } from '../lib/paylasim';
-import { messages } from '../lib/i18n';
-import { hataMetni } from '../lib/hata';
-import { titret } from '../lib/his';
-import { useTac } from '../hooks/useTac';
-import { Item, Liste } from '../types/item';
-import { uyar } from '../lib/pencere';
+import { KopyaSecimi, listeKopyala } from '@/lib/kopya';
+import { PaylasilanKayit, PaylasilanListe, guvenliFoto, iyelik } from '@/lib/paylasim';
+import { messages } from '@/lib/i18n';
+import { hataMetni } from '@/lib/hata';
+import { titret } from '@/lib/his';
+import { useTac } from '@/hooks/useTac';
+import { Item, Liste } from '@/types/item';
+import { uyar } from '@/lib/pencere';
 
 /** Satır bileşeni `Item` bekliyor; paylaşılan kaydın gösterilen kısmı yetiyor. */
 export const kayittanItem = (k: PaylasilanKayit): Item => ({

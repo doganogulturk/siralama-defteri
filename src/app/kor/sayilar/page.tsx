@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import SayiOyun from '../../../components/SayiOyun';
-import { puanla, sayilariUret, tohumGecerli, yerlesimCoz } from '../../../lib/sayilar';
-import { DIL_PARAMETRE, sozluk } from '../../../lib/i18n';
-import { sunucuDili } from '../../../lib/i18n/sunucu';
+import SayiOyun from '@/components/SayiOyun';
+import { puanla, sayilariUret, tohumGecerli, yerlesimCoz } from '@/lib/sayilar';
+import { DIL_PARAMETRE, sozluk } from '@/lib/i18n';
+import { sunucuDili } from '@/lib/i18n/sunucu';
 
 type Props = {
   searchParams: Promise<{ t?: string; s?: string; [DIL_PARAMETRE]?: string }>;

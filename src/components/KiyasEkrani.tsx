@@ -3,15 +3,15 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { KiyasKayit, KiyasSatiri, kiyasAnahtari, kiyasla, uyumEtiketi } from '../lib/kiyas';
-import { denenmemislereEkle } from '../lib/kopya';
-import { PaylasilanListe, guvenliFoto, iyelik, paylasimAdresi } from '../lib/paylasim';
-import { messages } from '../lib/i18n';
-import { sortSirali } from '../lib/sort';
-import { hataMetni } from '../lib/hata';
-import { titret } from '../lib/his';
-import { Item, Kategori, Liste, brandInitials } from '../types/item';
-import { uyar } from '../lib/pencere';
+import { KiyasKayit, KiyasSatiri, kiyasAnahtari, kiyasla, uyumEtiketi } from '@/lib/kiyas';
+import { denenmemislereEkle } from '@/lib/kopya';
+import { PaylasilanListe, guvenliFoto, iyelik, paylasimAdresi } from '@/lib/paylasim';
+import { messages } from '@/lib/i18n';
+import { sortSirali } from '@/lib/sort';
+import { hataMetni } from '@/lib/hata';
+import { titret } from '@/lib/his';
+import { Item, Kategori, Liste, brandInitials } from '@/types/item';
+import { uyar } from '@/lib/pencere';
 
 /** Sıralama ekranındaki kuralla: denenmiş, "Bir daha asla"da olmayanlar sırayla 1'den. */
 function benimKayitlarim(items: Item[]): KiyasKayit[] {

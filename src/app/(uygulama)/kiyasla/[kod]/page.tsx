@@ -3,16 +3,16 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import Marka from '../../../../components/Marka';
-import KopyaSiralama from '../../../../components/KopyaSiralama';
-import KiyasEkrani from '../../../../components/KiyasEkrani';
-import { paylasilanListeGetir } from '../../../../lib/kopya';
-import { getItems, getKategoriler, getListeler } from '../../../../lib/items';
-import { PaylasilanListe } from '../../../../lib/paylasim';
-import { hataMetni } from '../../../../lib/hata';
-import { listeleriTazele } from '../../../../hooks/useListeler';
-import { Item, Kategori, Liste } from '../../../../types/item';
-import { messages } from '../../../../lib/i18n';
+import Marka from '@/components/Marka';
+import KopyaSiralama from '@/components/KopyaSiralama';
+import KiyasEkrani from '@/components/KiyasEkrani';
+import { paylasilanListeGetir } from '@/lib/kopya';
+import { getItems, getKategoriler, getListeler } from '@/lib/items';
+import { PaylasilanListe } from '@/lib/paylasim';
+import { hataMetni } from '@/lib/hata';
+import { listeleriTazele } from '@/hooks/useListeler';
+import { Item, Kategori, Liste } from '@/types/item';
+import { messages } from '@/lib/i18n';
 
 type Durum =
   | { tur: 'yukleniyor' }

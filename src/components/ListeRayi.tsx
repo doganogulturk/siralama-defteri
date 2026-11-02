@@ -3,12 +3,12 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useListeler, siralanan } from '../hooks/useListeler';
+import { useListeler, siralanan } from '@/hooks/useListeler';
 import ListeEkleModal from './ListeEkleModal';
 import Marka from './Marka';
-import { KATEGORISIZ } from '../lib/filtre';
-import { Kategori, brandInitials } from '../types/item';
-import { messages } from '../lib/i18n';
+import { KATEGORISIZ } from '@/lib/filtre';
+import { Kategori, brandInitials } from '@/types/item';
+import { messages } from '@/lib/i18n';
 
 const ArtiIkon = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"

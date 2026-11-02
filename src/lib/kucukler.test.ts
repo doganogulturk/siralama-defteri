@@ -8,8 +8,8 @@ import {
 } from './paylasim';
 import { en } from './i18n/en';
 import { tr } from './i18n/tr';
-import { brandInitials } from '../types/item';
-import { Item } from '../types/item';
+import { brandInitials } from '@/types/item';
+import { Item } from '@/types/item';
 
 const item = (o: Partial<Item>): Item =>
   ({ id: 'x', list_id: 'l', ad: 'x', denendi: true, ozellikler: {}, ...o }) as Item;

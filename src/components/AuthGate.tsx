@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { GIRIS_SONRASI, signInWithGoogle } from '../lib/auth';
-import { hataMetni } from '../lib/hata';
+import { GIRIS_SONRASI, signInWithGoogle } from '@/lib/auth';
+import { hataMetni } from '@/lib/hata';
 import Hesap from './Hesap';
 import Tanitim from './Tanitim';
-import { messages } from '../lib/i18n';
+import { useMesajlar } from '@/lib/i18n/DilBaglami';
 
 const GoogleIkon = (
   <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true">
@@ -24,6 +24,7 @@ const GoogleIkon = (
  */
 export default function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const m = useMesajlar();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +44,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   }, [user, router]);
 
   if (loading) {
-    return <p className="state-msg">{messages().genel.yukleniyor}</p>;
+    return <p className="state-msg">{m.genel.yukleniyor}</p>;
   }
 
   if (!user) {
@@ -62,7 +63,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       <>
         <button type="button" className="gate-btn" onClick={handleSignIn} disabled={busy}>
           <span className="gate-g" aria-hidden="true">{GoogleIkon}</span>
-          {busy ? messages().giris.yonlendiriliyor : messages().giris.googleIle}
+          {busy ? m.giris.yonlendiriliyor : m.giris.googleIle}
         </button>
         {error && <p className="gate-error">{error}</p>}
       </>

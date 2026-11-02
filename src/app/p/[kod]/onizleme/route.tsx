@@ -1,10 +1,10 @@
 import { ImageResponse } from 'next/og';
-import { brandInitials } from '../../../../types/item';
-import { PaylasilanKayit, sahibinSiralamasi } from '../../../../lib/paylasim';
-import { DIL_PARAMETRE, sozluk } from '../../../../lib/i18n';
-import { baglantiDili } from '../../../../lib/i18n/sunucu';
-import { paylasilanListe } from '../../../../lib/paylasim-sunucu';
-import { RENK, fotoVerisi, yaziTipleri } from '../../../../lib/gorsel-sunucu';
+import { brandInitials } from '@/types/item';
+import { PaylasilanKayit, sahibinSiralamasi } from '@/lib/paylasim';
+import { DIL_PARAMETRE, sozluk } from '@/lib/i18n';
+import { baglantiDili } from '@/lib/i18n/sunucu';
+import { paylasilanListe } from '@/lib/paylasim-sunucu';
+import { RENK, fotoVerisi, yaziTipleri } from '@/lib/gorsel-sunucu';
 
 /*
  * WhatsApp önizleme kartının görseli: sahibin adı, listenin adı ve fotoğraflarıyla
@@ -162,6 +162,11 @@ export async function GET(istek: Request, { params }: { params: Promise<{ kod: s
     {
       ...size,
       fonts,
+      // Önizlemeyi WhatsApp, Telegram ve benzerlerinin botları aynı bağlantı için defalarca istiyor; her
+      // istek bir veritabanı çağrısı, fotoğraf indirmeleri ve çizim demek. Vercel'in önbelleği 5 dakika
+      // tutuyor, sonra 10 dakika eskisini verip arkada yeniliyor: sıralama değişikliği ya da kapatılan
+      // paylaşım en geç ~15 dakikada önizlemeye yansıyor. Tarayıcı önbelleklemiyor (max-age=0).
+      headers: { 'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=600' },
     },
   );
 }

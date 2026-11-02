@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useSyncExternalStore } from 'react';
-import { pencereAbone, pencereKapat, siradakiPencere } from '../lib/pencere';
-import { messages } from '../lib/i18n';
+import { pencereAbone, pencereKapat, siradakiPencere } from '@/lib/pencere';
+import { useMesajlar } from '@/lib/i18n/DilBaglami';
 
 /**
  * `lib/pencere.ts`'teki uyarı ve onay isteklerini çizen tek pencere; kök düzende bağlı.
@@ -11,6 +11,7 @@ import { messages } from '../lib/i18n';
  */
 export default function Pencereler() {
   const istek = useSyncExternalStore(pencereAbone, siradakiPencere, () => null);
+  const m = useMesajlar();
   const ref = useRef<HTMLDialogElement>(null);
   const zemindenBasladi = useRef(false);
 
@@ -40,7 +41,7 @@ export default function Pencereler() {
         <p id="onay-metin" className="onay-metin">{istek.metin}</p>
         <div className="onay-dugmeler">
           {istek.tur === 'onay' && (
-            <button type="button" className="btn-quiet" data-vazgec onClick={vazgec}>{messages().genel.vazgec}</button>
+            <button type="button" className="btn-quiet" data-vazgec onClick={vazgec}>{m.genel.vazgec}</button>
           )}
           <button
             type="button"

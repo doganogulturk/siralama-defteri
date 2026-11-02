@@ -1,20 +1,21 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Item, Kategori, Liste } from '../types/item';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Item, Kategori, Liste } from '@/types/item';
 import {
   getListeBySlug, getKategoriler, getItems,
   createItem, updateItem, deleteItem, deleteItems,
   updateItemsSira, updateItemsKategori, deleteFotograf,
-} from '../lib/items';
-import { sortSirali, sortIstekListesi } from '../lib/sort';
-import { hataMetni } from '../lib/hata';
+} from '@/lib/items';
+import { sortSirali, sortIstekListesi } from '@/lib/sort';
+import {
+  SiraSonucu, bolumDegistir as bolumHesapla, denendiYap as denendiHesapla,
+  denenenleriDegistir, siralamada, siralamayaSok,
+} from '@/lib/siralama';
+import { hataMetni } from '@/lib/hata';
 import { listeleriTazele } from './useListeler';
-import { uyar } from '../lib/pencere';
-import { messages } from '../lib/i18n';
-
-/** Sıralamadaki kayıt: denenmiş ve "Bir daha asla" bölümünde değil. */
-const siralamada = (i: Item) => i.denendi && !i.asla;
+import { uyar } from '@/lib/pencere';
+import { messages } from '@/lib/i18n';
 
 /**
  * Bir listenin tüm verisi: liste kaydı, kategorileri ve öğeleri.
@@ -22,16 +23,25 @@ const siralamada = (i: Item) => i.denendi && !i.asla;
  * bellekte ayrılıyor — formdaki "şunun altına ekle" seçicisi sıralı listeye
  * ihtiyaç duyduğu için ayrımı SQL'e taşımanın kazancı yok.
  *
- * Sıralama ve "Bir daha asla" aynı `sira` kolonunu kendi içlerinde ayrı ayrı
- * 0'dan numaralıyor; iki bölümü birbirinden ayıran `asla`.
+ * Sıra hesapları saf fonksiyonlarda (`lib/siralama.ts`). Kayıtların son hâli bir
+ * ref'te de tutuluyor: hesap ondan yapılıp sonuç hem duruma hem veritabanına
+ * yazılıyor. Yazımı `setItems(prev => …)` içinde yapmak updater'ı yan etkili
+ * kılardı — React onu StrictMode'da iki kez, eşzamanlı çizimde yeniden çalıştırabiliyor.
  */
 export function useListStore(slug: string) {
   const [liste, setListe] = useState<Liste | null>(null);
   const [kategorilerHam, setKategoriler] = useState<Kategori[]>([]);
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItemsState] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  /** Kayıtların son hâli: await'ten sonra da güncel olan, hesapların okuduğu yer. */
+  const itemsRef = useRef<Item[]>([]);
+  const setItems = useCallback((next: Item[]) => {
+    itemsRef.current = next;
+    setItemsState(next);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -52,7 +62,7 @@ export function useListStore(slug: string) {
     } finally {
       setLoading(false);
     }
-  }, [slug]);
+  }, [slug, setItems]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -80,7 +90,11 @@ export function useListStore(slug: string) {
   const aslaListesi = useMemo(() => sortSirali(items.filter(i => i.denendi && i.asla)), [items]);
   const istekListesi = useMemo(() => sortIstekListesi(items.filter(i => !i.denendi)), [items]);
 
-  /** `aslaDahil`: bölüm değiştiren sürükle-bırak `asla`'yı da yazıyor; ekleme yolu yalnızca sırayı. */
+  /**
+   * İyimser yol: ekran hemen değişiyor, sıra arkadan yazılıyor. Yazım başarısız olursa
+   * ekran veritabanından ayrı düşmesin diye veri baştan okunuyor.
+   * `aslaDahil`: bölüm değiştiren sürükle-bırak `asla`'yı da yazıyor; ekleme yolu yalnızca sırayı.
+   */
   const persistSira = useCallback(async (list: Item[], aslaDahil = false) => {
     setIsSaving(true);
     try {
@@ -92,30 +106,18 @@ export function useListStore(slug: string) {
       // Şampiyon değişmiş olabilir: ray ve ana ekran ilk üçü yeniden okusun.
       listeleriTazele();
     } catch (e: unknown) {
+      void load();
       void uyar(messages().islem.siraKaydedilemedi(hataMetni(e)));
     } finally {
       setIsSaving(false);
     }
-  }, []);
+  }, [load]);
 
-  /**
-   * Kaydı sıralamaya `targetIndex` konumundan sokup sıralamayı yeniden numaralar.
-   * "Bir daha asla" bölümüne dokunmuyor: onun numaraları kendine ait.
-   */
-  const spliceIntoRanking = useCallback((
-    prev: Item[],
-    item: Item,
-    targetIndex?: number
-  ) => {
-    const ranked = sortSirali(prev.filter(i => siralamada(i) && i.id !== item.id));
-    const at = targetIndex !== undefined && targetIndex >= 0
-      ? Math.min(targetIndex, ranked.length)
-      : 0;
-    ranked.splice(at, 0, item);
-    const numbered = ranked.map((it, idx) => ({ ...it, sira: idx }));
-    void persistSira(numbered);
-    return [...prev.filter(i => !siralamada(i) && i.id !== item.id), ...numbered];
-  }, [persistSira]);
+  /** İyimser uygulama: sonucu ekrana koy, değişenleri arkadan yaz. */
+  const iyimser = useCallback((sonuc: SiraSonucu, aslaDahil = false) => {
+    setItems(sonuc.items);
+    void persistSira(sonuc.degisenler, aslaDahil);
+  }, [setItems, persistSira]);
 
   /**
    * Tek kayıt yolu: yeni kayıt, düzenleme ve "denedim" dönüşümü.
@@ -127,7 +129,7 @@ export function useListStore(slug: string) {
     targetIndex?: number
   ): Promise<Item> => {
     if (!liste) throw new Error(messages().islem.listeYuklenmedi);
-    // `sira` ve `asla` bilerek dışarıda: konumu spliceIntoRanking / reorder belirliyor.
+    // `sira` ve `asla` bilerek dışarıda: konumu siralamayaSok / reorder belirliyor.
     const payload = {
       list_id: liste.id,
       category_id: entry.category_id ?? null,
@@ -144,39 +146,29 @@ export function useListStore(slug: string) {
       const updated = await updateItem(entry.id, payload);
       if (oldPhoto && oldPhoto !== updated.fotograf_url) void deleteFotograf(oldPhoto);
 
-      const donusum = !editingItem.denendi && updated.denendi;   // "denedim" işaretlendi
-      setItems(prev => (
-        donusum
-          ? spliceIntoRanking(prev, updated, targetIndex)
-          : prev.map(i => (i.id === entry.id ? updated : i))
-      ));
+      if (!editingItem.denendi && updated.denendi) {   // "denedim" işaretlendi
+        iyimser(siralamayaSok(itemsRef.current, updated, targetIndex));
+      } else {
+        setItems(itemsRef.current.map(i => (i.id === entry.id ? updated : i)));
+      }
       return updated;
     }
 
     const created = await createItem(payload);
-    setItems(prev => (
-      created.denendi
-        ? spliceIntoRanking(prev, created, targetIndex)
-        : [...prev, created]
-    ));
+    if (created.denendi) iyimser(siralamayaSok(itemsRef.current, created, targetIndex));
+    else setItems([...itemsRef.current, created]);
     return created;
-  }, [liste, spliceIntoRanking]);
+  }, [liste, iyimser, setItems]);
 
   const removeEntry = useCallback(async (item: Item) => {
     await deleteItem(item.id, item.fotograf_url);
-    setItems(prev => prev.filter(i => i.id !== item.id));
-  }, []);
+    setItems(itemsRef.current.filter(i => i.id !== item.id));
+  }, [setItems]);
 
-  /**
-   * Sürükle-bırak sonrası denenmişlerin yeni hâli: sıralama ve "Bir daha asla"
-   * birlikte, her kaydın `sira`'sı ve `asla`'sı güncellenmiş olarak.
-   */
+  /** Sürükle-bırak sonrası denenmişlerin yeni hâli: sıralama ve "Bir daha asla" birlikte. */
   const reorder = useCallback((next: Item[]) => {
-    setItems(prev => {
-      void persistSira(next, true);
-      return [...prev.filter(i => !i.denendi), ...next];
-    });
-  }, [persistSira]);
+    iyimser(denenenleriDegistir(itemsRef.current, next), true);
+  }, [iyimser]);
 
   /**
    * Toplu kategori atama: seçili kayıtlar tek istekte aynı kategoriye. `ozellikler`e
@@ -185,8 +177,8 @@ export function useListStore(slug: string) {
   const kategoriAta = useCallback(async (ids: string[], categoryId: string | null) => {
     await updateItemsKategori(ids, categoryId);
     const hedef = new Set(ids);
-    setItems(prev => prev.map(i => (hedef.has(i.id) ? { ...i, category_id: categoryId } : i)));
-  }, []);
+    setItems(itemsRef.current.map(i => (hedef.has(i.id) ? { ...i, category_id: categoryId } : i)));
+  }, [setItems]);
 
   /*
    * Toplu işlemler önce yazıp sonra ekranı güncelliyor: hata olursa sayfa veriyi
@@ -194,48 +186,31 @@ export function useListStore(slug: string) {
    * sayılarını ya da şampiyonu değiştirebildiği için sonunda ray tazeleniyor.
    */
 
-  /**
-   * Seçili denenmiş kayıtları "Bir daha asla" ile sıralama arasında taşır (`asla`
-   * hedef bölüm). Taşınanlar mevcut sıralarıyla hedef bölümün sonuna ekleniyor;
-   * iki bölüm de kendi içinde 0'dan yeniden numaralanıyor.
-   */
+  /** Seçili denenmiş kayıtları "Bir daha asla" ile sıralama arasında taşır (`asla` hedef bölüm). */
   const bolumDegistir = useCallback(async (ids: string[], asla: boolean) => {
-    const hedef = new Set(ids);
-    const sira = sortSirali(items.filter(siralamada));
-    const bolum = sortSirali(items.filter(i => i.denendi && i.asla));
-    const [kaynak, varis] = asla ? [sira, bolum] : [bolum, sira];
-    const kalan = kaynak.filter(i => !hedef.has(i.id));
-    const yeniVaris = [...varis, ...kaynak.filter(i => hedef.has(i.id))];
-    const [yeniSira, yeniBolum] = asla ? [kalan, yeniVaris] : [yeniVaris, kalan];
-    const next = [
-      ...yeniSira.map((it, idx) => ({ ...it, sira: idx, asla: false })),
-      ...yeniBolum.map((it, idx) => ({ ...it, sira: idx, asla: true })),
-    ];
-    await updateItemsSira(next.map(i => ({ id: i.id, sira: i.sira, asla: i.asla })));
-    setItems(prev => [...prev.filter(i => !i.denendi), ...next]);
+    const sonuc = bolumHesapla(itemsRef.current, ids, asla);
+    await updateItemsSira(sonuc.degisenler.map(i => ({ id: i.id, sira: i.sira ?? 0, asla: !!i.asla })));
+    // Yazılan hâl, yazım sürerken değişmiş olabilecek güncel listenin üstüne: bekleyenler korunuyor.
+    setItems(denenenleriDegistir(itemsRef.current, sonuc.degisenler).items);
     listeleriTazele();
-  }, [items]);
+  }, [setItems]);
 
   /** Toplu "Denedim": seçili bekleyenler, listede göründükleri sırayla sıralamanın sonuna. */
   const denendiYap = useCallback(async (ids: string[]) => {
-    const hedef = new Set(ids);
-    const sira = sortSirali(items.filter(siralamada));
-    const baslangic = sira.length > 0 ? (sira[sira.length - 1].sira ?? 0) + 1 : 0;
-    const tasinan = sortIstekListesi(items.filter(i => !i.denendi && hedef.has(i.id)))
-      .map((it, n) => ({ ...it, denendi: true, asla: false, sira: baslangic + n }));
-    await updateItemsSira(tasinan.map(i => ({ id: i.id, sira: i.sira, asla: false, denendi: true })));
-    const yeni = new Map(tasinan.map(i => [i.id, i]));
-    setItems(prev => prev.map(i => yeni.get(i.id) ?? i));
+    const sonuc = denendiHesapla(itemsRef.current, ids);
+    await updateItemsSira(sonuc.degisenler.map(i => ({ id: i.id, sira: i.sira ?? 0, asla: false, denendi: true })));
+    const yeni = new Map(sonuc.degisenler.map(i => [i.id, i]));
+    setItems(itemsRef.current.map(i => yeni.get(i.id) ?? i));
     listeleriTazele();
-  }, [items]);
+  }, [setItems]);
 
   /** Toplu silme: kayıtlar ve fotoğrafları. Onayı sayfa soruyor. */
   const topluSil = useCallback(async (ids: string[]) => {
     const hedef = new Set(ids);
-    await deleteItems(items.filter(i => hedef.has(i.id)));
-    setItems(prev => prev.filter(i => !hedef.has(i.id)));
+    await deleteItems(itemsRef.current.filter(i => hedef.has(i.id)));
+    setItems(itemsRef.current.filter(i => !hedef.has(i.id)));
     listeleriTazele();
-  }, [items]);
+  }, [setItems]);
 
   return {
     liste, kategoriler, items, denenenler, aslaListesi, istekListesi,

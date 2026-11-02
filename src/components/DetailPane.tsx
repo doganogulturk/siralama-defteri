@@ -4,10 +4,10 @@
 import React, { useRef, useState } from 'react';
 import {
   AlanTanimi, Item, Kategori, alanGorunur, alanKisa, bayrak, kategoriBul, metin,
-} from '../types/item';
-import { hataMetni } from '../lib/hata';
-import { uyar } from '../lib/pencere';
-import { dilEtiketi, messages } from '../lib/i18n';
+} from '@/types/item';
+import { hataMetni } from '@/lib/hata';
+import { uyar } from '@/lib/pencere';
+import { dilEtiketi, messages } from '@/lib/i18n';
 
 const KameraIkon = (
   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"

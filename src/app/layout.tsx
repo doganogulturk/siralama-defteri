@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Instrument_Serif } from "next/font/google";
 import "./globals.css";
-import Analitik from "../components/Analitik";
-import Pencereler from "../components/Pencereler";
-import DilKoku from "../components/DilKoku";
+import Analitik from "@/components/Analitik";
+import Pencereler from "@/components/Pencereler";
+import DilKoku from "@/components/DilKoku";
+import { istekDili } from "@/lib/i18n/sunucu";
 
 /*
  * Yazı tipleri derleme anında indirilip uygulamayla birlikte sunuluyor: tarayıcı
@@ -57,15 +58,21 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+/**
+ * İsteğin dili çerezden ve tarayıcının dilinden okunuyor (`istekDili`): İngilizce kullanan biri de sayfayı
+ * ilk çizimden kendi dilinde görsün, bir an Türkçesi görünmesin. Bunun bedeli, sayfaların statik değil her
+ * istekte çizilmesi.
+ */
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const dil = await istekDili();
   return (
-    <html lang="tr" className={`${geist.variable} ${instrumentSerif.variable}`}>
+    <html lang={dil} className={`${geist.variable} ${instrumentSerif.variable}`}>
       <body>
-        <DilKoku>
+        <DilKoku baslangic={dil}>
           {children}
           <Pencereler />
         </DilKoku>

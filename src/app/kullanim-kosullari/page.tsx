@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import YasalSayfa, { Eposta } from '../../components/yasal/YasalSayfa';
-import { VERI_SORUMLUSU, YASAL_TARIH } from '../../lib/iletisim';
+import YasalSayfa, { Eposta } from '@/components/yasal/YasalSayfa';
+import { VERI_SORUMLUSU, YASAL_TARIH } from '@/lib/iletisim';
 
 export const metadata: Metadata = {
   title: 'Kullanım Koşulları',

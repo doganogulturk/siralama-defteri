@@ -1,8 +1,8 @@
 import { ImageResponse } from 'next/og';
-import { korListesi, sonucCoz } from '../../../../lib/kor';
-import { DIL_PARAMETRE, sozluk } from '../../../../lib/i18n';
-import { baglantiDili } from '../../../../lib/i18n/sunucu';
-import { RENK, yaziTipleri } from '../../../../lib/gorsel-sunucu';
+import { korListesi, sonucCoz } from '@/lib/kor';
+import { DIL_PARAMETRE, sozluk } from '@/lib/i18n';
+import { baglantiDili } from '@/lib/i18n/sunucu';
+import { RENK, yaziTipleri } from '@/lib/gorsel-sunucu';
 
 /*
  * Kör Sıralama sonucunun görseli. Sonuç adreste (`?s=`), hiçbir şey kaydedilmiyor.

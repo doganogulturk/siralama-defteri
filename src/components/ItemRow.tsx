@@ -4,8 +4,8 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { AlanTanimi, Item, Kategori, altBilgi, brandInitials, kategoriBul, rozetler } from '../types/item';
-import { messages } from '../lib/i18n';
+import { AlanTanimi, Item, Kategori, altBilgi, brandInitials, kategoriBul, rozetler } from '@/types/item';
+import { messages } from '@/lib/i18n';
 
 /** Sıralama ile "Bir daha asla" bölümünü ayıran çizginin sıralanabilir listedeki kimliği. */
 export const ASLA_SINIRI = 'asla-siniri';

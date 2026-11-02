@@ -1,4 +1,4 @@
-# Her push ve PR'da tip denetimi, lint, testler ve derleme. main'e giden push Vercel'de doğrudan
+# Her push ve PR'da tip denetimi, lint, testler, derleme ve veritabanı erişim kuralları. main'e giden push Vercel'de doğrudan
 # üretime çıktığı için kırık bir commit en azından burada kırmızı görünsün.
 name: Denetim
 
@@ -31,3 +31,22 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://ci.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci
           NEXT_TELEMETRY_DISABLED: 1
+
+  # Şema dosyaları boş bir Postgres'e kurulup RLS ve fonksiyonlar iki kullanıcıyla deneniyor
+  # (supabase/test/rls.sql). Güvenliğin tamamı orada: kırılan bir politika burada kırmızı görünsün.
+  veritabani:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash supabase/test/calistir.sh
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres

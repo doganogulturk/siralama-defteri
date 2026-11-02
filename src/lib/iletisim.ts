@@ -1,4 +1,4 @@
-import { messages } from './i18n';
+import { messages, sozluk, type Dil } from './i18n';
 
 /**
  * Yasal sayfalardaki veri sorumlusu, başvuru adresi ve sayfaların sırası. Sayfalar
@@ -11,8 +11,9 @@ export const ILETISIM_EPOSTA = 'doganogulturk@gmail.com';
 export const YASAL_TARIH = { tr: '27 Ekim 2026', en: '27 October 2026' };
 
 /** Yasal sayfaların sırası: sayfaların altındaki gezinme ve "Hesabım"daki bağlantılar; adlar arayüz dilinde. */
-export function yasalSayfalar() {
-  const m = messages().yasalBaglantilar;
+/** `dil` verilmezse tarayıcıdaki dil (`messages()`); sunucuda da çizilen yerler dili vermeli. */
+export function yasalSayfalar(dil?: Dil) {
+  const m = (dil ? sozluk(dil) : messages()).yasalBaglantilar;
   return [
     { href: '/gizlilik', ad: m.gizlilik },
     { href: '/kvkk', ad: m.kvkk },

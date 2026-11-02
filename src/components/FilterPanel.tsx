@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { AlanTanimi, Kategori, alanKisa, filtreAlanlari } from '../types/item';
-import { BayrakDurumu, Filtre, KATEGORISIZ, bayrakDurumu } from '../lib/filtre';
-import { messages } from '../lib/i18n';
+import { AlanTanimi, Kategori, alanKisa, filtreAlanlari } from '@/types/item';
+import { BayrakDurumu, Filtre, KATEGORISIZ, bayrakDurumu } from '@/lib/filtre';
+import { messages } from '@/lib/i18n';
 
 interface FilterPanelProps {
   /** Panel iki kez render ediliyor (mobil şerit + masaüstü şeridi); radio

@@ -1,10 +1,10 @@
 import { ImageResponse } from 'next/og';
 import {
   ADET, SAYILAR_RENK, puanla, sayilariUret, tarihYaz, tohumGecerli, tohumTarihi, yerlesimCoz,
-} from '../../../../lib/sayilar';
-import { DIL_PARAMETRE, sozluk } from '../../../../lib/i18n';
-import { baglantiDili } from '../../../../lib/i18n/sunucu';
-import { RENK, yaziTipleri } from '../../../../lib/gorsel-sunucu';
+} from '@/lib/sayilar';
+import { DIL_PARAMETRE, sozluk } from '@/lib/i18n';
+import { baglantiDili } from '@/lib/i18n/sunucu';
+import { RENK, yaziTipleri } from '@/lib/gorsel-sunucu';
 
 /*
  * Sayılar sonucunun görseli. Sonuç adreste (`?t=&s=`), hiçbir şey kaydedilmiyor.

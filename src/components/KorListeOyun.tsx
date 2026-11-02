@@ -3,14 +3,15 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { KOR_ADET, KorKayit, korSec, korSonucYaz, korUyum } from '../lib/kor-liste';
-import { uyumEtiketi } from '../lib/kiyas';
-import { iyelik } from '../lib/paylasim';
-import { slugify } from '../lib/slug';
-import { brandInitials } from '../types/item';
-import { DIL_PARAMETRE, messages, simdikiDil } from '../lib/i18n';
-import { titret } from '../lib/his';
-import { useAuth } from '../hooks/useAuth';
+import { KOR_ADET, KorKayit, korSec, korSonucYaz, korUyum } from '@/lib/kor-liste';
+import { uyumEtiketi } from '@/lib/kiyas';
+import { iyelik } from '@/lib/paylasim';
+import { slugify } from '@/lib/slug';
+import { brandInitials } from '@/types/item';
+import { DIL_PARAMETRE } from '@/lib/i18n';
+import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
+import { titret } from '@/lib/his';
+import { useAuth } from '@/hooks/useAuth';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 
@@ -36,15 +37,17 @@ export default function KorListeOyun({ kod, listeAdi, sahip, kayitlar, arkadas }
   /** Bağlantı bir arkadaşın sonucunu taşıyorsa onun sırası. */
   arkadas: KorKayit[] | null;
 }) {
-  const t = messages().korListe;
-  const k = messages().kor;
+  const mesajlar = useMesajlar();
+  const t = mesajlar.korListe;
+  const k = mesajlar.kor;
   const [asama, setAsama] = useState<Asama>('giris');
   const [gelis, setGelis] = useState<KorKayit[]>([]);
   const [adim, setAdim] = useState(0);
   const [yuvalar, setYuvalar] = useState<(KorKayit | null)[]>(() => new Array(KOR_ADET).fill(null));
   const [yeniYuva, setYeniYuva] = useState<number | null>(null);
   const [kilit, setKilit] = useState(false);
-  const kimin = sahip ? iyelik(sahip) : null;
+  const dil = useDilim();
+  const kimin = sahip ? iyelik(sahip, dil) : null;
   const arkadasUyumu = useMemo(() => (arkadas ? korUyum(arkadas) : null), [arkadas]);
 
   const basla = () => {
@@ -97,7 +100,7 @@ export default function KorListeOyun({ kod, listeAdi, sahip, kayitlar, arkadas }
 
       {asama === 'giris' && (
         <main className="kor-giris">
-          {kimin && <p className="kor-kendi-sahip">{messages().paylasim.sahibinListesi(kimin)}</p>}
+          {kimin && <p className="kor-kendi-sahip">{mesajlar.paylasim.sahibinListesi(kimin)}</p>}
           <h1 className="kor-giris-baslik">{listeAdi}</h1>
           <p className="kor-kendi-davet">{t.davet(kimin)}</p>
           {arkadasUyumu !== null && <p className="kor-arkadas">{t.arkadasSonucu(arkadasUyumu)}</p>}
@@ -160,9 +163,10 @@ export default function KorListeOyun({ kod, listeAdi, sahip, kayitlar, arkadas }
 function KorListeSonuc({ kod, listeAdi, sahip, sira, onTekrar }: {
   kod: string; listeAdi: string; sahip: string | null; sira: KorKayit[]; onTekrar: () => void;
 }) {
-  const t = messages().korListe;
-  const k = messages().kor;
-  const dil = simdikiDil();
+  const mesajlar = useMesajlar();
+  const t = mesajlar.korListe;
+  const k = mesajlar.kor;
+  const dil = useDilim();
   const { user } = useAuth();
   const s = korSonucYaz(sira);
   const uyum = useMemo(() => korUyum(sira), [sira]);

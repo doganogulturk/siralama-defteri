@@ -3,42 +3,42 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Item } from '../../../../types/item';
+import { Item } from '@/types/item';
 import {
   KATEGORISIZ, bosFiltre, filtreBos, filtreUygula, kategoriSayilari, bayrakSayilari,
-} from '../../../../lib/filtre';
-import { useListStore } from '../../../../hooks/useListStore';
-import { listeleriTazele } from '../../../../hooks/useListeler';
-import { useGorunum } from '../../../../hooks/useGorunum';
-import { useBildirim } from '../../../../hooks/useBildirim';
-import { useSecim } from '../../../../hooks/useSecim';
-import { TopluBlok, topluKaydet } from '../../../../lib/toplu';
-import { hataMetni } from '../../../../lib/hata';
-import { uploadFotograf, deleteFotograf } from '../../../../lib/items';
-import { useIsDesktop } from '../../../../hooks/useIsDesktop';
-import { useTac } from '../../../../hooks/useTac';
-import { ArtiIkon, ListelerIkon } from '../../../../components/MobilMenu';
-import FilterPanel from '../../../../components/FilterPanel';
-import DetailPane from '../../../../components/DetailPane';
-import WishlistPanel from '../../../../components/WishlistPanel';
-import ItemForm, { FormMode } from '../../../../components/ItemForm';
-import ListeRayi, { RayKategorileri } from '../../../../components/ListeRayi';
-import AramaKutusu from '../../../../components/liste/AramaKutusu';
-import ListeAyarlariModal from '../../../../components/ListeAyarlariModal';
-import PaylasMenusu from '../../../../components/PaylasMenusu';
-import { BosSahne } from '../../../../components/Sahne';
-import { IskeletSatirlar } from '../../../../components/Iskelet';
-import SiralamaListesi from '../../../../components/liste/SiralamaListesi';
-import SecimCubugu from '../../../../components/liste/SecimCubugu';
-import {
-  AyarlarIkon, KartIkon, PaylasIkon, SatirIkon, TopluIkon,
-} from '../../../../components/liste/Ikonlar';
-import { uyar } from '../../../../lib/pencere';
-import { useGeriAlinabilirSilme } from '../../../../hooks/useGeriAlinabilirSilme';
-import { messages } from '../../../../lib/i18n';
+} from '@/lib/filtre';
+import { useListStore } from '@/hooks/useListStore';
+import { listeleriTazele } from '@/hooks/useListeler';
+import { useGorunum } from '@/hooks/useGorunum';
+import { useBildirim } from '@/hooks/useBildirim';
+import { useSecim } from '@/hooks/useSecim';
+import { TopluBlok, topluKaydet } from '@/lib/toplu';
+import { hataMetni } from '@/lib/hata';
+import { uploadFotograf, deleteFotograf } from '@/lib/items';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
+import { useTac } from '@/hooks/useTac';
+import FilterPanel from '@/components/FilterPanel';
+import DetailPane from '@/components/DetailPane';
+import WishlistPanel from '@/components/WishlistPanel';
+import ItemForm, { FormMode } from '@/components/ItemForm';
+import ListeRayi, { RayKategorileri } from '@/components/ListeRayi';
+import AramaKutusu from '@/components/liste/AramaKutusu';
+import ListeAyarlariModal from '@/components/ListeAyarlariModal';
+import PaylasMenusu from '@/components/PaylasMenusu';
+import { BosSahne } from '@/components/Sahne';
+import { IskeletSatirlar } from '@/components/Iskelet';
+import SiralamaListesi from '@/components/liste/SiralamaListesi';
+import SecimCubugu from '@/components/liste/SecimCubugu';
+import { PaylasIkon } from '@/components/liste/Ikonlar';
+import ListeBasligi from '@/components/liste/ListeBasligi';
+import ListeAraci, { type Sekme } from '@/components/liste/ListeAraci';
+import ListeAltMenusu from '@/components/liste/ListeAltMenusu';
+import { uyar } from '@/lib/pencere';
+import { useGeriAlinabilirSilme } from '@/hooks/useGeriAlinabilirSilme';
+import { messages } from '@/lib/i18n';
 
 /** Açık sekme adreste: Denenmemiş `?sekme=denenmemis`, sıralama yalın adres. */
-const sekmeAdresi = (sekme: 'siralama' | 'sirada') =>
+const sekmeAdresi = (sekme: Sekme) =>
   window.location.pathname + (sekme === 'sirada' ? '?sekme=denenmemis' : '');
 
 export default function ListePage() {
@@ -81,7 +81,7 @@ export default function ListePage() {
   const [filtre, setFiltre] = useState(bosFiltre);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   /** Bekleyenler ayrı bir route değil, aynı sayfanın ikinci sekmesi. */
-  const [sekme, setSekme] = useState<'siralama' | 'sirada'>('siralama');
+  const [sekme, setSekme] = useState<Sekme>('siralama');
 
   const { gorunum, gorunumSec, kart: kartGorunum } = useGorunum(isDesktop);
   const [bildirim, setBildirim] = useBildirim();
@@ -150,7 +150,7 @@ export default function ListePage() {
     else openForm(item.denendi ? 'siralama' : 'istek', item);
   };
 
-  const sekmeSec = (next: 'siralama' | 'sirada') => {
+  const sekmeSec = (next: Sekme) => {
     setSekme(next);
     window.history.replaceState(null, '', sekmeAdresi(next));
     setSelectedId(null);
@@ -346,113 +346,26 @@ export default function ListePage() {
       <main className={`list${kartGorunum ? ' is-kart' : ''}`}>
         {/* Başlık, sekmeler ve filtreler kaydırmada sabit; yalnızca kayıtlar hareket ediyor. */}
         <div className="sticky-top">
-        <div className="mobile-brand">
-          <Link href="/" className="mobile-brand-back" aria-label={m.menu.listelerim}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M15 5l-7 7 7 7" />
-            </svg>
-          </Link>
-          {/* Başlıkta yalnızca ad: şampiyon hemen aşağıda 1. sırada, sayılar sekmelerde. */}
-          <span className="mobile-brand-text">
-            {/* Yüklenirken boş: yedek ad ("Sıralama") bir an görünüp listenin adına sıçramasın. */}
-            <strong>{loading && !liste ? '\u00a0' : listeAdi}</strong>
-            {/* "Ben de sıralayayım" ile kopyalanan listede kaynağıyla karşılaştırmaya kısa yol. */}
-            {liste?.kaynak_kod && (
-              <Link href={`/kiyasla/${liste.kaynak_kod}`} className="mobile-brand-kiyas">{t.karsilastir}</Link>
-            )}
-          </span>
-          {/* Masaüstünde Paylaş ve Liste ayarları başlıkta; telefonda Paylaş arama kutusunun yanında,
-              ayarlar alt menüde (CSS). */}
-          <div className="mobile-brand-yan">
-          <button
-            type="button"
-            className="mobile-brand-settings"
-            aria-label={t.paylasEtiket}
-            onClick={paylas}
-            disabled={!liste}
-          >
-            {PaylasIkon}
-            <span className="mobile-brand-settings-ad">{t.paylas}</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-brand-settings is-ayarlar"
-            aria-label={t.ayarlarEtiket}
-            onClick={() => setAyarlarAcik(true)}
-            disabled={!liste}
-          >
-            {AyarlarIkon}
-            {/* Etiket yalnızca masaüstünde: mobil başlıkta sığmaz, adı keserdi. */}
-            <span className="mobile-brand-settings-ad">{t.ayarlarEtiket}</span>
-          </button>
-          </div>
-        </div>
+          <ListeBasligi
+            liste={liste}
+            ad={listeAdi}
+            yukleniyor={loading}
+            onPaylas={paylas}
+            onAyarlar={() => setAyarlarAcik(true)}
+          />
 
-          {/* Masaüstünde tek satır: sekmeler solda, kategori şeridi ortada, görünüm ve "Seç" sağda.
-              Mobilde satır sarıyor: sekmeler kendi satırında ortalı, altında filtreler. */}
-          <div className="liste-arac">
-            <nav className="tabs" aria-label={t.gorunumMenu}>
-              <button
-                type="button"
-                className={`tab${sekme === 'siralama' ? ' is-on' : ''}`}
-                aria-current={sekme === 'siralama' ? 'page' : undefined}
-                onClick={() => sekmeSec('siralama')}
-              >
-                {t.sekmeSiralama(total)}
-              </button>
-              <button
-                type="button"
-                className={`tab${sekme === 'sirada' ? ' is-on' : ''}`}
-                aria-current={sekme === 'sirada' ? 'page' : undefined}
-                onClick={() => sekmeSec('sirada')}
-              >
-                {t.sekmeDenenmemis(istekListesi.length)}
-              </button>
-            </nav>
-            <div className="liste-arac-filtre">
-              <div className="mobile-filters">{renderFilterPanel('strip', 'inline')}</div>
-              {/* Masaüstünde kategoriler rayın ağacında; burada arama kutusu. */}
-              <div className="desk-arama">
-                <AramaKutusu metin={filtre.metin} onChange={aramaDegistir} />
-              </div>
-            </div>
-            {isDesktop && (sekme === 'sirada' ? istekListesi.length : total) > 0 && (
-              <div className="gorunum-secici" role="group" aria-label={t.gorunum}>
-                <button
-                  type="button"
-                  className={gorunum === 'kart' ? 'is-on' : ''}
-                  aria-pressed={gorunum === 'kart'}
-                  aria-label={t.kartGorunumu}
-                  title={t.kartGorunumu}
-                  onClick={() => gorunumSec('kart')}
-                >
-                  {KartIkon}
-                </button>
-                <button
-                  type="button"
-                  className={gorunum === 'satir' ? 'is-on' : ''}
-                  aria-pressed={gorunum === 'satir'}
-                  aria-label={t.satirGorunumu}
-                  title={t.satirGorunumu}
-                  onClick={() => gorunumSec('satir')}
-                >
-                  {SatirIkon}
-                </button>
-              </div>
-            )}
-            {/* Toplu işlemler: açık sekmede kayıt varken. */}
-            {(sekme === 'sirada' ? istekListesi.length : total) > 0 && (
-              <button
-                type="button"
-                className={`secim-ac${secim ? ' is-on' : ''}`}
-                aria-pressed={!!secim}
-                onClick={() => (secim ? secimModu.kapat() : secimAc())}
-              >
-                {secim ? t.bitti : t.sec}
-              </button>
-            )}
-          </div>
+          <ListeAraci
+            sekme={sekme}
+            onSekme={sekmeSec}
+            siralamaAdet={total}
+            bekleyenAdet={istekListesi.length}
+            filtreSeridi={renderFilterPanel('strip', 'inline')}
+            arama={<AramaKutusu metin={filtre.metin} onChange={aramaDegistir} />}
+            gorunum={isDesktop ? gorunum : undefined}
+            onGorunum={gorunumSec}
+            secimAcik={!!secim}
+            onSecim={() => (secim ? secimModu.kapat() : secimAc())}
+          />
 
           {/* Telefonda kategorilerin altında: hep açık arama kutusu ve yanında Paylaş. */}
           {liste && (
@@ -495,39 +408,13 @@ export default function ListePage() {
             >
               {sekme === 'sirada' ? t.denenmemisKayitEkle : t.kayitEkle}
             </button>
-            <nav className="mobil-menu" aria-label={t.listeMenusu}>
-              <Link href="/" className="mobil-menu-oge">
-                {ListelerIkon}
-                <span>{m.menu.listelerim}</span>
-              </Link>
-              <button
-                type="button"
-                className="mobil-menu-oge"
-                onClick={() => openForm(sekme === 'sirada' ? 'istek' : 'siralama')}
-                disabled={!liste}
-              >
-                {ArtiIkon}
-                <span>{sekme === 'sirada' ? t.denenmemisEkle : t.kayitEkle}</span>
-              </button>
-              <button
-                type="button"
-                className="mobil-menu-oge"
-                onClick={() => openForm(sekme === 'sirada' ? 'istek' : 'siralama', null, 'toplu')}
-                disabled={!liste}
-              >
-                {TopluIkon}
-                <span>{t.topluEkle}</span>
-              </button>
-              <button
-                type="button"
-                className="mobil-menu-oge"
-                onClick={() => setAyarlarAcik(true)}
-                disabled={!liste}
-              >
-                {AyarlarIkon}
-                <span>{t.ayarlar}</span>
-              </button>
-            </nav>
+            <ListeAltMenusu
+              bekleyenSekmesi={sekme === 'sirada'}
+              hazir={!!liste}
+              onEkle={() => openForm(sekme === 'sirada' ? 'istek' : 'siralama')}
+              onTopluEkle={() => openForm(sekme === 'sirada' ? 'istek' : 'siralama', null, 'toplu')}
+              onAyarlar={() => setAyarlarAcik(true)}
+            />
           </>
         )}
       </main>

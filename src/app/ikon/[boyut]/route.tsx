@@ -1,4 +1,4 @@
-import { ikonGorseli } from '../../../lib/ikon-cizim';
+import { ikonGorseli } from '@/lib/ikon-cizim';
 
 /*
  * Manifest ikonları (`app/manifest.ts`): /ikon/192, /ikon/512 ve kenara kadar zeminli

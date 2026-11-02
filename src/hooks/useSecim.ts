@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Item } from '../types/item';
-import { hataMetni } from '../lib/hata';
-import { onayla, uyar } from '../lib/pencere';
-import { messages } from '../lib/i18n';
+import { Item } from '@/types/item';
+import { hataMetni } from '@/lib/hata';
+import { onayla, uyar } from '@/lib/pencere';
+import { messages } from '@/lib/i18n';
 import type { useListStore } from './useListStore';
 
 type Magaza = Pick<

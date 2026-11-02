@@ -1,12 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import Marka from '../../../components/Marka';
-import { messages } from '../../../lib/i18n';
+import Marka from '@/components/Marka';
+import { useMesajlar } from '@/lib/i18n/DilBaglami';
 
 /** Kod yanlış ya da sahibi paylaşımı kapatmış / bağlantıyı yenilemiş. */
 export default function PaylasimYok() {
-  const p = messages().paylasimSayfasi;
+  const p = useMesajlar().paylasimSayfasi;
   return (
     <div className="paylasim">
       <header className="paylasim-bar">

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import KorSecim from '../../components/KorSecim';
+import KorSecim from '@/components/KorSecim';
 
 export const metadata: Metadata = {
   title: 'Kör Sıralama',

@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '../hooks/useAuth';
-import { listeleriTazele } from '../hooks/useListeler';
+import { useAuth } from '@/hooks/useAuth';
+import { listeleriTazele } from '@/hooks/useListeler';
 import ListeEkleModal from './ListeEkleModal';
-import { messages } from '../lib/i18n';
+import { useMesajlar } from '@/lib/i18n/DilBaglami';
 
 export const ListelerIkon = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -44,8 +44,8 @@ export const ArtiIkon = (
 export default function MobilMenu({ aktif }: { aktif: 'listeler' | 'kor' }) {
   const { user } = useAuth();
   const [formAcik, setFormAcik] = useState(false);
+  const m = useMesajlar().menu;
   if (!user) return null;
-  const m = messages().menu;
 
   return (
     <>

@@ -7,12 +7,12 @@ import { tr, type Mesajlar } from './tr';
  * seçilirse o hatırlanır. Metinler iki sözlükte (tr.ts, en.ts); İngilizce sözlük Türkçeyle aynı yapıda olmak
  * zorunda olduğu için eksik çeviri derlemede yakalanır.
  *
- * Bu modül React'e dokunmuyor, sunucu bileşenleri de içe aktarabiliyor; kanca `useDil.ts`'te.
+ * Bu modül React'e dokunmuyor, sunucu bileşenleri de içe aktarabiliyor; bağlam ve kancalar `DilBaglami.tsx`'te.
  *
- * Dil değişince bütün sayfa o dilde yeniden kurulur (`DilKoku`); bileşenler ve saf fonksiyonlar metni doğrudan
- * `messages()`tan okur. İstemci bileşenleri sunucuda ve ilk istemci çiziminde Türkçe çizilir, hidrasyon
- * uyuşmazlığı olmaz. Sunucuda çizilen sayfalar ve görseller (paylaşım sayfası, önizleme, story) dili isteğin
- * kendisinden alır (`sunucu.ts`): seçim bu yüzden bir çereze de yazılıyor.
+ * Dil değişince bütün sayfa o dilde yeniden kurulur (`DilKoku`). Sunucu ilk çizimi isteğin dilinde yapar
+ * (`sunucu.ts` → `istekDili`: çerez, sonra tarayıcının dili); seçim bu yüzden bir çereze de yazılıyor.
+ * Sunucuda da çizilen istemci bileşenleri metni bağlamdan okur (`DilBaglami.tsx` → `useMesajlar`); yalnızca
+ * tarayıcıda çalışan kod `messages()`tan. Sunucu bileşenleri ve görseller `sozluk(dil)` kullanır.
  */
 export type Dil = 'tr' | 'en';
 export type { Mesajlar };
@@ -37,20 +37,34 @@ let simdiki: Dil = 'tr';
 let secilen: Dil | null = null;
 const dinleyiciler = new Set<() => void>();
 
+const cerezYaz = (dil: Dil) => {
+  document.cookie = `${DIL_CEREZ}=${dil}; path=/; max-age=31536000; samesite=lax`;
+};
+
+/**
+ * Sunucunun bulduğu dille (`sunucu.ts` → `istekDili`) aynı sırayla: seçim, bağlantı, cihaz. Seçim hem
+ * depoda hem çerezde; çerezi olmayan eski bir seçim çereze de yazılıyor, sonraki açılışta sunucu da
+ * görsün.
+ */
 function diliBul(): Dil {
+  const cerez = document.cookie.match(new RegExp(`(?:^|; )${DIL_CEREZ}=([^;]*)`))?.[1];
   try {
     const kayitli = localStorage.getItem(DIL_DEPO);
-    if (dilMi(kayitli)) return kayitli;
+    if (dilMi(kayitli)) {
+      if (cerez !== kayitli) cerezYaz(kayitli);
+      return kayitli;
+    }
   } catch {
-    // Depolama kapalı; bağlantıya ve cihaz diline bakılır.
+    // Depolama kapalı; çereze, bağlantıya ve cihaz diline bakılır.
   }
+  if (dilMi(cerez)) return cerez;
   const baglanti = new URLSearchParams(window.location.search).get(DIL_PARAMETRE);
   if (dilMi(baglanti)) return baglanti;
   const cihaz = (navigator.languages?.[0] ?? navigator.language ?? 'tr').toLowerCase();
   return cihaz.startsWith('tr') ? 'tr' : 'en';
 }
 
-/** Kişinin dili (seçimi, bağlantı ya da cihaz); `useDil` buna abone oluyor. */
+/** Kişinin dili (seçimi, bağlantı ya da cihaz); `DilKoku` buna abone oluyor. */
 export function diliOku(): Dil {
   secilen ??= diliBul();
   return secilen;
@@ -70,7 +84,7 @@ export function diliSec(dil: Dil) {
   } catch {
     // Depolama kapalı; seçim bu sayfa yaşamı boyunca geçerli.
   }
-  document.cookie = `${DIL_CEREZ}=${dil}; path=/; max-age=31536000; samesite=lax`;
+  cerezYaz(dil);
   dinleyiciler.forEach(d => d());
 }
 
@@ -79,12 +93,21 @@ export function diliUygula(dil: Dil) {
   simdiki = dil;
 }
 
+/** `messages()` gibi: yalnızca tarayıcıda; sunucuda çizilen bileşenlerde `useDilim()`. */
 export function simdikiDil(): Dil {
   return simdiki;
 }
 
-/** Şu anki dilin metinleri. */
+/**
+ * Şu anki dilin metinleri — yalnızca tarayıcıda çalışan kod için (olay işleyicileri, `AuthGate`
+ * arkasındaki ekranlar). Sunucuda da çizilen bileşenler `useMesajlar()` kullanmalı (`DilBaglami.tsx`);
+ * sunucuda bu fonksiyon hep Türkçe döner, geliştirmede de uyarır.
+ */
 export function messages(): Mesajlar {
+  if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
+    console.warn('[dil] messages() sunucuda çağrıldı; çizimde useMesajlar() kullanılmalı.\n'
+      + new Error().stack?.split('\n').slice(2, 5).join('\n'));
+  }
   return SOZLUKLER[simdiki];
 }
 

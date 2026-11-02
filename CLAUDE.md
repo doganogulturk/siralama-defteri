@@ -17,8 +17,10 @@ Claude Code bu dosyayı her oturumun başında okuyor. Projenin bilgi birikimi `
 - **Kademeler (tier list)** — `lib/kademe.ts`, `components/kademe/`, şemada `lists.kademeler` ve `items.kademe`. Kural: `sira` her zaman kademe sırasıyla tutarlı; özetler, paylaşım, karşılaştırma ve Kör Sıralama bu yüzden kademeyi bilmeden doğru sırayı okuyor. Uygulamada vurgunun tonları, paylaşım görselinde klasik tier renkleri.
 - **Doğru Sıra** — `lib/dogru-sira.ts`, `lib/dogru-sira-listeler.ts`, `/oyna/dogru-sira/[liste]`. Doğru cevabı olan sıralamalar; veriler kaynaklı, yıllık bakım istiyor (TÜİK il nüfusları her Şubat).
 - **Oyna** — oyunlar `/oyna` altında (`components/oyna/`); ana ekranda "Bugün" ve "Oyunlar"; giriş yapmamış ziyaretçi ana sayfada oyunları görüyor. Eski `/kor` adresleri `next.config.ts`'te yönlendiriliyor.
-- **Katalog ve modlar** — `lib/katalog.ts`: mod (Kör Sıralama, Tier, Kör Tier, Doğru Sıra) ile liste ayrı; her liste her modda (Doğru Sıra yalnızca doğru cevabı olanlarla). Tier ve Kör Tier `components/TierOyun.tsx`, `lib/tier-oyun.ts`.
-- Sırada: **Oyunlar planı 3** (yol haritası) — katalog veritabanına, kullanıcıların liste önermesi ve yönetici onayı; sonra herkesin ortalaması.
+- **Katalog ve modlar** — `lib/katalog.ts`: mod (Kör Sıralama, Tier, Kör Tier, Doğru Sıra) ile liste ayrı; her liste her modda (Doğru Sıra yalnızca doğru cevabı olanlarla). Tier ve Kör Tier `components/TierOyun.tsx`, `lib/tier-oyun.ts`; Kör Tier'in kameralı hâli KorKamera'nın gruplu tahtasıyla. Sonuç ekranlarında "başka modda oyna" (`components/oyna/ModGecisi.tsx`).
+- **Liste ekranı** — "1→n / Tier" seçicisi (n sıralamadaki kayıt sayısı; kademeleri kapalı listede "Tier" onları açıyor), arama kapalıyken büyüteç düğmesi, masaüstünde tam genişlik.
+- **Defter görünümü** — ekranın tamamı kareli kâğıt (sabit), en üstte sarmal teller kendi şeridinde (`--tel`; tam ekran yükseklikler bunu düşüyor), yapışkan başlık düz zemin (bulanık cam yok); selamlamada yalnızca ad italik; marka iki satır.
+- **Ertelendi:** Oyunlar planı 3 (katalog veritabanına, liste önerme, yönetici onayı) — sahibinin kararıyla beklemede; önerilen kararlar yol haritasında.
 
 ## Alışkanlıklar
 

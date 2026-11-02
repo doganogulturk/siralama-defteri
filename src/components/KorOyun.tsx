@@ -2,7 +2,10 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { KorListe, korListesi, sonucYaz } from '@/lib/kor';
+import { KorListe, sonucYaz } from '@/lib/kor';
+import { katalogListesi, korOyunListesi, oyunSecimi, tohumGerekli } from '@/lib/katalog';
+import { degerYaz, puanla, yuzde } from '@/lib/dogru-sira';
+import { rastgeleTohum } from '@/lib/sayilar';
 import { DIL_PARAMETRE } from '@/lib/i18n';
 import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 import { kiyasAnahtari, kiyasla, uyumEtiketi } from '@/lib/kiyas';
@@ -34,10 +37,24 @@ const kiyasKayitlari = (liste: KorListe, sira: number[]) =>
  *
  * Karıştırma "Başla"da yapılıyor, ilk çizimde değil: sayfa sunucuda da çiziliyor,
  * rastgele bir sıra iki tarafta farklı çıkardı.
+ *
+ * Katalogdaki her liste oynanıyor (`lib/katalog.ts`). Havuzu ondan büyük listede (doğru
+ * cevabı olanlar) on madde tohumdan seçiliyor: tohum adreste (`?t=`), yoksa "Başla"da
+ * rastgele. O listelerde sonuçta gerçek sırayla uyum ve her maddenin gerçek yeri de var.
  */
-export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: number[] | null }) {
+export default function KorOyun({ slug, tohum: adresTohumu, arkadas }: {
+  slug: string; tohum: string | null; arkadas: number[] | null;
+}) {
   const dil = useDilim();
-  const liste = korListesi(slug, dil)!;
+  const katalogda = katalogListesi(slug, dil)!;
+  const tohumlu = tohumGerekli(katalogda);
+  const [tohum, setTohum] = useState<string | null>(adresTohumu);
+  /** Oyunun on maddesi; tohum gereken listede ilk "Başla"ya kadar yer tutucu (havuzun ilk onu). */
+  const liste = useMemo(
+    () => korOyunListesi(slug, tohum, dil)
+      ?? { slug, simge: katalogda.simge, renk: katalogda.renk, ad: katalogda.ad, kayitlar: katalogda.havuz.slice(0, 10) },
+    [slug, tohum, dil, katalogda],
+  );
   const t = useMesajlar().kor;
   const n = liste.kayitlar.length;
   const [asama, setAsama] = useState<Asama>('giris');
@@ -52,9 +69,11 @@ export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: numb
   const [kameraAnahtari, setKameraAnahtari] = useState(0);
   const kameraVar = useKameraVar();
 
-  const basla = () => {
+  /** `yeni`: tekrar oynarken tohum gereken listede yeni on madde (arkadaşın bağlantısında aynı on madde kalıyor). */
+  const basla = (yeni = false) => {
     titret('dokunus');
-    setGelis(karistir(liste.kayitlar.map((_, i) => i)));
+    if (tohumlu && (yeni || !tohum)) setTohum(rastgeleTohum());
+    setGelis(karistir(Array.from({ length: n }, (_, i) => i)));
     setAdim(0);
     setYuvalar(new Array(n).fill(null));
     setYeniYuva(null);
@@ -85,7 +104,7 @@ export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: numb
   const sira = asama === 'sonuc' ? (yuvalar as number[]) : null;
 
   const kameraylaBasla = () => {
-    basla();
+    basla(asama === 'sonuc' && !arkadas);
     setKameraAnahtari(n => n + 1);
     setKamera(true);
   };
@@ -110,7 +129,7 @@ export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: numb
       </header>
 
       {asama === 'giris' && (
-        <KorGiris liste={liste} arkadas={arkadas} onBasla={basla} onKamera={kameraVar ? kameraylaBasla : null} />
+        <KorGiris liste={liste} arkadas={arkadas} onBasla={() => basla()} onKamera={kameraVar ? kameraylaBasla : null} />
       )}
 
       {asama === 'oyun' && (
@@ -144,7 +163,7 @@ export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: numb
       )}
 
       {asama === 'sonuc' && sira && (
-        <KorSonuc liste={liste} sira={sira} arkadas={arkadas} onTekrar={basla} />
+        <KorSonuc liste={liste} tohum={tohumlu ? tohum : null} sira={sira} arkadas={arkadas} onTekrar={() => basla(!arkadas)} />
       )}
 
       {kamera && asama !== 'giris' && (
@@ -160,7 +179,7 @@ export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: numb
           onYerlestir={yerlestir}
           adres={`${window.location.host}/oyna/kor/${liste.slug}`}
           dosyaAdi={t.kamera.dosyaAdi(liste.slug)}
-          paylasimMetni={`${t.paylasimDuz(liste.ad)} ${window.location.origin}/oyna/kor/${liste.slug}${dil === 'tr' ? '' : `?${DIL_PARAMETRE}=${dil}`}`}
+          paylasimMetni={`${t.paylasimDuz(liste.ad)} ${window.location.origin}/oyna/kor/${liste.slug}${tohumlu && tohum ? `?t=${tohum}${dil === 'tr' ? '' : `&${DIL_PARAMETRE}=${dil}`}` : dil === 'tr' ? '' : `?${DIL_PARAMETRE}=${dil}`}`}
           onSonuc={() => setKamera(false)}
           onYenidenCek={kameraylaBasla}
           onKapat={() => setKamera(false)}
@@ -194,10 +213,17 @@ function KorGiris({ liste, arkadas, onBasla, onKamera }: {
   );
 }
 
-function KorSonuc({ liste, sira, arkadas, onTekrar }: {
-  liste: KorListe; sira: number[]; arkadas: number[] | null; onTekrar: () => void;
+function KorSonuc({ liste, tohum, sira, arkadas, onTekrar }: {
+  liste: KorListe;
+  /** Tohum gereken listede (doğru cevabı olanlar) oyunun tohumu; adrese ve görsele giriyor. */
+  tohum: string | null;
+  sira: number[];
+  arkadas: number[] | null;
+  onTekrar: () => void;
 }) {
   const s = sonucYaz(sira);
+  /** Adresin sorgusu: tohum (varsa) ve sonuç. */
+  const sorgu = `${tohum ? `t=${tohum}&` : ''}s=${s}`;
   const t = useMesajlar().kor;
   /** Paylaşılan bağlantı ve görsel paylaşanın dilinde. */
   const dil = useDilim();
@@ -205,6 +231,21 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
   const { user } = useAuth();
   const [gorsel, setGorsel] = useState<File | null>(null);
   const [bildirim, setBildirim] = useState<string | null>(null);
+
+  /** Doğru cevabı olan listede gerçek sıra: uyum ve her maddenin gerçek yeri ile değeri. */
+  const gercek = useMemo(() => {
+    const k = katalogListesi(liste.slug, dil);
+    if (!k?.dogru || !tohum) return null;
+    const secim = oyunSecimi(k, tohum);
+    const p = puanla(k.dogru, secim, sira);
+    const yer = new Map(sira.map((m, i) => [m, p.gercekYer[i]]));
+    const dogru = k.dogru;
+    return {
+      uyum: p.uyum,
+      yer: (m: number) => (yer.get(m) ?? 0) + 1,
+      deger: (m: number) => degerYaz(dogru.bicim, dogru.maddeler[secim[m]].deger, dil),
+    };
+  }, [liste.slug, tohum, sira, dil]);
 
   const uyum = useMemo(() => {
     if (!arkadas) return null;
@@ -216,12 +257,12 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
   // hemen ardından açıyor, dokunuştan sonra indirmeye başlamak menüyü engellerdi.
   useEffect(() => {
     let iptal = false;
-    fetch(`/oyna/kor/${liste.slug}/gorsel?s=${s}&${DIL_PARAMETRE}=${dil}`)
+    fetch(`/oyna/kor/${liste.slug}/gorsel?${sorgu}&${DIL_PARAMETRE}=${dil}`)
       .then(y => (y.ok ? y.blob() : Promise.reject(new Error(String(y.status)))))
       .then(b => { if (!iptal) setGorsel(new File([b], `${t.dosyaAdi(liste.slug)}.png`, { type: 'image/png' })); })
       .catch(() => { /* görsel yoksa yalnızca bağlantı paylaşılır */ });
     return () => { iptal = true; };
-  }, [liste.slug, s, dil, t]);
+  }, [liste.slug, sorgu, dil, t]);
 
   useEffect(() => {
     if (!bildirim) return;
@@ -230,7 +271,7 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
   }, [bildirim]);
 
   const paylas = async () => {
-    const url = `${window.location.origin}/oyna/kor/${liste.slug}?s=${s}${dilEki}`;
+    const url = `${window.location.origin}/oyna/kor/${liste.slug}?${sorgu}${dilEki}`;
     const metin = uyum !== null ? t.paylasimUyum(liste.ad, uyum) : t.paylasimDuz(liste.ad);
     try {
       if (gorsel && navigator.canShare?.({ files: [gorsel] })) {
@@ -270,15 +311,30 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
         </div>
       )}
 
-      {arkadas && <p className="kor-lejant">{t.lejant}</p>}
+      {gercek && (
+        <div className="kor-uyum">
+          <strong>{yuzde(gercek.uyum, dil)}</strong>
+          <span>
+            <b>{t.gercekSirayla}</b>
+            {t.gercekMetni(gercek.uyum)}
+          </span>
+        </div>
+      )}
+
+      {(arkadas || gercek) && <p className="kor-lejant">{gercek ? t.gercekLejant : t.lejant}</p>}
       <ol className="kor-liste">
         {sira.map((k, i) => {
           const onun = arkadas ? arkadas.indexOf(k) + 1 : null;
           return (
             <li key={k} className={i === 0 ? 'is-bir' : ''} style={{ '--i': i } as React.CSSProperties}>
               <i>{i + 1}</i>
-              <span>{liste.kayitlar[k]}</span>
-              {onun !== null && <em title={t.arkadasinSirasi}>{onun}.</em>}
+              <span>
+                {liste.kayitlar[k]}
+                {gercek && <small className="kor-liste-deger">{gercek.deger(k)}</small>}
+              </span>
+              {gercek
+                ? <em className={gercek.yer(k) === i + 1 ? 'is-yerinde' : ''} title={t.gercekSirasi}>{gercek.yer(k) === i + 1 ? '✓' : `${gercek.yer(k)}.`}</em>
+                : onun !== null && <em title={t.arkadasinSirasi}>{onun}.</em>}
             </li>
           );
         })}

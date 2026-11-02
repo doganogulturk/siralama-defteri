@@ -4370,3 +4370,114 @@ body:has(.mobil-menu) .kor-sayfa { padding-bottom: calc(110px + env(safe-area-in
 .oyna-misafir-islem { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 8px; }
 .oyna-misafir .gate-btn { min-height: 48px; margin-top: 0; padding: 0 22px 0 12px; }
 .oyna-nasil { font-size: 0.88rem; font-weight: 600; color: var(--accent-ink); text-decoration: none; }
+
+/* Oyna: her modun altında katalog listelerinin yatay şeridi. */
+.katalog-seridi {
+  display: flex;
+  gap: 8px;
+  margin: 0 -16px;
+  padding: 2px 16px 8px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  list-style: none;
+}
+.katalog-seridi::-webkit-scrollbar { display: none; }
+.katalog-seridi li { flex: 0 0 auto; scroll-snap-align: start; }
+.katalog-kart {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 128px;
+  height: 100%;
+  padding: 12px;
+  border-radius: var(--r-md);
+  background: linear-gradient(160deg, color-mix(in oklab, var(--kor) 10%, var(--surface)), var(--surface) 70%);
+  box-shadow: var(--hair), var(--shadow-sm);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease);
+}
+.katalog-kart:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px color-mix(in oklab, var(--kor) 45%, transparent), var(--shadow); }
+.katalog-kart:active { transform: scale(0.97); }
+.katalog-kart span { font-size: 1.6rem; line-height: 1.1; }
+.katalog-kart strong { font-family: var(--serif); font-size: 1.12rem; font-weight: 400; line-height: 1.1; }
+@media (min-width: 1024px) {
+  .katalog-seridi { margin: 0; padding: 2px 0 8px; flex-wrap: wrap; overflow: visible; }
+}
+
+/* Kör Sıralama sonucunda doğru cevabı olan listenin değeri ve gerçek yeri. */
+.kor-liste span .kor-liste-deger { display: block; font-size: 0.76rem; font-weight: 500; color: var(--mute); }
+.kor-liste em.is-yerinde { font-size: 1rem; font-weight: 700; color: var(--kor); }
+.kor-uyum > strong small { font-size: 1.4rem; color: var(--mute); }
+
+/* ── Tier ve Kör Tier oyunları (components/TierOyun.tsx) ──────────────
+   Kademeler klasik tier renklerinde (paylaşım görseliyle aynı); maddeler yazı hapları. */
+.tier-etiket {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  color: #1a1512;
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.tier-etiket.is-buyuk { width: 52px; height: 52px; font-size: 1.8rem; }
+.tier-tahta { display: flex; flex: 1; flex-direction: column; gap: 10px; padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+.tier-ipucu { min-height: 1.4em; font-size: 0.9rem; font-weight: 600; text-align: center; color: var(--soft); }
+.tier-satirlar { display: flex; flex-direction: column; gap: 6px; }
+.tier-satir {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 6px;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--hair);
+  text-align: left;
+  transition: box-shadow var(--t) var(--ease), background var(--t) var(--ease);
+}
+.tier-satir.is-hedef { cursor: pointer; box-shadow: 0 0 0 1.5px color-mix(in oklab, var(--kor) 45%, transparent); }
+.tier-satir.is-hedef:hover { background: color-mix(in oklab, var(--kor) 6%, var(--surface)); }
+.tier-satir-etiket { border-radius: 12px; }
+.tier-satir-etiket:disabled { cursor: default; }
+.tier-satir-maddeler { display: flex; flex: 1; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.tier-madde {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: var(--pill);
+  background: var(--surface-2);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+  transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease);
+}
+button.tier-madde:hover { box-shadow: 0 0 0 1px var(--faint); }
+.tier-madde.is-secili { background: var(--kor); color: #fff; transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.tier-madde.is-sabit { cursor: default; }
+.tier-havuz {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1.5px dashed var(--line);
+}
+.tier-havuz.is-hedef { cursor: pointer; border-color: color-mix(in oklab, var(--kor) 45%, transparent); }
+.tier-havuz h2 { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mute); }
+.tier-satirlar.is-kor .tier-satir { width: 100%; cursor: pointer; }
+.tier-satirlar.is-kor .tier-satir:hover:not(:disabled) { background: color-mix(in oklab, var(--kor) 6%, var(--surface)); }
+.tier-satirlar.is-kor .tier-satir:disabled { cursor: default; opacity: 0.55; }
+.tier-satirlar.is-kor .tier-madde { min-height: 28px; font-size: 0.82rem; }
+.tier-yer { flex-shrink: 0; padding-right: 6px; font-size: 0.74rem; font-style: normal; font-weight: 600; color: var(--mute); }
+.tier-isaret { font-size: 0.72rem; font-style: normal; font-weight: 700; color: var(--mute); }
+.tier-isaret.is-dogru { color: var(--kor); }

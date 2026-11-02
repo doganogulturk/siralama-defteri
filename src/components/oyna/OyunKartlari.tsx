@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { SAYILAR_RENK, gununTohumu, puanla as sayiPuanla, sayilariUret, yerlesimCoz } from '@/lib/sayilar';
 import { dogruSiraListeleri, dogruSiraListesi, gununListesi, maddeleriSec, puanla, yuzde } from '@/lib/dogru-sira';
-import { korListeleri } from '@/lib/kor';
+import { katalog } from '@/lib/katalog';
 import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 
 /*
@@ -84,7 +84,9 @@ export function OyunSeridi() {
   const m = useMesajlar();
   const t = m.oyna;
   const modlar = [
-    { href: '/oyna#kor', simge: '🙈', ad: m.kor.ad, alt: t.korKisa, adet: korListeleri(dil).length, renk: 'var(--accent)' },
+    { href: '/oyna#kor', simge: '🙈', ad: m.kor.ad, alt: t.korKisa, adet: katalog(dil).length, renk: 'var(--accent)' },
+    { href: '/oyna#tier', simge: '🏆', ad: m.tier.ad, alt: m.tier.kisa, adet: katalog(dil).length, renk: '#b45309' },
+    { href: '/oyna#kor-tier', simge: '🎲', ad: m.tier.korAd, alt: m.tier.korKisa, adet: katalog(dil).length, renk: '#7c3aed' },
     { href: '/oyna#dogru-sira', simge: '🎯', ad: m.dogruSira.ad, alt: t.dogruSiraKisa, adet: dogruSiraListeleri(dil).length, renk: '#0f766e' },
     { href: '/oyna/sayilar', simge: '🔢', ad: m.sayilar.ad, alt: t.sayilarKisa, adet: null, renk: SAYILAR_RENK },
   ];

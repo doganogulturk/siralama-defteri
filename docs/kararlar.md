@@ -4,6 +4,9 @@ Bunlar iş değil, bilinçli kararlar. Birini değiştirmeden önce gerekçesini
 
 - **Apple girişi yok** — Supabase'de hazır provider ama Apple Developer hesabı ($99/yıl) gerektiriyor. Web'de Google girişi tek yol; iOS uygulamasında Apple 4.8 gereği zorunlu olacak ([yol haritası](yol-haritasi.md) → Mobil uygulama 3).
 - **Liste simgesi yok** — kayıtların çoğunda zaten fotoğraf var, listenin ayrıca simge taşımasına gerek yok. `lists.emoji` kolonu şemada duruyor ama kod ne yazıyor ne okuyor.
+- **Kademe görselinde klasik renkler** — uygulamanın tek vurgu rengi kuralına bilinçli istisna, yalnızca paylaşım görselinde (`lib/kademe-gorsel.tsx`): uygulama dışında dolaşan bir tier tablosunda tanıdık renkler okunmayı kolaylaştırıyor. Uygulamanın içinde kademeler vurgu renginin tonları.
+- **Kademe sırası elle değiştirilmez** — kademeler eklendiği sırada; yeni kademe en alta. Sırayı değiştirmek bütün kayıtları yeniden numaralamak demek; etiketler değiştirilebildiği için ihtiyaç zayıf.
+- **Kademe görünümünde sürükleme yok** — kademeler arası taşıma telefonda dokunup kademe seçerek, liste görünümünde sürükleyerek. Satırlar arası sürükleme dnd-kit'te birden çok kapsayıcı ister; dokun-seç telefonda zaten daha rahat.
 - **Liste rengi yok** — listeler renkle ayrışmıyor, uygulamanın tek vurgu rengi var. `lists.renk` kolonu şemada duruyor ama kod okumuyor; yeni listeler varsayılanla doğuyor.
 - **Kategori sırası elle ayarlanmaz** — kategoriler kayıt sayısına göre sıralanıyor (eşitlikte `sira`, sonra `created_at`). `categories.sira` yalnızca eşitlik bozucu.
 - **`lists.sira` arayüzde kullanılmıyor** — listeler de sıralanmış kayıt sayısına göre diziliyor.
@@ -24,6 +27,6 @@ Bunlar iş değil, bilinçli kararlar. Birini değiştirmeden önce gerekçesini
 - **Sahipsiz eski dosyalar uygulamadan silinemiyor** — yükleme kuralları sıkılaşmadan önce yüklenmiş bazı dosyaların `owner_id`'si boş; silme politikası sahibine açık olduğu için uygulama onları kaldıramıyor. Eski fotoğraflar küçültülürken (18 Ekim 2026) bunlardan 24'ü kayıtsız kaldı; Supabase panelinden silinebilirler.
 - **Kayıt silinmeden fotoğraf değişince eski dosya istemcide siliniyor** — sekme o an kapanırsa dosya yetim kalabilir. Kullanıcı başına 1000 dosya sınırı yetimleri de sayıyor.
 - **Karşılaştırmada kayıtlar adla eşleşiyor** — kimlikle değil: kopyada kimlikler yeni, bağımsız iki listede zaten farklı. Adı değiştirilen kayıt eşleşmeden düşer; aynı ad + çeşitle iki kayıt varsa biri sayılır.
-- **Kopyalanan listede sahibinin notları ve denenmemişleri yok** — okuma paylaşım sayfasıyla aynı kapıdan (`paylasilan_liste`).
+- **Kopyalanan listede sahibinin notları ve denenmemişleri yok** — okuma paylaşım sayfasıyla aynı kapıdan (`paylasilan_liste`). Kademeler de kopyalanmıyor: kopyalayan kendi sırasını yapıyor; kademeleri isterse kendisi açar.
 - **Şema tek dosyada, migration yok** — `supabase/schema.sql` idempotent ve SQL Editor'da çalıştırılıyor; Supabase CLI migration'larına geçiş (Kasım 2026) ertelendi. Kaymaya karşı güvence: CI her push'ta dosyayı boş bir Postgres'e kurup erişim kurallarını deniyor (`npm run test:db`). Mobil uygulama çalışmasında yeniden bakılabilir.
 - **Sunucu tarafı koruma yok** — uygulama tamamen istemci tarafında; `AuthGate` bir kapı, güvenlik RLS'te.

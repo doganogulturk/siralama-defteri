@@ -9,7 +9,9 @@ import {
 } from '@/lib/filtre';
 import { useListStore } from '@/hooks/useListStore';
 import { listeleriTazele } from '@/hooks/useListeler';
-import { useGorunum } from '@/hooks/useGorunum';
+import { useGorunum, useKademeGorunumu } from '@/hooks/useGorunum';
+import { kademeGruplari } from '@/lib/kademe';
+import { KademeSecici, KademeTablosu } from '@/components/kademe/KademeParcalari';
 import { useBildirim } from '@/hooks/useBildirim';
 import { useSecim } from '@/hooks/useSecim';
 import { TopluBlok, topluKaydet } from '@/lib/toplu';
@@ -48,9 +50,9 @@ export default function ListePage() {
   const t = m.liste;
   const magaza = useListStore(SLUG);
   const {
-    liste, kategoriler, items,
+    liste, kategoriler, kademeler, items,
     loading, error, isSaving,
-    load, saveEntry, removeEntry, reorder,
+    load, saveEntry, removeEntry, reorder, kademeTasi,
   } = magaza;
 
   /** Silinen kayıt birkaç saniye "Geri al" için bekliyor; o sürede hiçbir yerde görünmüyor. */
@@ -84,6 +86,9 @@ export default function ListePage() {
   const [sekme, setSekme] = useState<Sekme>('siralama');
 
   const { gorunum, gorunumSec, kart: kartGorunum } = useGorunum(isDesktop);
+  const [kademeGorunumuTercihi, kademeGorunumuSec] = useKademeGorunumu();
+  /** "Dokun, kademeyi seç" penceresi açık olan kayıt. */
+  const [kademesiSecilen, setKademesiSecilen] = useState<Item | null>(null);
   const [bildirim, setBildirim] = useBildirim();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -143,6 +148,8 @@ export default function ListePage() {
   /** Açık sekmede kategorisi olmayan kayıtlar — filtre şeridindeki "Kategorisiz" hapının sayısı. */
   const kategorisizAdet = (sekme === 'sirada' ? istekListesi : denenenTum).filter(i => !i.category_id).length;
   const secili = (id: string) => (secim ? secim.has(id) : selectedId === id);
+  /** Kademe görünümü: kademeler açık, sıralama sekmesi ve seçim modu kapalı. */
+  const kademeGorunumu = !!kademeler && kademeGorunumuTercihi && sekme === 'siralama' && !secim;
 
   const handleRowSelect = (item: Item) => {
     if (secim) { secimModu.degistir(item.id); return; }
@@ -316,9 +323,24 @@ export default function ListePage() {
       );
     }
 
+    if (kademeGorunumu && kademeler) {
+      const siraNo = new Map(ranked.map((r, i) => [r.id, i + 1]));
+      return (
+        <KademeTablosu
+          gruplar={kademeGruplari(visible, kademeler)}
+          kademeler={kademeler}
+          siraNo={(item) => siraNo.get(item.id) ?? 0}
+          asla={visibleAsla}
+          onSec={setKademesiSecilen}
+          onAslaSec={handleRowSelect}
+        />
+      );
+    }
+
     return (
       <SiralamaListesi
         ranked={ranked}
+        kademeler={kademeler}
         aslaListesi={aslaListesi}
         gorunen={visible}
         gorunenAsla={visibleAsla}
@@ -363,6 +385,8 @@ export default function ListePage() {
             arama={<AramaKutusu metin={filtre.metin} onChange={aramaDegistir} />}
             gorunum={isDesktop ? gorunum : undefined}
             onGorunum={gorunumSec}
+            kademeGorunumu={kademeler && sekme === 'siralama' ? kademeGorunumuTercihi : undefined}
+            onKademeGorunumu={kademeGorunumuSec}
             secimAcik={!!secim}
             onSecim={() => (secim ? secimModu.kapat() : secimAc())}
           />
@@ -437,6 +461,21 @@ export default function ListePage() {
             />
           </div>
         </section>
+      )}
+
+      {kademesiSecilen && kademeler && (
+        <KademeSecici
+          item={kademesiSecilen}
+          kademeler={kademeler}
+          onSec={(anahtar) => {
+            kademeTasi(kademesiSecilen.id, anahtar);
+            const hedef = kademeler.find(k => k.anahtar === anahtar);
+            setBildirim(m.kademe.tasindi(kademesiSecilen.ad, hedef?.etiket ?? m.kademe.kademesiz));
+            setKademesiSecilen(null);
+          }}
+          onAyrinti={() => { const item = kademesiSecilen; setKademesiSecilen(null); handleRowSelect(item); }}
+          onClose={() => setKademesiSecilen(null)}
+        />
       )}
 
       {paylasMenusu && liste?.paylasim_kodu && (

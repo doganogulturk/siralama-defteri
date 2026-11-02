@@ -59,7 +59,7 @@ export async function createListe(
 
 export async function updateListe(
   id: string,
-  entry: Partial<Pick<Liste, 'ad' | 'slug' | 'renk' | 'sira' | 'alanlar' | 'paylasim_kodu'>>
+  entry: Partial<Pick<Liste, 'ad' | 'slug' | 'renk' | 'sira' | 'alanlar' | 'paylasim_kodu' | 'kademeler'>>
 ): Promise<Liste> {
   const { data, error } = await supabase
     .from(T_LISTS)
@@ -241,8 +241,9 @@ async function fotograflariSil(urller: (string | null | undefined)[]): Promise<v
 /**
  * `asla` verilirse o da yazılıyor — kayıt sıralama ile "Bir daha asla" arasında yer
  * değiştirdiğinde. `denendi` toplu "Denedim"de: bekleyen kayıt sıralamaya girerken.
+ * `kademe` kademeler açıkken ya da kapatılırken; null da yazılıyor (kademesiz).
  */
-type SiraDegisikligi = { id: string; sira: number; asla?: boolean; denendi?: boolean };
+export type SiraDegisikligi = { id: string; sira: number; asla?: boolean; denendi?: boolean; kademe?: string | null };
 
 /**
  * Sıra yazımları sırayla gidiyor: arka arkaya iki sürükle-bırakta eskisinin isteği
@@ -276,6 +277,7 @@ async function siraYaz(updates: SiraDegisikligi[]): Promise<void> {
         sira: u.sira,
         ...(u.asla === undefined ? {} : { asla: u.asla }),
         ...(u.denendi === undefined ? {} : { denendi: u.denendi }),
+        ...(u.kademe === undefined ? {} : { kademe: u.kademe }),
       })
       .eq('id', u.id))
   );

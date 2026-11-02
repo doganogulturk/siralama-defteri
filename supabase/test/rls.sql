@@ -82,6 +82,27 @@ select test.hata($$
   values ('11111111-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000002', 'Yanlış kategori')
 $$, 'başka listenin kategorisi reddediliyor', '23503');
 
+-- Kademeler: siralamayi_yaz kademeyi yazıyor, null'a çekebiliyor; verilmezse dokunmuyor.
+update do_siralama_defteri.lists set kademeler = '[{"anahtar":"s","etiket":"S"},{"anahtar":"a","etiket":"A"}]'
+  where id = '11111111-0000-0000-0000-000000000001';
+select do_siralama_defteri.siralamayi_yaz(
+  '[{"id": "33333333-0000-0000-0000-000000000001", "sira": 0, "kademe": "s"},
+    {"id": "33333333-0000-0000-0000-000000000002", "sira": 1, "kademe": "a"}]'::jsonb);
+select test.esit((select kademe from do_siralama_defteri.items where id = '33333333-0000-0000-0000-000000000002'),
+  'a', 'siralamayi_yaz kademeyi yazıyor');
+select do_siralama_defteri.siralamayi_yaz('[{"id": "33333333-0000-0000-0000-000000000001", "sira": 0}]'::jsonb);
+select test.esit((select kademe from do_siralama_defteri.items where id = '33333333-0000-0000-0000-000000000001'),
+  's', 'kademe verilmezse olduğu gibi kalıyor');
+select do_siralama_defteri.siralamayi_yaz('[{"id": "33333333-0000-0000-0000-000000000002", "sira": 1, "kademe": null}]'::jsonb);
+select test.esit((select kademe from do_siralama_defteri.items where id = '33333333-0000-0000-0000-000000000002'),
+  null::text, 'kademe null yazılabiliyor (kademesiz)');
+select test.hata($$
+  update do_siralama_defteri.lists set kademeler = '[]' where slug = 'doner'
+$$, 'boş kademe dizisi reddediliyor (kapalıysa null)', '23514');
+select test.hata($$
+  update do_siralama_defteri.lists set kademeler = '{"s": "S"}' where slug = 'doner'
+$$, 'dizi olmayan kademeler reddediliyor', '23514');
+
 -- Uzunluk sınırları.
 select test.hata($$
   insert into do_siralama_defteri.items (list_id, ad) values ('11111111-0000-0000-0000-000000000001', repeat('x', 121))
@@ -154,6 +175,12 @@ select test.esit(
   (select string_agg(k ->> 'ad', ',') from jsonb_array_elements(
      do_siralama_defteri.paylasilan_liste('PaylasimKoduAAAA0001') -> 'kayitlar') k),
   'Birinci,İkinci,Asla', 'paylaşımda önce sıralama, sonra "Bir daha asla"; bekleyen yok');
+select test.esit(
+  do_siralama_defteri.paylasilan_liste('PaylasimKoduAAAA0001') -> 'kademeler' -> 0 ->> 'etiket', 'S',
+  'paylaşımda kademeler dönüyor');
+select test.esit(
+  do_siralama_defteri.paylasilan_liste('PaylasimKoduAAAA0001') -> 'kayitlar' -> 0 ->> 'kademe', 's',
+  'paylaşımda kaydın kademesi dönüyor');
 select test.esit(
   do_siralama_defteri.paylasilan_liste('PaylasimKoduAAAA0001')::text ~ '(gizli not|notlar|ayse@ornek|aaaaaaaa-0000)',
   false, 'paylaşımda not, e-posta ve kullanıcı kimliği yok');

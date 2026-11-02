@@ -11,6 +11,7 @@ import { hataMetni } from '@/lib/hata';
 import { SINIR } from '@/lib/sinirlar';
 import Sheet from './Sheet';
 import PaylasimBolumu from './PaylasimBolumu';
+import KademeBolumu from './kademe/KademeBolumu';
 import { uyar, onayla } from '@/lib/pencere';
 import { messages } from '@/lib/i18n';
 
@@ -209,6 +210,8 @@ export default function ListeAyarlariModal({
           busy={busy}
           kodKaydet={(kod) => calistir(() => updateListe(liste.id, { paylasim_kodu: kod }))}
         />
+
+        <KademeBolumu liste={liste} items={items} busy={busy} calistir={calistir} />
 
         <section className="ayar-bolum">
           <h2 className="ayar-bolum-baslik">{t.kategoriler}</h2>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Item, Kategori, Liste } from '@/types/item';
+import { Item, Kademe, Kategori, Liste } from '@/types/item';
 import {
   getListeBySlug, getKategoriler, getItems,
   createItem, updateItem, deleteItem, deleteItems,
@@ -10,8 +10,9 @@ import {
 import { sortSirali, sortIstekListesi } from '@/lib/sort';
 import {
   SiraSonucu, bolumDegistir as bolumHesapla, denendiYap as denendiHesapla,
-  denenenleriDegistir, siralamada, siralamayaSok,
+  denenenleriDegistir, siraliSiralama, siralamayaSok,
 } from '@/lib/siralama';
+import { kademeDegistir, kademeliMi } from '@/lib/kademe';
 import { hataMetni } from '@/lib/hata';
 import { listeleriTazele } from './useListeler';
 import { uyar } from '@/lib/pencere';
@@ -85,7 +86,15 @@ export function useListStore(slug: string) {
     );
   }, [kategorilerHam, items]);
 
-  const denenenler = useMemo(() => sortSirali(items.filter(siralamada)), [items]);
+  /** Kademeler açıksa yukarıdan aşağı; kapalıysa null. */
+  const kademeler = useMemo<Kademe[] | null>(
+    () => (kademeliMi(liste?.kademeler) ? liste.kademeler : null), [liste]);
+  /** Hesapların okuduğu güncel kademeler (await sonrasında da). */
+  const kademelerRef = useRef<Kademe[] | null>(null);
+  useEffect(() => { kademelerRef.current = kademeler; }, [kademeler]);
+
+  /** Sıralama: `sira`, kademeler açıksa önce kademe (`lib/kademe.ts`). */
+  const denenenler = useMemo(() => siraliSiralama(items, kademeler), [items, kademeler]);
   /** Denenmiş ama sıralamada değil: kırmızı çizginin altındaki bölüm, kendi içinde sıralı. */
   const aslaListesi = useMemo(() => sortSirali(items.filter(i => i.denendi && i.asla)), [items]);
   const istekListesi = useMemo(() => sortIstekListesi(items.filter(i => !i.denendi)), [items]);
@@ -94,14 +103,17 @@ export function useListStore(slug: string) {
    * İyimser yol: ekran hemen değişiyor, sıra arkadan yazılıyor. Yazım başarısız olursa
    * ekran veritabanından ayrı düşmesin diye veri baştan okunuyor.
    * `aslaDahil`: bölüm değiştiren sürükle-bırak `asla`'yı da yazıyor; ekleme yolu yalnızca sırayı.
+   * Kademeler açıksa kademe her zaman yazılıyor: sıra ile kademe birlikte tutarlı kalsın.
    */
   const persistSira = useCallback(async (list: Item[], aslaDahil = false) => {
     setIsSaving(true);
+    const kademeDahil = !!kademelerRef.current;
     try {
       await updateItemsSira(list.map(i => ({
         id: i.id,
         sira: i.sira ?? 0,
         ...(aslaDahil ? { asla: !!i.asla } : {}),
+        ...(kademeDahil ? { kademe: i.kademe ?? null } : {}),
       })));
       // Şampiyon değişmiş olabilir: ray ve ana ekran ilk üçü yeniden okusun.
       listeleriTazele();
@@ -147,7 +159,7 @@ export function useListStore(slug: string) {
       if (oldPhoto && oldPhoto !== updated.fotograf_url) void deleteFotograf(oldPhoto);
 
       if (!editingItem.denendi && updated.denendi) {   // "denedim" işaretlendi
-        iyimser(siralamayaSok(itemsRef.current, updated, targetIndex));
+        iyimser(siralamayaSok(itemsRef.current, updated, targetIndex, kademelerRef.current));
       } else {
         setItems(itemsRef.current.map(i => (i.id === entry.id ? updated : i)));
       }
@@ -155,7 +167,7 @@ export function useListStore(slug: string) {
     }
 
     const created = await createItem(payload);
-    if (created.denendi) iyimser(siralamayaSok(itemsRef.current, created, targetIndex));
+    if (created.denendi) iyimser(siralamayaSok(itemsRef.current, created, targetIndex, kademelerRef.current));
     else setItems([...itemsRef.current, created]);
     return created;
   }, [liste, iyimser, setItems]);
@@ -168,6 +180,14 @@ export function useListStore(slug: string) {
   /** Sürükle-bırak sonrası denenmişlerin yeni hâli: sıralama ve "Bir daha asla" birlikte. */
   const reorder = useCallback((next: Item[]) => {
     iyimser(denenenleriDegistir(itemsRef.current, next), true);
+  }, [iyimser]);
+
+  /** Kaydı başka bir kademeye taşır ("dokun, kademeyi seç"); sıra kademeye göre yeniden. */
+  const kademeTasi = useCallback((id: string, hedef: string | null) => {
+    const k = kademelerRef.current;
+    if (!k) return;
+    const yeni = kademeDegistir(siraliSiralama(itemsRef.current, k), k, id, hedef);
+    if (yeni) iyimser(denenenleriDegistir(itemsRef.current, [...yeni, ...itemsRef.current.filter(i => i.denendi && i.asla)]));
   }, [iyimser]);
 
   /**
@@ -188,8 +208,11 @@ export function useListStore(slug: string) {
 
   /** Seçili denenmiş kayıtları "Bir daha asla" ile sıralama arasında taşır (`asla` hedef bölüm). */
   const bolumDegistir = useCallback(async (ids: string[], asla: boolean) => {
-    const sonuc = bolumHesapla(itemsRef.current, ids, asla);
-    await updateItemsSira(sonuc.degisenler.map(i => ({ id: i.id, sira: i.sira ?? 0, asla: !!i.asla })));
+    const k = kademelerRef.current;
+    const sonuc = bolumHesapla(itemsRef.current, ids, asla, k);
+    await updateItemsSira(sonuc.degisenler.map(i => ({
+      id: i.id, sira: i.sira ?? 0, asla: !!i.asla, ...(k ? { kademe: i.kademe ?? null } : {}),
+    })));
     // Yazılan hâl, yazım sürerken değişmiş olabilecek güncel listenin üstüne: bekleyenler korunuyor.
     setItems(denenenleriDegistir(itemsRef.current, sonuc.degisenler).items);
     listeleriTazele();
@@ -197,8 +220,11 @@ export function useListStore(slug: string) {
 
   /** Toplu "Denedim": seçili bekleyenler, listede göründükleri sırayla sıralamanın sonuna. */
   const denendiYap = useCallback(async (ids: string[]) => {
-    const sonuc = denendiHesapla(itemsRef.current, ids);
-    await updateItemsSira(sonuc.degisenler.map(i => ({ id: i.id, sira: i.sira ?? 0, asla: false, denendi: true })));
+    const k = kademelerRef.current;
+    const sonuc = denendiHesapla(itemsRef.current, ids, k);
+    await updateItemsSira(sonuc.degisenler.map(i => ({
+      id: i.id, sira: i.sira ?? 0, asla: false, denendi: true, ...(k ? { kademe: null } : {}),
+    })));
     const yeni = new Map(sonuc.degisenler.map(i => [i.id, i]));
     setItems(itemsRef.current.map(i => yeni.get(i.id) ?? i));
     listeleriTazele();
@@ -213,8 +239,8 @@ export function useListStore(slug: string) {
   }, [setItems]);
 
   return {
-    liste, kategoriler, items, denenenler, aslaListesi, istekListesi,
+    liste, kategoriler, kademeler, items, denenenler, aslaListesi, istekListesi,
     loading, error, isSaving,
-    load, saveEntry, removeEntry, reorder, kategoriAta, bolumDegistir, denendiYap, topluSil,
+    load, saveEntry, removeEntry, reorder, kademeTasi, kategoriAta, bolumDegistir, denendiYap, topluSil,
   };
 }

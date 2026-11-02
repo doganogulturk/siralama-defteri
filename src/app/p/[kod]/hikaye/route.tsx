@@ -5,36 +5,22 @@ import { DIL_PARAMETRE, sozluk } from '@/lib/i18n';
 import { baglantiDili } from '@/lib/i18n/sunucu';
 import { paylasilanListe } from '@/lib/paylasim-sunucu';
 import { RENK, fotoVerisi, yaziTipleri } from '@/lib/gorsel-sunucu';
+import { GorselLogo as Logo } from '@/lib/gorsel-parcalari';
+import { kademeliMi } from '@/lib/kademe';
+import { KademeHikayesi } from '@/lib/kademe-gorsel';
 
 /*
  * Instagram / WhatsApp story görseli (1080×1920): şampiyon büyük ve fotoğraflı,
  * altında 2–5, en altta "sen nasıl sıralardın" çağrısı ve sitenin adresi. Story'de
  * bağlantı tıklanmıyor; adres, bağlantı çıkartması eklenene kadar yol gösteriyor.
  * Paylaşım kapalıysa ya da kod yoksa 404 — görsel de sayfa gibi yalnızca bağlantıyla.
+ * Listede kademeler açıksa bunun yerine tier tablosu çiziliyor (`lib/kademe-gorsel.tsx`).
  */
 
 export const dynamic = 'force-dynamic';
 
 const GENISLIK = 1080;
 const YUKSEKLIK = 1920;
-
-function Logo() {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-      <div
-        style={{
-          display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 7,
-          width: 60, height: 60, padding: '0 11px', borderRadius: 16, background: RENK.murekkep,
-        }}
-      >
-        <div style={{ width: 38, height: 8, borderRadius: 4, background: RENK.vurgu }} />
-        <div style={{ width: 27, height: 8, borderRadius: 4, background: RENK.zemin }} />
-        <div style={{ width: 17, height: 8, borderRadius: 4, background: RENK.zemin }} />
-      </div>
-      <div style={{ fontSize: 34 }}>Sıralama Defteri</div>
-    </div>
-  );
-}
 
 function Kutu({ kayit, foto, boyut, yaricap }: {
   kayit: PaylasilanKayit; foto: string | null; boyut: number; yaricap: number;
@@ -67,14 +53,22 @@ export async function GET(istek: Request, { params }: { params: Promise<{ kod: s
   const [liste, fonts] = await Promise.all([paylasilanListe(kod), yaziTipleri()]);
   if (!liste) return new Response('Bulunamadı', { status: 404 });
 
+  const dil = baglantiDili(new URL(istek.url).searchParams.get(DIL_PARAMETRE));
+  const site = new URL(istek.url).host;
+
+  // Kademeler açıksa story bir tier tablosu (`lib/kademe-gorsel.tsx`).
+  if (kademeliMi(liste.kademeler)) {
+    return new ImageResponse(await KademeHikayesi({ liste, kademeler: liste.kademeler, dil, site }), {
+      width: GENISLIK, height: YUKSEKLIK, fonts, headers: { 'Cache-Control': 'no-store' },
+    });
+  }
+
   const ilkBes = liste.kayitlar.filter(k => !k.asla).slice(0, 5);
   const fotolar = await Promise.all(ilkBes.map(k => fotoVerisi(k.fotograf_url)));
   const [sampiyon, ...kalanlar] = ilkBes;
-  const dil = baglantiDili(new URL(istek.url).searchParams.get(DIL_PARAMETRE));
   const t = sozluk(dil);
   const sahip = t.paylasimSayfasi.storySahibi(liste.sahip ? iyelik(liste.sahip.split(' ')[0], dil) : null);
   const adBoyu = liste.ad.length > 16 ? 120 : liste.ad.length > 10 ? 150 : 190;
-  const site = new URL(istek.url).host;
 
   return new ImageResponse(
     (

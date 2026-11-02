@@ -77,6 +77,15 @@ create table if not exists do_siralama_defteri.items (
   asla         boolean not null default false
 );
 
+-- Kademeler (tier list). Listede açıksa etiketleri yukarıdan aşağı sırasıyla, kapalıysa null.
+-- Biçim: [{ anahtar, etiket }] — anahtar kalıcı ("s", "a" ya da üretilmiş), etiket değiştirilebilir
+-- ("S", "A", "Efsane" ...). Kayıt kendi kademesini `items.kademe`'de anahtarla taşıyor; boşsa "kademesiz"
+-- (kademelerin en altı). İstemci `sira`'yı her zaman kademe sırasıyla tutarlı yazıyor (önce S'nin kayıtları,
+-- sonra A'nınkiler ...): sıralamayı okuyan her yer (özetler, paylaşım, karşılaştırma) kademeyi bilmeden de
+-- doğru sırayı görüyor. Kurulu veritabanı için `add column`.
+alter table do_siralama_defteri.lists add column if not exists kademeler jsonb;
+alter table do_siralama_defteri.items add column if not exists kademe text;
+
 create index if not exists items_list_sira_idx      on do_siralama_defteri.items (list_id, sira);
 create index if not exists categories_list_sira_idx on do_siralama_defteri.categories (list_id, sira);
 -- Kategori silinirken kayıtları `set null` için bulmak: indeks olmadan tablo baştan sona taranır.
@@ -152,6 +161,14 @@ alter table do_siralama_defteri.lists drop constraint if exists lists_alanlar_bo
 alter table do_siralama_defteri.lists add constraint lists_alanlar_boyut
   check (octet_length(alanlar::text) <= 8000) not valid;
 
+alter table do_siralama_defteri.lists drop constraint if exists lists_kademeler_bicim;
+alter table do_siralama_defteri.lists add constraint lists_kademeler_bicim
+  check (kademeler is null or (
+    jsonb_typeof(kademeler) = 'array'
+    and jsonb_array_length(kademeler) between 1 and 10
+    and octet_length(kademeler::text) <= 1000
+  )) not valid;
+
 alter table do_siralama_defteri.categories drop constraint if exists categories_ad_uzunluk;
 alter table do_siralama_defteri.categories add constraint categories_ad_uzunluk
   check (char_length(ad) <= 60) not valid;
@@ -165,6 +182,9 @@ alter table do_siralama_defteri.items add constraint items_metin_uzunluk
     and char_length(coalesce(fotograf_url, '')) <= 500
     and octet_length(ozellikler::text) <= 4000
   ) not valid;
+alter table do_siralama_defteri.items drop constraint if exists items_kademe_uzunluk;
+alter table do_siralama_defteri.items add constraint items_kademe_uzunluk
+  check (char_length(coalesce(kademe, '')) <= 16) not valid;
 
 -- Adet sınırları tetikleyiciyle: liste başına 200 kayıt, 50 kategori; kullanıcı başına 50 liste.
 -- Üst satır (liste ya da kullanıcı) `for update` ile kilitleniyor: aynı anda gelen iki ekleme sayımı
@@ -282,7 +302,8 @@ grant execute on function do_siralama_defteri.liste_ozetleri() to authenticated;
 
 -- Sürükle-bırak ve bölüm taşımalarının yazıldığı yer: bütün değişiklikler tek komutta, yani tek
 -- transaction'da — yarısı yazılıp yarısı kalmış bir sıralama olmuyor ve istemci kayıt başına bir
--- istek atmıyor. Biçim: [{id, sira, asla?, denendi?}]; verilmeyen kolon olduğu gibi kalıyor.
+-- istek atmıyor. Biçim: [{id, sira, asla?, denendi?, kademe?}]; verilmeyen kolon olduğu gibi kalıyor.
+-- `kademe` null da yazılabiliyor (kademesiz): bu yüzden "verildi mi" anahtarın varlığına bakıyor.
 -- security invoker: RLS geçerli, kullanıcı yalnızca kendi kayıtlarını değiştirebiliyor.
 create or replace function do_siralama_defteri.siralamayi_yaz(degisiklikler jsonb)
 returns void
@@ -293,7 +314,8 @@ as $$
   update do_siralama_defteri.items i
      set sira    = (d ->> 'sira')::int,
          asla    = coalesce((d ->> 'asla')::boolean, i.asla),
-         denendi = coalesce((d ->> 'denendi')::boolean, i.denendi)
+         denendi = coalesce((d ->> 'denendi')::boolean, i.denendi),
+         kademe  = case when d ? 'kademe' then d ->> 'kademe' else i.kademe end
     from jsonb_array_elements(degisiklikler) d
    where i.id = (d ->> 'id')::uuid;
 $$;
@@ -320,6 +342,7 @@ as $$
   select jsonb_build_object(
     'ad', l.ad,
     'alanlar', l.alanlar,
+    'kademeler', l.kademeler,
     'sahip', nullif(trim(coalesce(
       u.raw_user_meta_data ->> 'full_name',
       u.raw_user_meta_data ->> 'name'
@@ -343,6 +366,7 @@ as $$
                  'alt_ad', i.alt_ad,
                  'fotograf_url', i.fotograf_url,
                  'asla', i.asla,
+                 'kademe', i.kademe,
                  'ozellikler', i.ozellikler
                )
                order by i.asla, i.sira, i.created_at desc

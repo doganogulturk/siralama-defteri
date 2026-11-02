@@ -1,4 +1,4 @@
-import { AlanTanimi, Item } from '@/types/item';
+import { AlanTanimi, Item, Kademe } from '@/types/item';
 import { KOVA } from './kova';
 import { DIL_PARAMETRE, simdikiDil, sozluk, type Dil } from './i18n';
 
@@ -38,12 +38,18 @@ export const paylasimAdresi = (kod: string, koken: string, dil: Dil = simdikiDil
 export const paylasimMetni = (listeAdi: string, dil: Dil = simdikiDil()) => sozluk(dil).paylasim.metin(listeAdi);
 
 export type PaylasilanKayit =
-  Pick<Item, 'id' | 'category_id' | 'ad' | 'alt_ad' | 'fotograf_url' | 'ozellikler'> & { asla: boolean };
+  Pick<Item, 'id' | 'category_id' | 'ad' | 'alt_ad' | 'fotograf_url' | 'ozellikler'> & {
+    asla: boolean;
+    /** Kademeler açıksa; şema güncellenmeden önceki veritabanında hiç gelmiyor. */
+    kademe?: string | null;
+  };
 
 /** `paylasilan_liste` fonksiyonunun döndürdüğü — yalnızca sayfada gösterilenler. */
 export interface PaylasilanListe {
   ad: string;
   alanlar: AlanTanimi[];
+  /** Kademeler açıksa; kapalıysa null (eski veritabanında hiç gelmiyor). */
+  kademeler?: Kademe[] | null;
   /** Sahibin Google'daki adı; profilde ad yoksa boş. */
   sahip: string | null;
   kategoriler: { id: string; ad: string; renk: string }[];

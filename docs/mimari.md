@@ -33,11 +33,12 @@ Fotoğraflar yüklenmeden önce tarayıcıda küçültülüyor (`lib/foto.ts`): 
 Üç tablo — liste sayısı ne olursa olsun tablo sayısı sabit. Her sıralama `lists` içinde **bir satır**. Hepsi `do_siralama_defteri` şemasında.
 
 ```
-lists       id, user_id, ad, slug, emoji, sira, created_at, alanlar(jsonb), renk, paylasim_kodu, kaynak_kod
+lists       id, user_id, ad, slug, emoji, sira, created_at, alanlar(jsonb), renk, paylasim_kodu, kaynak_kod,
+            kademeler(jsonb)
             └ emoji, renk ve sira kullanılmıyor (bkz. kararlar.md)
 categories  id, list_id, ad, renk, sira, created_at
 items       id, list_id, category_id, ad, alt_ad, fotograf_url,
-            sira, denendi, notlar, ozellikler(jsonb), created_at, asla
+            sira, denendi, notlar, ozellikler(jsonb), created_at, asla, kademe
 ```
 
 Kritik ayrıntılar:
@@ -47,6 +48,7 @@ Kritik ayrıntılar:
   `[{anahtar, tip: 'bool'|'metin', etiket, kisa?, ipucu?, filtre?, kategori_id?}]`
   Örneğin bir içecek listesinde "Ekşi mi?" (Evet/Hayır) ya da "Satılan market" (Metin). Filtre şeridi, form ve detay paneli bu tanımdan üretiliyor.
 - **`items.asla`** — denenmiş ama sıralamada değil: "Bir daha asla" bölümünde. Sıralama ve bölüm `sira`'yı kendi içlerinde ayrı ayrı numaralıyor; ayrımı bu kolon yapıyor.
+- **`lists.kademeler` ve `items.kademe`** — kademeler (tier list). Listede açıksa `[{anahtar, etiket}]`, yukarıdan aşağı; kapalıysa null (boş dizi kısıtla reddediliyor). Kayıt kademesini anahtarla taşıyor; boşsa kademesiz, kademelerin altında. **Kural:** `sira` her zaman kademe sırasıyla tutarlı (önce ilk kademenin kayıtları); istemci her yazımda bunu koruyor (`lib/kademe.ts`, `lib/siralama.ts`). Bu sayede `liste_ozetleri`, `paylasilan_liste`, karşılaştırma ve Kör Sıralama kademeyi bilmeden doğru sırayı okuyor. `siralamayi_yaz` kademeyi de yazıyor; anahtar verilmezse dokunmuyor, `null` verilirse kademesiz yapıyor.
 - **`items.ozellikler`** — yukarıdaki alanların değerleri (`{"eksi": true, "market": "Migros"}`).
 - **`category_id` nullable, bileşik yabancı anahtar** — `(category_id, list_id)` → `categories (id, list_id)`: kaydın kategorisi kendi listesinden olmak zorunda (RLS yalnızca `list_id`'ye bakıyor). `on delete set null (category_id)`: kategori silinince kayıt kategorisiz kalır, listesi değişmez. Kurulu veritabanında `not valid` eklendi; eski satırlar taranmadı.
 - **RLS** — üç tabloda da açık; `lists` doğrudan `user_id` ile, diğer ikisi liste üzerinden. Politikalar `auth.uid()`'yi `(select auth.uid())` olarak çağırıyor: değer satır başına değil sorgu başına bir kez hesaplanıyor.

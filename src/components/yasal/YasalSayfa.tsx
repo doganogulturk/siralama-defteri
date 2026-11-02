@@ -4,8 +4,8 @@ import Link from 'next/link';
 import Marka from '@/components/Marka';
 import DilSecici from '@/components/DilSecici';
 import { ILETISIM_EPOSTA, yasalSayfalar } from '@/lib/iletisim';
-import { diliSec, messages } from '@/lib/i18n';
-import { useDil } from '@/lib/i18n/useDil';
+import { diliSec } from '@/lib/i18n';
+import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 
 export const Eposta = () => <a href={`mailto:${ILETISIM_EPOSTA}`}>{ILETISIM_EPOSTA}</a>;
 
@@ -25,9 +25,10 @@ export interface YasalSurum {
  * uygulama grubunun dışında. Metin arayüz dilinde gösteriliyor; iki dilin metni de sayfanın kendisinde.
  */
 export default function YasalSayfa({ tr, en }: { tr: YasalSurum; en: YasalSurum }) {
-  const dil = useDil();
+  const dil = useDilim();
   const sayfa = dil === 'en' ? en : tr;
-  const m = messages().yasal;
+  const mesajlar = useMesajlar();
+  const m = mesajlar.yasal;
   return (
     <div className="metin-sayfa">
       <header className="paylasim-bar metin-bar">
@@ -50,8 +51,8 @@ export default function YasalSayfa({ tr, en }: { tr: YasalSurum; en: YasalSurum 
         <article className="metin">{sayfa.govde}</article>
       </main>
 
-      <nav className="metin-gezinme" aria-label={messages().hesap.yasalSayfalar}>
-        {yasalSayfalar().map(s => <Link key={s.href} href={s.href}>{s.ad}</Link>)}
+      <nav className="metin-gezinme" aria-label={mesajlar.hesap.yasalSayfalar}>
+        {yasalSayfalar(dil).map(s => <Link key={s.href} href={s.href}>{s.ad}</Link>)}
       </nav>
     </div>
   );

@@ -6,7 +6,8 @@ import { hesabiSil } from '@/lib/items';
 import { hataMetni } from '@/lib/hata';
 import { hesapBilgisi } from '@/components/Hesap';
 import { uyar } from '@/lib/pencere';
-import { dilEtiketi, messages } from '@/lib/i18n';
+import { dilEtiketi } from '@/lib/i18n';
+import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 
 /**
  * Hesap Silme sayfasının sonundaki silme kutusu: ne silineceği okunduktan sonra.
@@ -15,7 +16,9 @@ import { dilEtiketi, messages } from '@/lib/i18n';
  */
 export default function VeriSilmePaneli() {
   const { user, loading } = useAuth();
-  const m = messages().silme;
+  const dil = useDilim();
+  const mesajlar = useMesajlar();
+  const m = mesajlar.silme;
   /** Silmeyi onaylamak için yazılacak kelime: yanlışlıkla iki dokunuşla silinmesin. */
   const ONAY = m.onayKelimesi;
   const [acik, setAcik] = useState(false);
@@ -32,7 +35,7 @@ export default function VeriSilmePaneli() {
   }
   if (loading || !user) return null;
 
-  const tamam = onay.trim().toLocaleUpperCase(dilEtiketi()) === ONAY;
+  const tamam = onay.trim().toLocaleUpperCase(dilEtiketi(dil)) === ONAY;
   const sil = async () => {
     if (!tamam || siliniyor) return;
     setSiliniyor(true);
@@ -65,7 +68,7 @@ export default function VeriSilmePaneli() {
             autoCapitalize="characters"
           />
           <div className="silme-islemler">
-            <button type="button" className="btn-quiet" onClick={() => { setAcik(false); setOnay(''); }}>{messages().genel.vazgec}</button>
+            <button type="button" className="btn-quiet" onClick={() => { setAcik(false); setOnay(''); }}>{mesajlar.genel.vazgec}</button>
             <button type="button" className="btn-danger" onClick={sil} disabled={!tamam || siliniyor}>
               {siliniyor ? m.siliniyor : m.kaliciSil}
             </button>

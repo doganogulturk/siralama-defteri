@@ -12,12 +12,14 @@ import { guvenliFoto } from '@/lib/paylasim';
 import { useAuth } from '@/hooks/useAuth';
 import { useListeler, siralanan } from '@/hooks/useListeler';
 import { brandInitials } from '@/types/item';
-import { messages } from '@/lib/i18n';
+import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 
-/** Kör Sıralama'nın liste seçimi; sayfa statik, metinler arayüz dilinde istemcide çiziliyor. */
+/** Kör Sıralama'nın liste seçimi; metinler arayüz dilinde (sunucu ilk çizimi isteğin dilinde yapıyor). */
 export default function KorSecim() {
-  const t = messages().kor;
-  const sayi = messages().sayilar;
+  const dil = useDilim();
+  const mesajlar = useMesajlar();
+  const t = mesajlar.kor;
+  const sayi = mesajlar.sayilar;
   const { user } = useAuth();
   return (
     <div className="kor-sayfa">
@@ -39,7 +41,7 @@ export default function KorSecim() {
               <em>{sayi.kartAlt}</em>
             </Link>
           </li>
-          {korListeleri().map((l, i) => (
+          {korListeleri(dil).map((l, i) => (
             <li key={l.slug} style={{ '--kor': l.renk, '--i': i + 1 } as React.CSSProperties}>
               <Link href={`/kor/${l.slug}`} className="kor-secim-kart">
                 <span aria-hidden="true">{l.simge}</span>
@@ -62,7 +64,7 @@ export default function KorSecim() {
  * menüsündeki "Kör sıralat"la aynı iş, keşfedilsin diye burada da.
  */
 function KendiListelerin() {
-  const t = messages().kor;
+  const t = useMesajlar().kor;
   const { listeler, sayilar, loading } = useListeler();
   const [bildirim, setBildirim] = useState<string | null>(null);
   const [hepsi, setHepsi] = useState(false);

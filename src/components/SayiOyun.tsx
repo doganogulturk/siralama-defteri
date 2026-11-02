@@ -6,7 +6,8 @@ import {
   ADET, SAYILAR_RENK, gunlukMu, gununTohumu, puanla, rastgeleTohum, sayilariUret, tarihYaz,
   tohumTarihi, yerlesimCoz, yerlesimYaz,
 } from '@/lib/sayilar';
-import { DIL_PARAMETRE, dilEtiketi, messages, simdikiDil } from '@/lib/i18n';
+import { DIL_PARAMETRE, dilEtiketi } from '@/lib/i18n';
+import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 import { titret } from '@/lib/his';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -31,8 +32,10 @@ const depoYaz = (tohum: string, sira: number[]) => {
  * çiziliyor, gece yarısı iki taraf farklı gün görebilirdi.
  */
 export default function SayiOyun({ tohum: adresTohumu, arkadas }: { tohum: string | null; arkadas: number[] | null }) {
-  const t = messages().sayilar;
-  const k = messages().kor;
+  const dil = useDilim();
+  const mesajlar = useMesajlar();
+  const t = mesajlar.sayilar;
+  const k = mesajlar.kor;
   const [asama, setAsama] = useState<Asama>('giris');
   const [tohum, setTohum] = useState<string | null>(adresTohumu);
   const [gunun, setGunun] = useState<string | null>(null);
@@ -142,7 +145,7 @@ export default function SayiOyun({ tohum: adresTohumu, arkadas }: { tohum: strin
               ) : (
                 <button type="button" className="sayi-gunun" onClick={() => basla(gunun)}>
                   <strong>{t.gunun}</strong>
-                  <span>{t.gununAlt(tarihYaz(tohumTarihi(gunun)!, dilEtiketi()))}</span>
+                  <span>{t.gununAlt(tarihYaz(tohumTarihi(gunun)!, dilEtiketi(dil)))}</span>
                 </button>
               ))}
               <button type="button" className="btn-quiet sayi-serbest" onClick={() => basla(rastgeleTohum())}>
@@ -197,9 +200,10 @@ export default function SayiOyun({ tohum: adresTohumu, arkadas }: { tohum: strin
 function SayiSonuc({ tohum, yuvalar, arkadasPuani, onYeni }: {
   tohum: string; yuvalar: number[]; arkadasPuani: number | null; onYeni: () => void;
 }) {
-  const t = messages().sayilar;
-  const k = messages().kor;
-  const dil = simdikiDil();
+  const mesajlar = useMesajlar();
+  const t = mesajlar.sayilar;
+  const k = mesajlar.kor;
+  const dil = useDilim();
   const { user } = useAuth();
   const { puan, yerinde, dogrusu } = useMemo(() => puanla(yuvalar), [yuvalar]);
   const s = useMemo(() => {
@@ -230,7 +234,7 @@ function SayiSonuc({ tohum, yuvalar, arkadasPuani, onYeni }: {
   const paylas = async () => {
     const dilEki = dil === 'tr' ? '' : `&${DIL_PARAMETRE}=${dil}`;
     const url = `${window.location.origin}/kor/sayilar?t=${tohum}&s=${s}${dilEki}`;
-    const metin = tarih ? t.paylasimGunluk(puan, tarihYaz(tarih, dilEtiketi())) : t.paylasimSerbest(puan);
+    const metin = tarih ? t.paylasimGunluk(puan, tarihYaz(tarih, dilEtiketi(dil))) : t.paylasimSerbest(puan);
     try {
       if (gorsel && navigator.canShare?.({ files: [gorsel] })) {
         await navigator.share({ files: [gorsel], text: `${metin} ${url}` });

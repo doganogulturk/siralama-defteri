@@ -15,8 +15,9 @@ Claude Code bu dosyayı her oturumun başında okuyor. Projenin bilgi birikimi `
 
 - **Kameralı Kör Sıralama** — `components/KorKamera.tsx`, `lib/kamera.ts`. Ön kamera, başın üstünde kart, tek tuvalden sesli 9:16 video; video cihazdan çıkmıyor. iPhone'da denendi ve beğenildi; Android ve paylaşım hedefleri denenmedi.
 - **Kademeler (tier list)** — `lib/kademe.ts`, `components/kademe/`, şemada `lists.kademeler` ve `items.kademe`. Kural: `sira` her zaman kademe sırasıyla tutarlı; özetler, paylaşım, karşılaştırma ve Kör Sıralama bu yüzden kademeyi bilmeden doğru sırayı okuyor. Uygulamada vurgunun tonları, paylaşım görselinde klasik tier renkleri.
-- **Doğru Sıra** — `lib/dogru-sira.ts`, `lib/dogru-sira-listeler.ts`, `/kor/dogru-sira/[liste]`. Doğru cevabı olan sıralamalar; veriler kaynaklı, yıllık bakım istiyor (TÜİK il nüfusları her Şubat).
-- Sırada: kör tier list (kameralı ve kamerasız), bkz. yol haritası → Video ve tier list.
+- **Doğru Sıra** — `lib/dogru-sira.ts`, `lib/dogru-sira-listeler.ts`, `/oyna/dogru-sira/[liste]`. Doğru cevabı olan sıralamalar; veriler kaynaklı, yıllık bakım istiyor (TÜİK il nüfusları her Şubat).
+- **Oyna** — oyunlar `/oyna` altında (`components/oyna/`); ana ekranda "Bugün" ve "Oyunlar"; giriş yapmamış ziyaretçi ana sayfada oyunları görüyor. Eski `/kor` adresleri `next.config.ts`'te yönlendiriliyor.
+- Sırada: **Oyunlar planı** (yol haritası) — mod ile liste ayrı; 2. adım ortak katalog, Tier ve Kör Tier modları; sonra katalog veritabanına ve kullanıcıların liste önermesi (yönetici onayı).
 
 ## Alışkanlıklar
 

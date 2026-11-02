@@ -137,7 +137,7 @@ export async function GET(istek: Request) {
 
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: 'auto', paddingTop: 36, alignItems: 'center' }}>
           <div style={{ fontFamily: 'Instrument Serif', fontSize: 76, lineHeight: 1 }}>{t.senKac}</div>
-          <div style={{ fontSize: 34, color: RENK.soluk, marginTop: 14 }}>{`${adres.host}/kor/sayilar`}</div>
+          <div style={{ fontSize: 34, color: RENK.soluk, marginTop: 14 }}>{`${adres.host}/oyna/sayilar`}</div>
         </div>
       </div>
     ),

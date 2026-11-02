@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { brandInitials } from '@/types/item';
 import type { OzetKayit } from '@/lib/items';
 import { messages } from '@/lib/i18n';
+import { BugunKartlari, OyunSeridi } from '@/components/oyna/OyunKartlari';
 
 /**
  * Liste kartının vitrini: ilk üçün fotoğrafları kartın bütün yüksekliğinde, soldan
@@ -70,7 +71,7 @@ export default function ListelerPage() {
           <div className="home-head-yan">
             {/* Masaüstünde yüzen düğme gizli; ekleme üst çubuğa geçiyor. */}
             <div className="list-head-actions">
-              <Link href="/kor" className="btn-quiet">{m.menu.kor}</Link>
+              <Link href="/oyna" className="btn-quiet">{m.menu.kor}</Link>
               <button type="button" className="btn-primary" onClick={() => setFormAcik(true)}>
                 <span aria-hidden="true">+</span> {m.menu.yeniListe}
               </button>
@@ -79,8 +80,26 @@ export default function ListelerPage() {
           </div>
         </div>
 
+        {ilkAd && <p className="home-hello">{a.merhaba(ilkAd)}</p>}
+
+        {/* Oyunlar: günün iki oyunu ve modların şeridi. Kişisel listeler aşağıda. */}
+        <section className="home-oyun" aria-label={m.oyna.oyunlar}>
+          <div className="home-oyun-grup">
+            <div className="home-oyun-bas">
+              <h2>{m.oyna.bugun}</h2>
+            </div>
+            <BugunKartlari />
+          </div>
+          <div className="home-oyun-grup">
+            <div className="home-oyun-bas">
+              <h2>{m.oyna.oyunlar}</h2>
+              <Link href="/oyna">{m.oyna.tumu}</Link>
+            </div>
+            <OyunSeridi />
+          </div>
+        </section>
+
         <header className="home-head">
-          {ilkAd && <p className="home-hello">{a.merhaba(ilkAd)}</p>}
           <h1 className="home-title">{a.baslik}</h1>
           {listeler.length > 0 && (
             // İki gösterge kutusu: üstte etiket, altta iri serif sayı; sıralanan vurgu renginde.

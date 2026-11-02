@@ -9,7 +9,7 @@ import { dilEtiketi, type Dil } from './i18n';
  * doğru mu dizildiği. Karşılaştırmadaki (`lib/kiyas.ts`) ölçünün aynısı.
  *
  * Hiçbir şey kaydedilmiyor. Seçim tohumdan (Sayılar'ın tohumları: `g20261102` günlük,
- * `rk3x9q2` serbest), oyuncunun dizilişi adreste: `/kor/dogru-sira/<liste>?t=<tohum>&s=<diziliş>`.
+ * `rk3x9q2` serbest), oyuncunun dizilişi adreste: `/oyna/dogru-sira/<liste>?t=<tohum>&s=<diziliş>`.
  * Diziliş Sayılar'ınkiyle aynı biçimde: yukarıdan aşağı, oradaki maddenin geliş sırası.
  * Burada React yok (`dogru-sira.test.ts`).
  */

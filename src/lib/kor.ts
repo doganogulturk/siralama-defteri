@@ -3,7 +3,7 @@ import { simdikiDil, type Dil } from './i18n';
 /**
  * Kör Sıralama: hazır listeler ve sonuçların adrese yazılması. Oyun girişsiz
  * oynanıyor ve hiçbir şey kaydedilmiyor — sonuç adreste taşınıyor (`?s=`), sonuç
- * görseli (`/kor/[liste]/gorsel`) ve arkadaşla karşılaştırma oradan okuyor.
+ * görseli (`/oyna/kor/[liste]/gorsel`) ve arkadaşla karşılaştırma oradan okuyor.
  *
  * Listeler marka ya da işletme değil tür adlarından: herkes aynı şeyleri tanısın.
  * Her listede tam on kayıt; sıra bir kez yayımlanınca değişmemeli, çünkü sonuçlar

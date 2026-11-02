@@ -105,7 +105,7 @@ export default function SayiOyun({ tohum: adresTohumu, arkadas }: { tohum: strin
   return (
     <div className="kor" style={{ '--kor': SAYILAR_RENK } as React.CSSProperties}>
       <header className="kor-bar">
-        <Link href="/kor" className="mobile-brand-back" aria-label={k.listeler}>
+        <Link href="/oyna" className="mobile-brand-back" aria-label={k.listeler}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 5l-7 7 7 7" />
@@ -218,7 +218,7 @@ function SayiSonuc({ tohum, yuvalar, arkadasPuani, onYeni }: {
   // hemen ardından açıyor (KorOyun ile aynı gerekçe).
   useEffect(() => {
     let iptal = false;
-    fetch(`/kor/sayilar/gorsel?t=${tohum}&s=${s}&${DIL_PARAMETRE}=${dil}`)
+    fetch(`/oyna/sayilar/gorsel?t=${tohum}&s=${s}&${DIL_PARAMETRE}=${dil}`)
       .then(y => (y.ok ? y.blob() : Promise.reject(new Error(String(y.status)))))
       .then(b => { if (!iptal) setGorsel(new File([b], `${t.dosyaAdi}.png`, { type: 'image/png' })); })
       .catch(() => { /* görsel yoksa yalnızca bağlantı paylaşılır */ });
@@ -233,7 +233,7 @@ function SayiSonuc({ tohum, yuvalar, arkadasPuani, onYeni }: {
 
   const paylas = async () => {
     const dilEki = dil === 'tr' ? '' : `&${DIL_PARAMETRE}=${dil}`;
-    const url = `${window.location.origin}/kor/sayilar?t=${tohum}&s=${s}${dilEki}`;
+    const url = `${window.location.origin}/oyna/sayilar?t=${tohum}&s=${s}${dilEki}`;
     const metin = tarih ? t.paylasimGunluk(puan, tarihYaz(tarih, dilEtiketi(dil))) : t.paylasimSerbest(puan);
     try {
       if (gorsel && navigator.canShare?.({ files: [gorsel] })) {
@@ -290,7 +290,7 @@ function SayiSonuc({ tohum, yuvalar, arkadasPuani, onYeni }: {
         <button type="button" className="btn-primary" onClick={paylas}>{k.paylas}</button>
         {gorsel && <button type="button" className="btn-quiet kor-indir" onClick={indir}>{k.gorseliIndir}</button>}
         <button type="button" className="btn-quiet" onClick={onYeni}>{t.yeniSayilar}</button>
-        <Link href="/kor" className="btn-quiet">{k.baskaListe}</Link>
+        <Link href="/oyna" className="btn-quiet">{k.baskaListe}</Link>
       </div>
 
       <Link href="/" className="kor-davet">

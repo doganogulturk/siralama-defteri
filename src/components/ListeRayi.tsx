@@ -163,7 +163,7 @@ export default function ListeRayi({ aktifSlug, aktifKategoriler }: ListeRayiProp
         <button type="button" className="rail-add" onClick={() => setFormAcik(true)}>
           {ArtiIkon}{m.menu.yeniListe}
         </button>
-        <Link href="/kor" className="rail-oyun">{m.ray.korOyna}</Link>
+        <Link href="/oyna" className="rail-oyun">{m.ray.korOyna}</Link>
       </aside>
 
       <ListeEkleModal isOpen={formAcik} onClose={() => setFormAcik(false)} onCreated={load} />

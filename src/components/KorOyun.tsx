@@ -93,7 +93,7 @@ export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: numb
   return (
     <div className="kor" style={{ '--kor': liste.renk } as React.CSSProperties}>
       <header className="kor-bar">
-        <Link href="/kor" className="mobile-brand-back" aria-label={t.listeler}>
+        <Link href="/oyna" className="mobile-brand-back" aria-label={t.listeler}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 5l-7 7 7 7" />
@@ -158,9 +158,9 @@ export default function KorOyun({ slug, arkadas }: { slug: string; arkadas: numb
           kilit={kilit}
           bitti={asama === 'sonuc'}
           onYerlestir={yerlestir}
-          adres={`${window.location.host}/kor/${liste.slug}`}
+          adres={`${window.location.host}/oyna/kor/${liste.slug}`}
           dosyaAdi={t.kamera.dosyaAdi(liste.slug)}
-          paylasimMetni={`${t.paylasimDuz(liste.ad)} ${window.location.origin}/kor/${liste.slug}${dil === 'tr' ? '' : `?${DIL_PARAMETRE}=${dil}`}`}
+          paylasimMetni={`${t.paylasimDuz(liste.ad)} ${window.location.origin}/oyna/kor/${liste.slug}${dil === 'tr' ? '' : `?${DIL_PARAMETRE}=${dil}`}`}
           onSonuc={() => setKamera(false)}
           onYenidenCek={kameraylaBasla}
           onKapat={() => setKamera(false)}
@@ -216,7 +216,7 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
   // hemen ardından açıyor, dokunuştan sonra indirmeye başlamak menüyü engellerdi.
   useEffect(() => {
     let iptal = false;
-    fetch(`/kor/${liste.slug}/gorsel?s=${s}&${DIL_PARAMETRE}=${dil}`)
+    fetch(`/oyna/kor/${liste.slug}/gorsel?s=${s}&${DIL_PARAMETRE}=${dil}`)
       .then(y => (y.ok ? y.blob() : Promise.reject(new Error(String(y.status)))))
       .then(b => { if (!iptal) setGorsel(new File([b], `${t.dosyaAdi(liste.slug)}.png`, { type: 'image/png' })); })
       .catch(() => { /* görsel yoksa yalnızca bağlantı paylaşılır */ });
@@ -230,7 +230,7 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
   }, [bildirim]);
 
   const paylas = async () => {
-    const url = `${window.location.origin}/kor/${liste.slug}?s=${s}${dilEki}`;
+    const url = `${window.location.origin}/oyna/kor/${liste.slug}?s=${s}${dilEki}`;
     const metin = uyum !== null ? t.paylasimUyum(liste.ad, uyum) : t.paylasimDuz(liste.ad);
     try {
       if (gorsel && navigator.canShare?.({ files: [gorsel] })) {
@@ -288,7 +288,7 @@ function KorSonuc({ liste, sira, arkadas, onTekrar }: {
         <button type="button" className="btn-primary" onClick={paylas}>{t.paylas}</button>
         {gorsel && <button type="button" className="btn-quiet kor-indir" onClick={indir}>{t.gorseliIndir}</button>}
         <button type="button" className="btn-quiet" onClick={onTekrar}>{t.tekrar}</button>
-        <Link href="/kor" className="btn-quiet">{t.baskaListe}</Link>
+        <Link href="/oyna" className="btn-quiet">{t.baskaListe}</Link>
       </div>
 
       {/* Oturum açıksa kayıt çağrısı yerine listelere dönüş. */}

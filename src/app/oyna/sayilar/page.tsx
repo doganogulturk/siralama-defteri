@@ -15,7 +15,7 @@ function sonucOku(t?: string, s?: string) {
   return sira ? { tohum: t, sira } : null;
 }
 
-/** Önizleme kartı paylaşanın dilinde ve puanıyla (`/kor/sayilar/gorsel?boyut=kart`). */
+/** Önizleme kartı paylaşanın dilinde ve puanıyla (`/oyna/sayilar/gorsel?boyut=kart`). */
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const arama = await searchParams;
   const dil = await sunucuDili(arama[DIL_PARAMETRE]);
@@ -33,7 +33,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       title: t.baslik,
       description: aciklama,
       siteName: sozluk(dil).marka,
-      images: [{ url: `/kor/sayilar/gorsel?${gorsel}`, width: 1200, height: 630 }],
+      images: [{ url: `/oyna/sayilar/gorsel?${gorsel}`, width: 1200, height: 630 }],
     },
   };
 }

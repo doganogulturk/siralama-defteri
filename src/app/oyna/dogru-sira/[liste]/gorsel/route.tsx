@@ -119,7 +119,7 @@ export async function GET(istek: Request, { params }: { params: Promise<{ liste:
 
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: 'auto', paddingTop: 36, alignItems: 'center' }}>
           <div style={{ fontFamily: 'Instrument Serif', fontSize: 76, lineHeight: 1 }}>{t.senKac}</div>
-          <div style={{ fontSize: 34, color: RENK.soluk, marginTop: 14 }}>{`${adres.host}/kor/dogru-sira/${slug}`}</div>
+          <div style={{ fontSize: 34, color: RENK.soluk, marginTop: 14 }}>{`${adres.host}/oyna/dogru-sira/${slug}`}</div>
         </div>
       </div>
     ),

@@ -22,7 +22,20 @@ const nextConfig: NextConfig = {
    */
   outputFileTracingIncludes: {
     "/p/**": ["./src/fonts/**/*"],
-    "/kor/**": ["./src/fonts/**/*"],
+    "/oyna/**": ["./src/fonts/**/*"],
+  },
+  /*
+   * Oyunlar Kasım 2026'da `/kor`'dan `/oyna`'ya taşındı. Paylaşılmış bağlantılar (sonuç
+   * `?s=` ve tohum `?t=` sorgularıyla) kalıcı yönlendirmeyle yeni yerinde açılıyor; sorgu
+   * kendiliğinden taşınıyor. Sıra önemli: ilk eşleşen kazanıyor.
+   */
+  async redirects() {
+    return [
+      { source: "/kor", destination: "/oyna", permanent: true },
+      { source: "/kor/sayilar/:yol*", destination: "/oyna/sayilar/:yol*", permanent: true },
+      { source: "/kor/dogru-sira/:yol*", destination: "/oyna/dogru-sira/:yol*", permanent: true },
+      { source: "/kor/:liste/:yol*", destination: "/oyna/kor/:liste/:yol*", permanent: true },
+    ];
   },
 };
 

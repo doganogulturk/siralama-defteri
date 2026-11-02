@@ -4262,3 +4262,111 @@ body:has(.mobil-menu) .kor-sayfa { padding-bottom: calc(110px + env(safe-area-in
 /* Kör Sıralama seçim ekranında Doğru Sıra bölümü ve günün kartı. */
 .ds-bolum { margin-top: 32px; }
 .ds-bolum .kor-secim-kart em { line-height: 1.35; }
+
+/* ── Oyunlar: ana ekran ve Oyna (components/oyna) ──────────────────
+   Oyunlar kendi renkleriyle (`--kor`), küçük ve enerjik kartlar; kişisel listeler
+   fotoğraflı vitrin ve uygulamanın tek vurgu rengiyle. İki dünya yan yana ama karışmıyor. */
+.home-hello { padding-top: 22px; }
+.home-oyun { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; }
+.home-oyun-grup { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.home-oyun-bas { display: flex; align-items: baseline; justify-content: space-between; margin-top: 6px; }
+.home-oyun-bas h2 { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mute); }
+.home-oyun-bas a { font-size: 0.84rem; font-weight: 600; color: var(--accent-ink); text-decoration: none; }
+.home-oyun + .home-head { padding-top: 28px; }
+
+.bugun { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; list-style: none; }
+.bugun.is-yukleniyor { min-height: 104px; }
+.bugun-kart {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  height: 100%;
+  min-height: 104px;
+  padding: 14px;
+  border-radius: var(--r-md);
+  background: linear-gradient(140deg, color-mix(in oklab, var(--kor) 16%, var(--surface)), var(--surface) 75%);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--kor) 28%, transparent), var(--shadow-sm);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease);
+}
+.bugun-kart:hover { transform: translateY(-2px); }
+.bugun-kart:active { transform: scale(0.98); }
+.bugun-simge { font-size: 1.6rem; line-height: 1.1; margin-bottom: 4px; }
+.bugun-kart strong { font-family: var(--serif); font-size: 1.3rem; font-weight: 400; line-height: 1.05; }
+.bugun-kart em { font-style: normal; font-size: 0.76rem; line-height: 1.35; color: var(--mute); }
+.bugun-kart.is-oynandi em { font-weight: 600; color: var(--kor); }
+
+.oyun-seridi {
+  display: flex;
+  gap: 10px;
+  margin: 0 -16px;
+  padding: 2px 16px 6px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  list-style: none;
+}
+.oyun-seridi::-webkit-scrollbar { display: none; }
+.oyun-seridi li { flex: 0 0 auto; scroll-snap-align: start; }
+.oyun-kart {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 168px;
+  height: 100%;
+  padding: 14px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--hair), var(--shadow-sm);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease);
+}
+.oyun-kart:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px color-mix(in oklab, var(--kor) 45%, transparent), var(--shadow); }
+.oyun-kart:active { transform: scale(0.97); }
+.oyun-kart-simge {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--kor) 14%, var(--surface));
+  font-size: 1.35rem;
+}
+.oyun-kart strong { font-family: var(--serif); font-size: 1.25rem; font-weight: 400; line-height: 1.05; }
+.oyun-kart em { font-style: normal; font-size: 0.76rem; line-height: 1.35; color: var(--soft); }
+.oyun-kart small { margin-top: auto; padding-top: 6px; font-size: 0.72rem; font-weight: 600; color: var(--kor); }
+@media (min-width: 1024px) {
+  .oyun-seridi { margin: 0; padding: 2px 0 6px; overflow: visible; flex-wrap: wrap; }
+  .oyun-kart { width: 200px; }
+  .bugun { grid-template-columns: repeat(2, 220px); }
+  /* Masaüstünde Bugün ve Oyunlar tek satırda yan yana. */
+  .home-oyun { flex-direction: row; align-items: stretch; gap: 28px; }
+  .home-oyun-grup:last-child { flex: 1; }
+  .home-oyun .oyun-seridi { flex-wrap: nowrap; }
+}
+
+/* Oyna sayfası: bölümler ve giriş yapmamış ziyaretçinin çağrısı. */
+.oyna .paylasim-bar { display: flex; align-items: center; justify-content: space-between; }
+.oyna-bolum-baslik { margin-top: 28px; margin-bottom: 4px; font-family: var(--serif); font-size: 1.7rem; font-weight: 400; line-height: 1.1; }
+.oyna-etiket { margin: 24px 0 10px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mute); }
+.oyna-bolum { margin-top: 8px; }
+.oyna-bolum-alt { max-width: 46ch; margin-bottom: 12px; font-size: 0.88rem; line-height: 1.45; color: var(--mute); }
+.oyna-bolum .kor-kendi-bolum { margin: 4px 0 14px; }
+.oyna-misafir {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 18px 0 8px;
+  padding: 18px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(140deg, var(--accent-wash), var(--surface) 70%);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent), var(--shadow-sm);
+}
+.oyna-misafir h2 { font-family: var(--serif); font-size: 1.6rem; font-weight: 400; line-height: 1.1; }
+.oyna-misafir p { font-size: 0.9rem; line-height: 1.45; color: var(--soft); }
+.oyna-misafir-islem { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 8px; }
+.oyna-misafir .gate-btn { min-height: 48px; margin-top: 0; padding: 0 22px 0 12px; }
+.oyna-nasil { font-size: 0.88rem; font-weight: 600; color: var(--accent-ink); text-decoration: none; }

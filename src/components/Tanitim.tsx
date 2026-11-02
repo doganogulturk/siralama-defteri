@@ -201,7 +201,7 @@ export default function Tanitim({ girisDugmesi }: { girisDugmesi: React.ReactNod
       <header className="tn-bar">
         <Marka />
         <DilSecici className="tn-dil" kisa />
-        <Link href="/kor" className="tn-oyna">{m.tanitim.oyna}</Link>
+        <Link href="/oyna" className="tn-oyna">{m.tanitim.oyna}</Link>
       </header>
 
       <div
@@ -225,7 +225,7 @@ export default function Tanitim({ girisDugmesi }: { girisDugmesi: React.ReactNod
             <p className="tn-etiket-ust">{i + 1} / {ADIMLAR.length} · {a.etiket}</p>
             <h1 className="tn-baslik">{a.baslik}</h1>
             <p className="tn-metin">{a.metin}</p>
-            {i === ADIMLAR.length - 1 && <Link href="/kor" className="tn-kor-dugme">{m.tanitim.hemenOyna}</Link>}
+            {i === ADIMLAR.length - 1 && <Link href="/oyna" className="tn-kor-dugme">{m.tanitim.hemenOyna}</Link>}
           </section>
         ))}
       </div>

@@ -10,7 +10,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
-  degerYaz, dogruDizi, dogruSiraListesi, gununListesi, maddeleriSec, puanla, yuzde, type DogruSiraListe,
+  degerYaz, dogruDizi, dogruSiraListesi, maddeleriSec, puanla, yuzde, type DogruSiraListe,
 } from '@/lib/dogru-sira';
 import { gununTohumu, gunlukMu, rastgeleTohum, tarihYaz, tohumTarihi, yerlesimCoz, yerlesimYaz } from '@/lib/sayilar';
 import { DIL_PARAMETRE, dilEtiketi } from '@/lib/i18n';
@@ -94,7 +94,7 @@ export default function DogruSiraOyun({ slug, tohum: adresTohumu, arkadas }: {
   return (
     <div className="kor dogru-sira" style={{ '--kor': liste.renk } as React.CSSProperties}>
       <header className="kor-bar">
-        <Link href="/kor" className="mobile-brand-back" aria-label={k.listeler}>
+        <Link href="/oyna" className="mobile-brand-back" aria-label={k.listeler}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 5l-7 7 7 7" />
@@ -276,7 +276,7 @@ function DogruSiraSonuc({ liste, tohum, secim, dizilis, arkadasUyumu, onYeni }: 
   // hemen ardından açıyor (KorOyun ile aynı gerekçe).
   useEffect(() => {
     let iptal = false;
-    fetch(`/kor/dogru-sira/${liste.slug}/gorsel?t=${tohum}&s=${s}&${DIL_PARAMETRE}=${dil}`)
+    fetch(`/oyna/dogru-sira/${liste.slug}/gorsel?t=${tohum}&s=${s}&${DIL_PARAMETRE}=${dil}`)
       .then(y => (y.ok ? y.blob() : Promise.reject(new Error(String(y.status)))))
       .then(b => { if (!iptal) setGorsel(new File([b], `${t.dosyaAdi(liste.slug)}.png`, { type: 'image/png' })); })
       .catch(() => { /* görsel yoksa yalnızca bağlantı paylaşılır */ });
@@ -291,7 +291,7 @@ function DogruSiraSonuc({ liste, tohum, secim, dizilis, arkadasUyumu, onYeni }: 
 
   const paylas = async () => {
     const dilEki = dil === 'tr' ? '' : `&${DIL_PARAMETRE}=${dil}`;
-    const url = `${window.location.origin}/kor/dogru-sira/${liste.slug}?t=${tohum}&s=${s}${dilEki}`;
+    const url = `${window.location.origin}/oyna/dogru-sira/${liste.slug}?t=${tohum}&s=${s}${dilEki}`;
     const metin = tarih
       ? t.paylasimGunluk(liste.ad, sonuc.uyum, tarihYaz(tarih, dilEtiketi(dil)))
       : t.paylasimSerbest(liste.ad, sonuc.uyum);
@@ -358,7 +358,7 @@ function DogruSiraSonuc({ liste, tohum, secim, dizilis, arkadasUyumu, onYeni }: 
         <button type="button" className="btn-primary" onClick={paylas}>{k.paylas}</button>
         {gorsel && <button type="button" className="btn-quiet kor-indir" onClick={indir}>{k.gorseliIndir}</button>}
         <button type="button" className="btn-quiet" onClick={onYeni}>{t.yeniOn}</button>
-        <Link href="/kor" className="btn-quiet">{t.baskaListe}</Link>
+        <Link href="/oyna" className="btn-quiet">{t.baskaListe}</Link>
       </div>
 
       <Link href="/" className="kor-davet">
@@ -380,8 +380,3 @@ function DogruSiraSonuc({ liste, tohum, secim, dizilis, arkadasUyumu, onYeni }: 
   );
 }
 
-/** Kör Sıralama seçim ekranındaki günün kartı için: bugünün listesi ve tohumu. */
-export function gununDogruSirasi(): { tohum: string; slug: string } {
-  const tohum = gununTohumu();
-  return { tohum, slug: gununListesi(tohum)! };
-}

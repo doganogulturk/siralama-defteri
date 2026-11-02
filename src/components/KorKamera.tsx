@@ -46,7 +46,7 @@ export default function KorKamera(props: {
   /** Bütün kayıtlar yerleşti. */
   bitti: boolean;
   onYerlestir: (yuva: number) => void;
-  /** Son kartta yazan adres: "siralama-defteri.vercel.app/kor/corbalar". */
+  /** Son kartta yazan adres: "siralama-defteri.vercel.app/oyna/kor/corbalar". */
   adres: string;
   dosyaAdi: string;
   paylasimMetni: string;

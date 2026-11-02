@@ -408,6 +408,7 @@ export default function ListePage() {
             onGorunum={gorunumSec}
             kademeGorunumu={siraTierDegeri}
             onKademeGorunumu={siraTierSec}
+            siraAdet={ranked.length}
             secimAcik={!!secim}
             onSecim={() => (secim ? secimModu.kapat() : secimAc())}
           />
@@ -416,7 +417,7 @@ export default function ListePage() {
           {liste && (
             <div className="mobile-arama">
               <AramaKutusu metin={filtre.metin} onChange={aramaDegistir} />
-              {siraTierDegeri !== undefined && !secim && <SiraTierSecici acik={siraTierDegeri} onSec={siraTierSec} />}
+              {siraTierDegeri !== undefined && !secim && <SiraTierSecici acik={siraTierDegeri} adet={ranked.length} onSec={siraTierSec} />}
               <button type="button" className="mobile-paylas" onClick={paylas} aria-label={t.paylasEtiket}>
                 {PaylasIkon}
                 <span>{t.paylas}</span>

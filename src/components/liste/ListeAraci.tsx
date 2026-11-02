@@ -14,7 +14,7 @@ export type Sekme = 'siralama' | 'sirada';
  */
 export default function ListeAraci({
   sekme, onSekme, siralamaAdet, bekleyenAdet, filtreSeridi, arama,
-  gorunum, onGorunum, kademeGorunumu, onKademeGorunumu, secimAcik, onSecim,
+  gorunum, onGorunum, kademeGorunumu, onKademeGorunumu, siraAdet, secimAcik, onSecim,
 }: {
   sekme: Sekme;
   onSekme: (s: Sekme) => void;
@@ -30,6 +30,8 @@ export default function ListeAraci({
   /** Sıralama sekmesinde 1→n / Tier seçimi (kademeler kapalıysa false); verilmezse seçici yok. */
   kademeGorunumu?: boolean;
   onKademeGorunumu: (acik: boolean) => void;
+  /** "1→n"in n'i: sıralamadaki kayıt sayısı. */
+  siraAdet: number;
   secimAcik: boolean;
   onSecim: () => void;
 }) {
@@ -71,7 +73,7 @@ export default function ListeAraci({
         <div className="desk-arama">{arama}</div>
       </div>
       {kademeGorunumu !== undefined && acikAdet > 0 && !secimAcik && (
-        <SiraTierSecici acik={kademeGorunumu} onSec={onKademeGorunumu} />
+        <SiraTierSecici acik={kademeGorunumu} adet={siraAdet} onSec={onKademeGorunumu} />
       )}
       {gorunum && acikAdet > 0 && !kademeGorunumu && (
         <div className="gorunum-secici" role="group" aria-label={t.gorunum}>
@@ -98,12 +100,17 @@ export default function ListeAraci({
  * "Tier" (her kademe bir satır). Kademeleri kapalı listede de görünüyor: "Tier" onları açıyor
  * (sayfa, `kademeleriAc`). Masaüstünde araç satırında, telefonda arama satırında.
  */
-export function SiraTierSecici({ acik, onSec }: { acik: boolean; onSec: (tier: boolean) => void }) {
+export function SiraTierSecici({ acik, adet, onSec }: {
+  acik: boolean;
+  /** Sıralamadaki kayıt sayısı ("Bir daha asla" hariç): "1→11". */
+  adet: number;
+  onSec: (tier: boolean) => void;
+}) {
   const k = messages().kademe;
   return (
     <div className="gorunum-secici sira-tier" role="group" aria-label={messages().liste.gorunum}>
       <button type="button" className={acik ? '' : 'is-on'} aria-pressed={!acik} title={k.listeGorunumu} onClick={() => onSec(false)}>
-        {k.siraEtiketi}
+        {k.siraEtiketi(adet)}
       </button>
       <button type="button" className={acik ? 'is-on' : ''} aria-pressed={acik} title={k.tierGorunumu} onClick={() => onSec(true)}>
         {k.tierEtiketi}

@@ -10,6 +10,7 @@ Son yapılanlar:
 
 | Ne | Ayrıntı |
 |---|---|
+| **Doğru Sıra** | Doğru cevabı olan sıralama oyunu: sekiz liste (ülke nüfusu ve yüzölçümü, il nüfusu, dağlar, padişahlar, tarihî olaylar, elementler, Güneş Sistemi), her seferinde havuzdan on madde, sürükleyerek dizme, Kendall uyumu, değerlerin açılışı, Günün Doğru Sırası, arkadaş bağlantısı ve sonuç görseli. Veriler arama sonuçlarıyla doğrulandı, kaynakları listede ([özellikler](ozellikler.md) → Doğru Sıra). Tarayıcıda denendi; gerçek telefonda denenmedi. |
 | **Kademeler (tier list)** | Liste ayarlarından açılan S–D kademeleri: listede kademe başlıkları ve sürükleme, "Tier" görünümü ve dokun-kademe-seç, kademeli paylaşım sayfası, tier tablosu olarak story görseli (klasik renkler). Şemaya `lists.kademeler` ve `items.kademe` eklendi; `siralamayi_yaz` ve `paylasilan_liste` güncellendi. Ayrıntılar [özellikler](ozellikler.md) → Kademeler. Sahte veriyle tarayıcıda denendi; gerçek hesapla denenmedi. |
 | **Kameralı Kör Sıralama** *(deneme)* | "Kamerayla oyna": ön kamera, başın üstünde kart, solda yuvalar; sesli 9:16 video, sistemin paylaşım menüsüyle paylaşma ya da indirme. Hazır listelerde ve kendi listeni kör sıralatmada. Video cihazdan çıkmıyor; gizlilik politikasına "Kamera ve mikrofon" bölümü eklendi (yasal sayfaların tarihi 2 Kasım 2026). Ayrıntılar [özellikler](ozellikler.md) → Kameralı Kör Sıralama. Geliştirme ortamında sahte kamerayla uçtan uca denendi; **iPhone'da (Safari) denendi ve beğenildi**. Arayüzde küçük düzenlemeler sonraya bırakıldı; Android ve paylaşım hedefleri henüz denenmedi. |
 | **Kendi Supabase projesi** | Veritabanı DoganOgulturk'ten (Harita Avcısı ve başka uygulamalarla paylaşılıyordu) yalnızca bu uygulamaya ait projeye taşındı: eski Sensetorial projesi, adı **SiralamaDefteri**, ref `fcttucpqmarcgktrvibb`. Şema adı aynı (`do_siralama_defteri`), Exposed schemas'ta. 3 kullanıcı aynı kimliklerle, 18 liste / 18 kategori / 246 kayıt ve 131 fotoğraf kopyalandı; kova `ayran` → `fotograflar`, kayıtlardaki adresler yeniden yazıldı. İstemci publishable anahtarla bağlanıyor (`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`). DoganOgulturk'teki `do_siralama_defteri` şeması silindi. |
@@ -21,14 +22,15 @@ Canlıda denenmedi (gerçek hesap istiyor, sahibin yapması gerekiyor): İngiliz
 
 ## Sıradaki adım
 
-0. **Kademeler için şema** *(yayından önce)*: `supabase/schema.sql` Supabase SQL Editor'da çalıştırılmalı (idempotent; yeni kolonlar, kısıtlar ve iki fonksiyon). Kademeli sürüm `main`'e alınıp yayına çıkmadan **önce**: eski sürüm yeni kolonlardan etkilenmiyor, ama yeni sürüm şema yokken kademeleri açamıyor (kolon yok) ve kademeyi yazamıyor (eski `siralamayi_yaz` anahtarı görmezden geliyor). Ardından gerçek hesapla kademeleri aç, sürükle, kademe seç, story görselini paylaş.
-1. **Kameralı Kör Sıralama: kalan cihaz denemeleri** (Video ve tier list 1): iPhone'da denendi; bir Android (Chrome) ve paylaşım hedefleri (Instagram, TikTok, WhatsApp) kaldı. Sorun çıkarsa önce onu düzelt.
-2. Yukarıdaki üç canlı denemeyi yap; sorun çıkarsa önce onu düzelt.
-3. **Video ve tier list 3 — kör tier list** (aşağıda).
-4. **Bekleyen temizlik** (aşağıda) — kısa, ama anahtarlar güvenlik için önemli.
-5. **Mobil 1 — mimari kararı**: bütün mobil işler buna bağlı.
-6. **Mobil 4 — bildir ve engelle** (Apple 1.2): mimariden bağımsız, web'de şimdiden yapılabilir.
-7. **Yayına çıkış 1 — domain**: Google marka doğrulaması (Yayına çıkış 2) ve uygulama içi bağlantılar (Mobil 6) ona bağlı. Videoların son kartındaki adres de: videoda bağlantıya tıklanamıyor, kısa ve akılda kalan bir adres gerekiyor.
+0. **Kademeler için şema** *(yapılmadıysa önce bu)*: `supabase/schema.sql` Supabase SQL Editor'da çalıştırılmalı (idempotent; yeni kolonlar, kısıtlar ve iki fonksiyon). Kademeli sürüm canlıda; şema çalıştırılana kadar uygulamanın geri kalanı etkilenmiyor ama kademeler açılamıyor (kolon yok). Ardından gerçek hesapla kademeleri aç, sürükle, kademe seç, story görselini paylaş.
+1. **Doğru Sıra verilerine göz at:** `src/lib/dogru-sira-listeler.ts` — değerler ve kaynaklar; telefonda sürükleme ve ok düğmeleri.
+2. **Kameralı Kör Sıralama: kalan cihaz denemeleri** (Video ve tier list 1): iPhone'da denendi; bir Android (Chrome) ve paylaşım hedefleri (Instagram, TikTok, WhatsApp) kaldı. Sorun çıkarsa önce onu düzelt.
+3. Yukarıdaki üç canlı denemeyi yap; sorun çıkarsa önce onu düzelt.
+4. **Video ve tier list 3 — kör tier list** (aşağıda).
+5. **Bekleyen temizlik** (aşağıda) — kısa, ama anahtarlar güvenlik için önemli.
+6. **Mobil 1 — mimari kararı**: bütün mobil işler buna bağlı.
+7. **Mobil 4 — bildir ve engelle** (Apple 1.2): mimariden bağımsız, web'de şimdiden yapılabilir.
+8. **Yayına çıkış 1 — domain**: Google marka doğrulaması (Yayına çıkış 2) ve uygulama içi bağlantılar (Mobil 6) ona bağlı. Videoların son kartındaki adres de: videoda bağlantıya tıklanamıyor, kısa ve akılda kalan bir adres gerekiyor.
 
 ## Video ve tier list
 
@@ -85,4 +87,5 @@ Apple Developer hesabı onaylanınca. Harita Avcısı aynı yoldan geçti (Capac
 | 3 | **Ek alan filtresine bir yer bul** *(ayrıntılandırılacak)* | Evet/Hayır alanlarına göre filtreleme şeritte yok: sıralamanın hemen üstünü kalabalıklaştırıyordu. Mantık `lib/filtre.ts`'te duruyor, `FilterPanel`'in `stack` düzeni de hâlâ çiziyor; eksik olan yalnızca ona giden bir kapı. Masaüstünde doğal yeri rayın açık dalı: kategorilerin altına alan başına Evet/Hayır. |
 | 4 | **Konum alanı** *(ertelendi)* | Ek alanlara "Konum" tipi: yazılı adres ya da Maps bağlantısı, "Şu anki konumum", "Yol tarifi" (`google.com/maps/search/?api=1&query=…`). Paylaşım sayfasında yalnızca yazılı adres, koordinat değil. Places API kullanılmayacak (ücretli). |
 | 5 | **Görsel arama** *(ertelendi)* | Ücretsiz görsel arama API'si yok; dış adres saklamak (kırılan bağlantı, telif, önizleme görselinin güvenlik kuralı) sorunlu. Ucuz hâli: "Görsel ara" Google Görseller'i kayıt adıyla açar, fotoğraf alanı panodan yapıştırmayı kabul eder; görsel küçültülüp kendi kovamıza girer. |
+| 7 | **Doğru Sıra: yeni listeler ve bakım** | Liste eklemek veri işi (`lib/dogru-sira-listeler.ts`, testler kuralları denetliyor). Adaylar: göllerin büyüklüğü, illerin yüzölçümü, bilim insanlarının doğum yılları, Dünya Kupası'nın ev sahipleri (kronoloji). Bakım: TÜİK il nüfusları her yıl Şubat'ta; BM nüfus tahminleri iki yılda bir. Kameralı Kör Sıralama'da oynanması (madde başın üstünde, yeri değişmez, sonda doğru cevap) ve zorluk seçimi (kolayda %5'ten büyük fark, zorda yakın değerler) sonraki adım. |
 | 6 | **Ana ekrana ekleme ipucu** *(ertelendi)* | iOS Safari kurulum önerisini kendisi göstermiyor: ana ekranda kapatılabilir bir "Paylaş → Ana Ekrana Ekle" kartı. Mobil uygulama çıkınca gereksizleşir. |

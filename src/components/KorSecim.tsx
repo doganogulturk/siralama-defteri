@@ -6,7 +6,10 @@ import Link from 'next/link';
 import Marka from './Marka';
 import MobilMenu from './MobilMenu';
 import { korListeleri } from '@/lib/kor';
-import { SAYILAR_RENK } from '@/lib/sayilar';
+import { SAYILAR_RENK, tarihYaz, tohumTarihi, yerlesimCoz } from '@/lib/sayilar';
+import { dogruSiraListeleri, dogruSiraListesi, maddeleriSec, puanla } from '@/lib/dogru-sira';
+import { dilEtiketi } from '@/lib/i18n';
+import { dogruSiraDepoAnahtari, gununDogruSirasi } from './DogruSiraOyun';
 import { korBaglantisiGonder, korUygun } from '@/lib/kor-liste';
 import { guvenliFoto } from '@/lib/paylasim';
 import { useAuth } from '@/hooks/useAuth';
@@ -41,6 +44,7 @@ export default function KorSecim() {
               <em>{sayi.kartAlt}</em>
             </Link>
           </li>
+          <GununDogruSirasi />
           {korListeleri(dil).map((l, i) => (
             <li key={l.slug} style={{ '--kor': l.renk, '--i': i + 1 } as React.CSSProperties}>
               <Link href={`/kor/${l.slug}`} className="kor-secim-kart">
@@ -51,9 +55,58 @@ export default function KorSecim() {
             </li>
           ))}
         </ul>
+
+        {/* Doğru Sıra: doğru cevabı olan, açık oynanan sıralamalar (lib/dogru-sira.ts). */}
+        <section className="kor-kendi-bolum ds-bolum" aria-labelledby="ds-baslik">
+          <h2 id="ds-baslik">{mesajlar.dogruSira.ad}</h2>
+          <p>{mesajlar.dogruSira.bolumAlt}</p>
+          <ul className="kor-secim">
+            {dogruSiraListeleri(dil).map((l, i) => (
+              <li key={l.slug} style={{ '--kor': l.renk, '--i': i } as React.CSSProperties}>
+                <Link href={`/kor/dogru-sira/${l.slug}`} className="kor-secim-kart">
+                  <span aria-hidden="true">{l.simge}</span>
+                  <strong>{l.ad}</strong>
+                  <em>{l.soru}</em>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       </main>
       <MobilMenu aktif="kor" />
     </div>
+  );
+}
+
+/**
+ * Günün Doğru Sırası: Sayılar'ın yanında boydan boya ikinci kart. Gün ve liste tarayıcıda
+ * hesaplanıyor (sunucuda çizilen ilk hâlde yok): gece yarısı iki taraf farklı gün görebilirdi.
+ * Bugün oynandıysa puan.
+ */
+function GununDogruSirasi() {
+  const dil = useDilim();
+  const t = useMesajlar().dogruSira;
+  const [gun, setGun] = useState<{ tohum: string; slug: string; uyum: number | null } | null>(null);
+  useEffect(() => {
+    const { tohum, slug } = gununDogruSirasi();
+    let uyum: number | null = null;
+    try {
+      const d = yerlesimCoz(localStorage.getItem(dogruSiraDepoAnahtari(tohum, slug)));
+      if (d) uyum = puanla(dogruSiraListesi(slug, 'tr')!, maddeleriSec(slug, tohum), d).uyum;
+    } catch { /* depolama kapalı */ }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setGun({ tohum, slug, uyum });
+  }, []);
+  if (!gun) return null;
+  const liste = dogruSiraListesi(gun.slug, dil)!;
+  return (
+    <li className="is-sayilar is-dogru-sira" style={{ '--kor': liste.renk, '--i': 1 } as React.CSSProperties}>
+      <Link href={`/kor/dogru-sira/${gun.slug}?t=${gun.tohum}`} className="kor-secim-kart">
+        <span aria-hidden="true">{liste.simge}</span>
+        <strong>{t.gunun}</strong>
+        <em>{gun.uyum !== null ? t.bugunOynadin(gun.uyum) : t.gununAlt(liste.ad, tarihYaz(tohumTarihi(gun.tohum)!, dilEtiketi(dil)))}</em>
+      </Link>
+    </li>
   );
 }
 

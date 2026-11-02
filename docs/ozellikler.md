@@ -120,13 +120,32 @@ Doğru cevabı olan sıralamalar (`/oyna/dogru-sira/[liste]`; mantık `lib/dogru
 - **Listeler ve kaynaklar:** ülkelerin nüfusu (BM Dünya Nüfus Beklentileri 2024, 2024 tahmini), ülkelerin yüzölçümü (CIA World Factbook), illerin nüfusu (TÜİK ADNKS, 31 Aralık 2025), dağların yüksekliği (Türkiye ve dünyadan karışık; Türkiye'nin yüksek dağları birbirine %5'ten yakın), Osmanlı padişahları (tahta çıkış), tarihî olaylar, elementler (atom numarası), Güneş Sistemi (NASA, Güneş'e ortalama uzaklık; Ceres, Plüton ve Eris cüce gezegen olarak). Tanımı tartışmalı maddeler bilerek yok: denizaşırı toprakları sayılınca alanı ve nüfusu değişen Fransa ve Norveç, kaynakları milyonlarca ayrışan Irak ve Afganistan, kaynaklarda farklı yükseklik verilen Palandöken. İki dilde adlar; özgün adlar (il ve dağ adları) İngilizcede de Türkçe.
 - **Veri bakımı:** nüfuslar her yıl eskiyor. TÜİK il nüfuslarını her yıl Şubat'ta, BM Dünya Nüfus Beklentileri'ni iki yılda bir yayımlıyor; güncellenince `kaynak`taki yıl da değişmeli. Bir listenin `slug`ı ve havuzdaki sırası yayımlandıktan sonra değişmemeli: eski sonuç bağlantıları seçimi tohumdan yeniden üretiyor (madde eklemek de seçimi değiştirir; değer güncellemek değiştirmez).
 
+## Katalog ve modlar
+
+Oyunlarda **mod** (nasıl sıralıyorsun) ile **liste** (neyi sıralıyorsun) ayrı (`lib/katalog.ts`, testleri `katalog.test.ts`). Katalog iki kaynaktan: zevk listeleri (`lib/kor.ts`, on madde, doğru cevap yok) ve doğru cevabı olanlar (`lib/dogru-sira-listeler.ts`, daha büyük havuz ve değerler). Oyunda her zaman on madde: havuz onluksa hepsi, büyükse tohumdan seçilen on (Doğru Sıra'nın seçimi, %5 fark kuralıyla; tohum adreste `?t=`, yoksa "Başla"da rastgele). Bir liste eklemek her modda yeni bir oyun.
+
+| Mod | Adres | Listeler |
+|---|---|---|
+| Kör Sıralama | `/oyna/kor/[liste]` | hepsi |
+| Tier | `/oyna/tier/[liste]` | hepsi |
+| Kör Tier | `/oyna/kor-tier/[liste]` | hepsi |
+| Doğru Sıra | `/oyna/dogru-sira/[liste]` | doğru cevabı olanlar |
+
+- **Kör Sıralama'da doğru cevabı olan liste:** sonuçta "Gerçek sırayla uyum" (Kendall, Doğru Sıra'nınki) ve her satırda maddenin gerçek yeri (✓ tam yerinde) ile değeri. Arkadaşın bağlantısında "Tekrar oyna" aynı on maddeyle; kendi oyununda yeni on madde.
+- **Tier** (`components/TierOyun.tsx`, hesaplar `lib/tier-oyun.ts`): beş kademe (S–D) ve altta "Yerleştirilecekler". Bir maddeye dokun, sonra kademesine; seçiliyken dokunulan her yer (kademe, o kademedeki başka bir madde, yerleştirilecekler) "buraya" demek, kendisine yeniden dokunmak bırakıyor. Hepsi yerleşince "Bitti".
+- **Kör Tier:** maddeler birer birer, karışık geliyor; kademe satırına dokununca madde oraya yerleşiyor ve kalıyor. Her kademede iki yer (on madde, beş kademe); dolu kademe soluk ve "dolu".
+- **Sonuç** (iki modda da): tier tablosu; doğru cevabı olan listede "Gerçek kademesinde x/10" (gerçek kademe: gerçek sıranın ilk ikisi S, sonraki ikisi A…) ve her maddenin yanında ✓ ya da gerçek kademesi (→A); arkadaşın bağlantısında "Arkadaşınla aynı kademede x/10" ve farklıysa arkadaşın kademesi. Sonuç adreste: `?s=` her maddenin kademesi, on rakam (`0214300121`); Kör Tier'de bir kademede ikiden fazla madde olan sonuç geçersiz.
+- **Renk:** oyunlarda kademeler klasik tier renklerinde (kırmızıdan yeşile), paylaşım görseliyle aynı; oyunlar kendi renkleriyle (kişisel listelerin kademeleri vurgunun tonlarında, bkz. Kademeler).
+- **Görsel** `/oyna/tier/[liste]/gorsel` (Kör Tier `mod=kor`): story 1080×1920 ve `boyut=kart` 1200×630; beş kademe, maddeler yazı hapları. Emoji yok.
+- **Henüz yok:** Kör Tier'in kameralı hâli (KorKamera'nın tahtası yuvalar; kademe tahtası eklenecek), modlar arası "bu listeyi başka modda oyna" geçişi.
+
 ## Oyna ve ana ekran
 
 Uygulama iki ayak üzerinde: **Listelerim** (kişisel defter, giriş ister) ve **Oyna** (oyunlar, giriş istemez). Oyunlar kendi renkleriyle küçük, enerjik kartlar; kişisel listeler fotoğraflı vitrin ve tek vurgu rengiyle.
 
-- **Oyna** (`/oyna`, `components/oyna/OynaMerkezi.tsx`): başlık ve kısa açıklama, **Bugün** (günün iki oyunu), sonra mod mod bölümler: **Kör Sıralama** (`#kor`; hazır listeler, giriş yapmışsa üstünde "Listelerini kör sıralat"), **Doğru Sıra** (`#dogru-sira`). Sayılar tek oyun, Bugün'deki kartında (serbest oyun kendi sayfasında).
+- **Oyna** (`/oyna`, `components/oyna/OynaMerkezi.tsx`): başlık ve kısa açıklama, **Bugün** (günün iki oyunu), sonra mod mod bölümler: **Kör Sıralama** (`#kor`; giriş yapmışsa üstünde "Listelerini kör sıralat"), **Tier** (`#tier`), **Kör Tier** (`#kor-tier`), **Doğru Sıra** (`#dogru-sira`). Her bölümün altında katalog listeleri yatay bir şeritte (masaüstünde sarıyor). Sayılar tek oyun, Bugün'deki kartında (serbest oyun kendi sayfasında).
 - **Bugün** (`OyunKartlari.tsx` → `BugunKartlari`): Günün Sayıları ve Günün Doğru Sırası yan yana; bu cihazda bugün oynandıysa puan ("Bugün oynadın: 5/10", "%82"), oynanmadıysa davet. Gün tarayıcıda hesaplanıyor (İstanbul saati).
-- **Ana ekran** (giriş yapmış): selamlamanın altında Bugün ve **Oyunlar** şeridi (`OyunSeridi`: Kör Sıralama, Doğru Sıra, Sayılar; liste sayılarıyla; telefonda yatay kayıyor), sonra "Listelerin". Masaüstünde Bugün ve Oyunlar tek satırda yan yana.
+- **Ana ekran** (giriş yapmış): selamlamanın altında Bugün ve **Oyunlar** şeridi (`OyunSeridi`: modlar liste sayılarıyla; telefonda yatay kayıyor), sonra "Listelerin". Şeritte beş mod: Kör Sıralama, Tier, Kör Tier, Doğru Sıra, Sayılar. Masaüstünde Bugün ve Oyunlar tek satırda yan yana.
 - **Giriş yapmamış ziyaretçi** ana sayfada (`/`) doğrudan Oyna'yı görüyor (`AuthGate`); Bugün'ün altında "Kendi sıralama defterini kur" kartı: Google ile giriş ve "Nasıl çalışır?" (`/tanitim`). Giriş yalnızca kendi listesini kurmak isteyene soruluyor.
 - **Menü:** telefonda alt menünün üçüncü sekmesi "Oyna", masaüstünde ana ekran üst çubuğunda ve liste rayında "Oyna".
 - **Adresler:** oyunlar Kasım 2026'da `/kor`'dan `/oyna`'ya taşındı: `/oyna/kor/[liste]`, `/oyna/sayilar`, `/oyna/dogru-sira/[liste]` (görselleri altlarında `gorsel`). Eski adresler kalıcı yönlendirmeyle (308, `next.config.ts` → `redirects`) yeni yerlerinde açılıyor, sorgu (`?s=`, `?t=`) taşınıyor: paylaşılmış sonuç bağlantıları bozulmadı. Kendi listeni kör sıralatma `/p/[kod]/kor`'da kaldı.

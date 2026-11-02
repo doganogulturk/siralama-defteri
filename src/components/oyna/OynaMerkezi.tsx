@@ -5,8 +5,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Marka from '../Marka';
 import MobilMenu from '../MobilMenu';
-import { korListeleri } from '@/lib/kor';
-import { dogruSiraListeleri } from '@/lib/dogru-sira';
+import { katalog, type KatalogListe } from '@/lib/katalog';
 import { BugunKartlari } from './OyunKartlari';
 import DilSecici from '../DilSecici';
 import { korBaglantisiGonder, korUygun } from '@/lib/kor-liste';
@@ -18,8 +17,9 @@ import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 
 /**
  * Oyna: giriş istemeyen oyunların merkezi (`/oyna`; giriş yapmamış ziyaretçiye ana sayfada
- * da). Önce günün oyunları, sonra modlar kendi bölümlerinde: Kör Sıralama (hazır listeler ve
- * giriş yapmışsa kendi listeleri), Doğru Sıra. Sayılar tek oyun; günün kartında.
+ * da). Önce günün oyunları, sonra modlar kendi bölümlerinde: Kör Sıralama (giriş yapmışsa
+ * kendi listeleri de), Tier, Kör Tier, Doğru Sıra. Her modun altında katalogdaki listeler
+ * yatay bir şeritte (`lib/katalog.ts`). Sayılar tek oyun; günün kartında.
  * `misafir` verilirse (giriş yapmamış, ana sayfa) en üstte kendi defterini kurma çağrısı.
  */
 export default function OynaMerkezi({ misafir }: { misafir?: React.ReactNode }) {
@@ -28,6 +28,8 @@ export default function OynaMerkezi({ misafir }: { misafir?: React.ReactNode }) 
   const t = mesajlar.kor;
   const o = mesajlar.oyna;
   const { user } = useAuth();
+  /** Ortak katalog: her mod aynı listelerle (Doğru Sıra yalnızca doğru cevabı olanlarla). */
+  const tum = katalog(dil);
   return (
     <div className="kor-sayfa oyna">
       <header className="paylasim-bar">
@@ -55,41 +57,39 @@ export default function OynaMerkezi({ misafir }: { misafir?: React.ReactNode }) 
           </section>
         )}
 
-        <section id="kor" className="oyna-bolum" aria-labelledby="kor-baslik">
-          <h2 id="kor-baslik" className="oyna-bolum-baslik">{t.ad}</h2>
-          <p className="oyna-bolum-alt">{o.korAlt}</p>
+        <OyunBolumu id="kor" baslik={t.ad} alt={o.korAlt} yol="kor" listeler={tum}>
           {user && <KendiListelerin />}
-          <ul className="kor-secim">
-            {korListeleri(dil).map((l, i) => (
-              <li key={l.slug} style={{ '--kor': l.renk, '--i': i } as React.CSSProperties}>
-                <Link href={`/oyna/kor/${l.slug}`} className="kor-secim-kart">
-                  <span aria-hidden="true">{l.simge}</span>
-                  <strong>{l.ad}</strong>
-                  <em>{t.kayitAdet(l.kayitlar.length)}</em>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section id="dogru-sira" className="oyna-bolum" aria-labelledby="ds-baslik">
-          <h2 id="ds-baslik" className="oyna-bolum-baslik">{mesajlar.dogruSira.ad}</h2>
-          <p className="oyna-bolum-alt">{mesajlar.dogruSira.bolumAlt}</p>
-          <ul className="kor-secim">
-            {dogruSiraListeleri(dil).map((l, i) => (
-              <li key={l.slug} style={{ '--kor': l.renk, '--i': i } as React.CSSProperties}>
-                <Link href={`/oyna/dogru-sira/${l.slug}`} className="kor-secim-kart">
-                  <span aria-hidden="true">{l.simge}</span>
-                  <strong>{l.ad}</strong>
-                  <em>{l.soru}</em>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
+        </OyunBolumu>
+        <OyunBolumu id="tier" baslik={mesajlar.tier.ad} alt={mesajlar.tier.alt} yol="tier" listeler={tum} />
+        <OyunBolumu id="kor-tier" baslik={mesajlar.tier.korAd} alt={mesajlar.tier.korAlt} yol="kor-tier" listeler={tum} />
+        <OyunBolumu id="dogru-sira" baslik={mesajlar.dogruSira.ad} alt={mesajlar.dogruSira.bolumAlt} yol="dogru-sira"
+                    listeler={tum.filter(l => l.dogru)} />
       </main>
       <MobilMenu aktif="kor" />
     </div>
+  );
+}
+
+/** Bir modun bölümü: başlık, kısa açıklama ve katalog listelerinin yatay şeridi. */
+function OyunBolumu({ id, baslik, alt, yol, listeler, children }: {
+  id: string; baslik: string; alt: string; yol: string; listeler: KatalogListe[]; children?: React.ReactNode;
+}) {
+  return (
+    <section id={id} className="oyna-bolum" aria-labelledby={`${id}-baslik`}>
+      <h2 id={`${id}-baslik`} className="oyna-bolum-baslik">{baslik}</h2>
+      <p className="oyna-bolum-alt">{alt}</p>
+      {children}
+      <ul className="katalog-seridi">
+        {listeler.map(l => (
+          <li key={l.slug} style={{ '--kor': l.renk } as React.CSSProperties}>
+            <Link href={`/oyna/${yol}/${l.slug}`} className="katalog-kart">
+              <span aria-hidden="true">{l.simge}</span>
+              <strong>{l.ad}</strong>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

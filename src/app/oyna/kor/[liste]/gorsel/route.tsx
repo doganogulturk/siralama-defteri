@@ -1,5 +1,7 @@
 import { ImageResponse } from 'next/og';
-import { korListesi, sonucCoz } from '@/lib/kor';
+import { sonucCoz } from '@/lib/kor';
+import { korOyunListesi } from '@/lib/katalog';
+import { tohumGecerli } from '@/lib/sayilar';
 import { DIL_PARAMETRE, sozluk } from '@/lib/i18n';
 import { baglantiDili } from '@/lib/i18n/sunucu';
 import { RENK, yaziTipleri } from '@/lib/gorsel-sunucu';
@@ -38,7 +40,9 @@ export async function GET(istek: Request, { params }: { params: Promise<{ liste:
   // Görsel paylaşanın dilinde: bağlantı dili taşıyor.
   const dil = baglantiDili(adres.searchParams.get(DIL_PARAMETRE));
   const t = sozluk(dil).kor;
-  const liste = korListesi(slug, dil);
+  // Doğru cevabı olan listede on madde tohumdan (`?t=`); tohumsuz o listelerin görseli yok.
+  const t0 = adres.searchParams.get('t');
+  const liste = korOyunListesi(slug, tohumGecerli(t0) ? t0 : null, dil);
   if (!liste) return new Response('Bulunamadı', { status: 404 });
   const sira = sonucCoz(liste, adres.searchParams.get('s'));
   const kart = adres.searchParams.get('boyut') === 'kart';

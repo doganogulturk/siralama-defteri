@@ -17,7 +17,8 @@ Claude Code bu dosyayı her oturumun başında okuyor. Projenin bilgi birikimi `
 - **Kademeler (tier list)** — `lib/kademe.ts`, `components/kademe/`, şemada `lists.kademeler` ve `items.kademe`. Kural: `sira` her zaman kademe sırasıyla tutarlı; özetler, paylaşım, karşılaştırma ve Kör Sıralama bu yüzden kademeyi bilmeden doğru sırayı okuyor. Uygulamada vurgunun tonları, paylaşım görselinde klasik tier renkleri.
 - **Doğru Sıra** — `lib/dogru-sira.ts`, `lib/dogru-sira-listeler.ts`, `/oyna/dogru-sira/[liste]`. Doğru cevabı olan sıralamalar; veriler kaynaklı, yıllık bakım istiyor (TÜİK il nüfusları her Şubat).
 - **Oyna** — oyunlar `/oyna` altında (`components/oyna/`); ana ekranda "Bugün" ve "Oyunlar"; giriş yapmamış ziyaretçi ana sayfada oyunları görüyor. Eski `/kor` adresleri `next.config.ts`'te yönlendiriliyor.
-- Sırada: **Oyunlar planı** (yol haritası) — mod ile liste ayrı; 2. adım ortak katalog, Tier ve Kör Tier modları; sonra katalog veritabanına ve kullanıcıların liste önermesi (yönetici onayı).
+- **Katalog ve modlar** — `lib/katalog.ts`: mod (Kör Sıralama, Tier, Kör Tier, Doğru Sıra) ile liste ayrı; her liste her modda (Doğru Sıra yalnızca doğru cevabı olanlarla). Tier ve Kör Tier `components/TierOyun.tsx`, `lib/tier-oyun.ts`.
+- Sırada: **Oyunlar planı 3** (yol haritası) — katalog veritabanına, kullanıcıların liste önermesi ve yönetici onayı; sonra herkesin ortalaması.
 
 ## Alışkanlıklar
 

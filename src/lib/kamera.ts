@@ -29,13 +29,32 @@ export const KART: Kutu = { x: 110, y: UST_BOSLUK + 56, w: KAMERA_GENISLIK - 220
 /** Kartın üstündeki başlık hapının dikey ortası. */
 export const BASLIK_Y = UST_BOSLUK + 22;
 
-/** Yuvalar: sol kenarda alt alta; yüz çoğunlukla ortada kaldığı için dar bir sütun. */
-export function yuvaKutulari(adet: number): Kutu[] {
+/**
+ * Yuvalar: sol kenarda alt alta; yüz çoğunlukla ortada kaldığı için dar bir sütun.
+ * `grup` > 1 ise yuvalar o kadarlık gruplar hâlinde, gruplar arasında ek boşlukla
+ * (Kör Tier: her kademede iki yer).
+ */
+export function yuvaKutulari(adet: number, grup = 1): Kutu[] {
   const ust = KART.y + KART.h + 40;
   const alt = KAMERA_YUKSEKLIK - ALT_BOSLUK;
   const aralik = 8;
-  const h = Math.min(68, Math.floor((alt - ust - aralik * (adet - 1)) / adet));
-  return Array.from({ length: adet }, (_, i) => ({ x: KENAR, y: ust + i * (h + aralik), w: 262, h }));
+  const grupAraligi = grup > 1 ? 14 : 0;
+  const gruplar = Math.ceil(adet / grup);
+  const h = Math.min(68, Math.floor((alt - ust - aralik * (adet - 1) - grupAraligi * (gruplar - 1)) / adet));
+  return Array.from({ length: adet }, (_, i) => ({
+    x: KENAR, y: ust + i * (h + aralik) + Math.floor(i / grup) * grupAraligi, w: 262, h,
+  }));
+}
+
+/**
+ * Gruplu tahtada dokunulan yuva doluysa grubundaki ilk boş yuva (Kör Tier'de kademenin
+ * öbür yeri); grup yoksa ya da hepsi doluysa null.
+ */
+export function gruptaBos(yuva: number, grup: number, dolu: (i: number) => boolean): number | null {
+  if (!dolu(yuva)) return yuva;
+  const bas = Math.floor(yuva / grup) * grup;
+  for (let i = bas; i < bas + grup; i++) if (!dolu(i)) return i;
+  return null;
 }
 
 /** Dokunuşun tuval koordinatı hangi yuvaya düşüyor; kenarlarda biraz pay bırakılıyor. */

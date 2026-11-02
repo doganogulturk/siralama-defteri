@@ -17,6 +17,7 @@ import { DIL_PARAMETRE, dilEtiketi } from '@/lib/i18n';
 import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 import { titret } from '@/lib/his';
 import { useAuth } from '@/hooks/useAuth';
+import ModGecisi from './oyna/ModGecisi';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 
@@ -360,6 +361,8 @@ function DogruSiraSonuc({ liste, tohum, secim, dizilis, arkadasUyumu, onYeni }: 
         <button type="button" className="btn-quiet" onClick={onYeni}>{t.yeniOn}</button>
         <Link href="/oyna" className="btn-quiet">{t.baskaListe}</Link>
       </div>
+
+      <ModGecisi slug={liste.slug} simdiki="dogru-sira" />
 
       <Link href="/" className="kor-davet">
         {user ? (

@@ -84,7 +84,7 @@ Liste ayarlarındaki **Kademeler** bölümünden açılıyor (`components/kademe
 
 ## Kameralı Kör Sıralama
 
-Kör Sıralama'nın girişinde "Başla"nın altında ikinci yol: **Kamerayla oyna** (`components/KorKamera.tsx`, ölçüler ve seçimler `lib/kamera.ts`). Ön kamerayla kişi kendini çekiyor; sıradaki kayıt başının üstündeki kartta beliriyor, yuvalara dokunarak yerleştiriyor; sonunda sesli bir video çıkıyor. Hazır listelerde (`/oyna/kor/[liste]`) ve kendi listeni kör sıralatmada (`/p/[kod]/kor`, fotoğraflarla) var; Sayılar'da henüz yok.
+Kör Sıralama'nın (ve Kör Tier'in, bkz. Katalog ve modlar) girişinde "Başla"nın altında ikinci yol: **Kamerayla oyna** (`components/KorKamera.tsx`, ölçüler ve seçimler `lib/kamera.ts`). Ön kamerayla kişi kendini çekiyor; sıradaki kayıt başının üstündeki kartta beliriyor, yuvalara dokunarak yerleştiriyor; sonunda sesli bir video çıkıyor. Hazır listelerde (`/oyna/kor/[liste]`) ve kendi listeni kör sıralatmada (`/p/[kod]/kor`, fotoğraflarla) var; Sayılar'da henüz yok.
 
 - **Tek tuval:** ön kameranın aynadaki gibi ters çevrilmiş görüntüsü, üstte başlık hapı ("KÖR SIRALAMA · 🍲 Çorbalar"), başın üstünde kart ve solda on yuva 720×1280'lik (9:16) bir `<canvas>`'a her karede çiziliyor. Video o tuvalden (`captureStream(30)`) ve mikrofondan kaydediliyor: ekranda görülen ile videoya giren aynı. Kapat düğmesi, kayıt göstergesi ve "Kayda başla" tuvalin dışında HTML, videoya girmiyor. Kameranın ham görüntüsü tuvalin arkasında görünmez bir `<video>`: iOS kareleri ancak sayfadaki bir videoda çözüyor.
 - **Güvenli alanlar:** Instagram ve TikTok videonun üstünü, altını ve sağ kenarını kendi yazı ve düğmeleriyle örtüyor; kart üst şeridin altında, yuvalar solda ve alt şeridin üstünde bitiyor (`lib/kamera.ts`, testte denetleniyor). Yüz çoğunlukla ortada: yuvalar dar bir sütun.
@@ -137,7 +137,8 @@ Oyunlarda **mod** (nasıl sıralıyorsun) ile **liste** (neyi sıralıyorsun) ay
 - **Sonuç** (iki modda da): tier tablosu; doğru cevabı olan listede "Gerçek kademesinde x/10" (gerçek kademe: gerçek sıranın ilk ikisi S, sonraki ikisi A…) ve her maddenin yanında ✓ ya da gerçek kademesi (→A); arkadaşın bağlantısında "Arkadaşınla aynı kademede x/10" ve farklıysa arkadaşın kademesi. Sonuç adreste: `?s=` her maddenin kademesi, on rakam (`0214300121`); Kör Tier'de bir kademede ikiden fazla madde olan sonuç geçersiz.
 - **Renk:** oyunlarda kademeler klasik tier renklerinde (kırmızıdan yeşile), paylaşım görseliyle aynı; oyunlar kendi renkleriyle (kişisel listelerin kademeleri vurgunun tonlarında, bkz. Kademeler).
 - **Görsel** `/oyna/tier/[liste]/gorsel` (Kör Tier `mod=kor`): story 1080×1920 ve `boyut=kart` 1200×630; beş kademe, maddeler yazı hapları. Emoji yok.
-- **Henüz yok:** Kör Tier'in kameralı hâli (KorKamera'nın tahtası yuvalar; kademe tahtası eklenecek), modlar arası "bu listeyi başka modda oyna" geçişi.
+- **Kameralı Kör Tier:** girişte "Kamerayla oyna" (Kameralı Kör Sıralama'nın aynı altyapısı). Tahta yine on yuva, ama ikişerli kademe grupları: yuvalar S, S, A, A… etiketli ve klasik renkli, gruplar arasında boşluk (`yuvaKutulari(10, 2)`). Kademenin dolu yerine dokunmak öbür yerine yerleştiriyor (`gruptaBos`); başlık hapında "KÖR TIER".
+- **Başka modda oyna:** her sonuç ekranının (Kör Sıralama, Tier, Kör Tier, Doğru Sıra) altında aynı listenin diğer modlarına hap bağlantılar (`components/oyna/ModGecisi.tsx`); Doğru Sıra yalnızca doğru cevabı olan listede.
 
 ## Oyna ve ana ekran
 

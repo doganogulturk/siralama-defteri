@@ -534,6 +534,7 @@ Doritos, Nacho`,
     misafirBaslik: 'Kendi sıralama defterini kur',
     misafirAlt: 'Denediklerini fotoğraflarıyla sırala, kademelere böl, arkadaşlarınla karşılaştır.',
     nasil: 'Nasıl çalışır?',
+    baskaModda: (liste: string) => `${liste}: başka modda oyna`,
   },
   tier: {
     ad: 'Tier',

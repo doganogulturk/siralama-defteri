@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  KAMERA_GENISLIK, KAMERA_YUKSEKLIK, KART, isabet, kapakKirp, kayitBicimi, sigdir, sureYaz,
+  KAMERA_GENISLIK, KAMERA_YUKSEKLIK, KART, gruptaBos, isabet, kapakKirp, kayitBicimi, sigdir, sureYaz,
   tuvalNoktasi, uzantiTurden, yuvaKutulari,
 } from './kamera';
 
@@ -81,5 +81,22 @@ describe('sureYaz', () => {
     expect(sureYaz(7400)).toBe('0:07');
     expect(sureYaz(65_000)).toBe('1:05');
     expect(sureYaz(-5)).toBe('0:00');
+  });
+});
+
+describe('gruplu tahta (Kör Tier)', () => {
+  it('ikişerli gruplar arasında ek boşluk, yine güvenli alanda', () => {
+    const k = yuvaKutulari(10, 2);
+    expect(k[2].y - (k[1].y + k[1].h)).toBeGreaterThan(k[1].y - (k[0].y + k[0].h));
+    expect(k[9].y + k[9].h).toBeLessThanOrEqual(KAMERA_YUKSEKLIK - 190);
+  });
+
+  it('dolu yuvaya dokununca grubundaki boş yuva', () => {
+    const dolu = new Set([2]);
+    expect(gruptaBos(2, 2, i => dolu.has(i))).toBe(3);
+    expect(gruptaBos(3, 2, i => dolu.has(i))).toBe(3);
+    dolu.add(3);
+    expect(gruptaBos(2, 2, i => dolu.has(i))).toBeNull();
+    expect(gruptaBos(5, 1, i => dolu.has(i))).toBe(5);
   });
 });

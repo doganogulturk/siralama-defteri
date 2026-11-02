@@ -3,7 +3,7 @@
 import { type PointerEvent, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   BASLIK_Y, KAMERA_GENISLIK as W, KAMERA_YUKSEKLIK as H, KART, type Kutu,
-  isabet, kameraDestekleniyor, kapakKirp, kayitBicimi, sigdir, sureYaz, tuvalNoktasi, uzantiTurden, yumusak, yuvaKutulari,
+  gruptaBos, isabet, kameraDestekleniyor, kapakKirp, kayitBicimi, sigdir, sureYaz, tuvalNoktasi, uzantiTurden, yumusak, yuvaKutulari,
 } from '@/lib/kamera';
 import { useMesajlar } from '@/lib/i18n/DilBaglami';
 import { brandInitials } from '@/types/item';
@@ -46,6 +46,15 @@ export default function KorKamera(props: {
   /** Bütün kayıtlar yerleşti. */
   bitti: boolean;
   onYerlestir: (yuva: number) => void;
+  /** Başlık hapındaki oyun adı; verilmezse "KÖR SIRALAMA". */
+  oyunEtiketi?: string;
+  /**
+   * Yuvaların etiketleri ve renkleri (Kör Tier: S, S, A, A…, klasik tier renkleri);
+   * verilmezse 1–10. `grup`: yuvalar bu kadarlık gruplar; dolu yuvaya dokunmak
+   * grubundaki boş yuvaya yerleştiriyor.
+   */
+  yuvaEtiketleri?: { metin: string; renk: string }[];
+  grup?: number;
   /** Son kartta yazan adres: "siralama-defteri.vercel.app/oyna/kor/corbalar". */
   adres: string;
   dosyaAdi: string;
@@ -78,7 +87,8 @@ export default function KorKamera(props: {
     kapanisT0: 0,
   });
 
-  const yuvaKutulari_ = useMemo(() => yuvaKutulari(props.yuvalar.length), [props.yuvalar.length]);
+  const grup = props.grup ?? 1;
+  const yuvaKutulari_ = useMemo(() => yuvaKutulari(props.yuvalar.length, grup), [props.yuvalar.length, grup]);
   const fotolar = useFotolar(props.kayitlar);
 
   /** Son kayıt yerleşince kapanış: ayrı bir durum değil, oyunun bittiği an. */
@@ -219,8 +229,9 @@ export default function KorKamera(props: {
     const a = anlikRef.current;
     if (durum !== 'oyun' || a.kilit || a.bitti || animRef.current.ucus) return;
     const p = tuvalNoktasi(e.clientX, e.clientY, e.currentTarget.getBoundingClientRect());
-    const yuva = isabet(p.x, p.y, yuvaKutulari_);
-    if (yuva === null || a.yuvalar[yuva] !== null) return;
+    const dokunulan = isabet(p.x, p.y, yuvaKutulari_);
+    const yuva = dokunulan === null ? null : gruptaBos(dokunulan, grup, i => a.yuvalar[i] !== null);
+    if (yuva === null) return;
     const simdi = performance.now();
     animRef.current.ucus = { yuva, kayit: a.adim, t0: simdi };
     setTimeout(() => {
@@ -308,7 +319,7 @@ export default function KorKamera(props: {
           {props.yuvalar.map((y, i) => (
             <li key={i}>
               <button type="button" disabled={y !== null || props.kilit} onClick={() => props.onYerlestir(i)}>
-                {t.siraya(i + 1)}
+                {props.yuvaEtiketleri ? props.yuvaEtiketleri[i].metin : t.siraya(i + 1)}
               </button>
             </li>
           ))}
@@ -423,7 +434,10 @@ function fotoCiz(ctx: CanvasRenderingContext2D, img: HTMLImageElement, k: Kutu, 
 }
 
 function ciz(ctx: CanvasRenderingContext2D, simdi: number, o: {
-  anlik: { durum: Durum; etiket: string; kayitlar: KameraKaydi[]; yuvalar: (number | null)[]; adim: number; adres: string };
+  anlik: {
+    durum: Durum; etiket: string; kayitlar: KameraKaydi[]; yuvalar: (number | null)[]; adim: number; adres: string;
+    oyunEtiketi?: string; yuvaEtiketleri?: { metin: string; renk: string }[];
+  };
   anim: { ucus: null | { yuva: number; kayit: number; t0: number }; girisT0: number; parlama: null | { yuva: number; t0: number } };
   kamera: HTMLVideoElement | null;
   kutular: Kutu[];
@@ -459,7 +473,7 @@ function ciz(ctx: CanvasRenderingContext2D, simdi: number, o: {
 
   // Başlık hapı.
   ctx.font = `600 24px ${yazi.sans}`;
-  const baslik = `${t.etiket} · ${anlik.etiket}`;
+  const baslik = `${anlik.oyunEtiketi ?? t.etiket} · ${anlik.etiket}`;
   const bw = Math.min(W - 80, ctx.measureText(baslik).width + 44);
   ctx.fillStyle = 'rgba(0,0,0,0.5)';
   kutuCiz(ctx, { x: (W - bw) / 2, y: BASLIK_Y - 22, w: bw, h: 44 }, 22);
@@ -493,11 +507,18 @@ function ciz(ctx: CanvasRenderingContext2D, simdi: number, o: {
     }
     ctx.restore();
 
-    ctx.fillStyle = '#fff';
+    // Yuvanın etiketi: sıra numarası ya da (Kör Tier) renkli kutuda kademe harfi.
+    const yEtiket = anlik.yuvaEtiketleri?.[i];
+    if (yEtiket) {
+      ctx.fillStyle = yEtiket.renk;
+      kutuCiz(ctx, { x: k.x + 6, y: k.y + 6, w: 40, h: k.h - 12 }, 10);
+      ctx.fill();
+    }
+    ctx.fillStyle = yEtiket ? '#1a1512' : '#fff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = `400 34px ${yazi.serif}`;
-    ctx.fillText(String(i + 1), k.x + 26, k.y + k.h / 2 + 2);
+    ctx.fillText(yEtiket?.metin ?? String(i + 1), k.x + 26, k.y + k.h / 2 + 2);
 
     if (dolu) {
       const kayit = anlik.kayitlar[kayitNo];

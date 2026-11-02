@@ -4481,3 +4481,22 @@ button.tier-madde:hover { box-shadow: 0 0 0 1px var(--faint); }
 .tier-yer { flex-shrink: 0; padding-right: 6px; font-size: 0.74rem; font-style: normal; font-weight: 600; color: var(--mute); }
 .tier-isaret { font-size: 0.72rem; font-style: normal; font-weight: 700; color: var(--mute); }
 .tier-isaret.is-dogru { color: var(--kor); }
+
+/* Sonuç ekranlarında "başka modda oyna". */
+.mod-gecisi { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.mod-gecisi > span { font-size: 0.78rem; font-weight: 600; color: var(--mute); }
+.mod-gecisi > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.mod-gecisi-hap {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: var(--pill);
+  background: color-mix(in oklab, var(--kor) 10%, var(--surface));
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--kor) 25%, transparent);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+.mod-gecisi-hap:hover { background: color-mix(in oklab, var(--kor) 16%, var(--surface)); }

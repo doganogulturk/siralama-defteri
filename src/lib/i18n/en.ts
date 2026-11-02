@@ -525,6 +525,7 @@ Doritos, Nacho`,
     misafirBaslik: 'Start your own ranking notebook',
     misafirAlt: 'Rank what you’ve tried with photos, split it into tiers, compare with friends.',
     nasil: 'How does it work?',
+    baskaModda: (liste: string) => `Play ${liste} in another mode`,
   },
   tier: {
     ad: 'Tiers',

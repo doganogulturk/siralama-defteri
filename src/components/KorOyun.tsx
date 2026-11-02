@@ -12,6 +12,7 @@ import { kiyasAnahtari, kiyasla, uyumEtiketi } from '@/lib/kiyas';
 import { titret } from '@/lib/his';
 import { useAuth } from '@/hooks/useAuth';
 import KorKamera, { KameraDugmesi, useKameraVar } from './KorKamera';
+import ModGecisi from './oyna/ModGecisi';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 
@@ -346,6 +347,8 @@ function KorSonuc({ liste, tohum, sira, arkadas, onTekrar }: {
         <button type="button" className="btn-quiet" onClick={onTekrar}>{t.tekrar}</button>
         <Link href="/oyna" className="btn-quiet">{t.baskaListe}</Link>
       </div>
+
+      <ModGecisi slug={liste.slug} simdiki="kor" />
 
       {/* Oturum açıksa kayıt çağrısı yerine listelere dönüş. */}
       <Link href="/" className="kor-davet">

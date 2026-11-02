@@ -12,6 +12,8 @@ import { DIL_PARAMETRE } from '@/lib/i18n';
 import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 import { titret } from '@/lib/his';
 import { useAuth } from '@/hooks/useAuth';
+import ModGecisi from './oyna/ModGecisi';
+import KorKamera, { KameraDugmesi, useKameraVar } from './KorKamera';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 
@@ -62,6 +64,10 @@ export default function TierOyun({ slug, kor, tohum: adresTohumu, arkadas }: {
   const [gelis, setGelis] = useState<number[]>([]);
   const [adim, setAdim] = useState(0);
   const [kilit, setKilit] = useState(false);
+  /** Kör Tier'in kameralı hâli: tahta on yuva, ikişerli kademe grupları (KorKamera). */
+  const [kamera, setKamera] = useState(false);
+  const [kameraAnahtari, setKameraAnahtari] = useState(0);
+  const kameraVar = useKameraVar();
 
   const basla = (yeni = false) => {
     titret('dokunus');
@@ -105,7 +111,22 @@ export default function TierOyun({ slug, kor, tohum: adresTohumu, arkadas }: {
     }, 320);
   };
 
+  const kameraylaBasla = () => {
+    basla(asama === 'sonuc' && !arkadas);
+    setKameraAnahtari(x => x + 1);
+    setKamera(true);
+  };
+
   const gruplar = tierGruplari(kademeler);
+  /** Kamera tahtası: kademe başına iki yuva; içinde yerleşen maddelerin geliş sırası. */
+  const kameraYuvalari = TIER_KADEMELERI.flatMap((_, k) => {
+    const g = gelis.flatMap((madde, sira) => (kademeler[madde] === k ? [sira] : []));
+    return Array.from({ length: KOR_TIER_SINIR }, (_, j) => g[j] ?? null);
+  });
+  const yuvaEtiketleri = TIER_KADEMELERI.flatMap((h, k) =>
+    Array.from({ length: KOR_TIER_SINIR }, () => ({ metin: h, renk: klasikRenk(k) })));
+  const paylasimAdresi = () =>
+    `${window.location.origin}/oyna/kor-tier/${slug}${tohumlu && tohum ? `?t=${tohum}` : ''}`;
   const yerlesmemis = kademeler.flatMap((k, i) => (k === null ? [i] : []));
 
   return (
@@ -145,6 +166,7 @@ export default function TierOyun({ slug, kor, tohum: adresTohumu, arkadas }: {
             )}
           </ul>
           <button type="button" className="btn-primary kor-basla" onClick={() => basla()}>{t.basla}</button>
+          {kor && kameraVar && <KameraDugmesi onKamera={kameraylaBasla} />}
         </main>
       )}
 
@@ -218,6 +240,29 @@ export default function TierOyun({ slug, kor, tohum: adresTohumu, arkadas }: {
             })}
           </div>
         </main>
+      )}
+
+      {kor && kamera && asama !== 'giris' && gelis.length > 0 && (
+        <KorKamera
+          key={kameraAnahtari}
+          etiket={`${liste.simge} ${liste.ad}`}
+          oyunEtiketi={t.korEtiket}
+          renk={liste.renk}
+          kayitlar={gelis.map(i => ({ ad: ad(i) }))}
+          yuvalar={kameraYuvalari}
+          yuvaEtiketleri={yuvaEtiketleri}
+          grup={KOR_TIER_SINIR}
+          adim={adim}
+          kilit={kilit}
+          bitti={asama === 'sonuc'}
+          onYerlestir={(yuva) => koy(Math.floor(yuva / KOR_TIER_SINIR))}
+          adres={`${window.location.host}/oyna/kor-tier/${slug}`}
+          dosyaAdi={m.kor.kamera.dosyaAdi(slug)}
+          paylasimMetni={`${t.paylasimKor(liste.ad)} ${paylasimAdresi()}`}
+          onSonuc={() => setKamera(false)}
+          onYenidenCek={kameraylaBasla}
+          onKapat={() => setKamera(false)}
+        />
       )}
 
       {asama === 'sonuc' && (
@@ -338,6 +383,8 @@ function TierSonuc({ slug, kor, tohum, kademeler, arkadas, onTekrar }: {
         <button type="button" className="btn-quiet" onClick={onTekrar}>{t.tekrar}</button>
         <Link href="/oyna" className="btn-quiet">{m.kor.baskaListe}</Link>
       </div>
+
+      <ModGecisi slug={slug} simdiki={kor ? 'kor-tier' : 'tier'} />
 
       <Link href="/" className="kor-davet">
         {user ? (

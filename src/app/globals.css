@@ -4017,3 +4017,142 @@ body:has(.mobil-menu) .kor-sayfa { padding-bottom: calc(110px + env(safe-area-in
   padding: 0 18px;
 }
 .kor-kamera-alt { max-width: 32ch; margin-top: -6px; font-size: 0.8rem; line-height: 1.4; color: var(--mute); }
+
+/* ── Kademeler (tier list; components/kademe) ──────────────────────
+   Renk tek vurgu renginin tonları: en üstteki kademe dolu vurgu, aşağı indikçe yüzeye
+   karışıyor (`--ton`, lib/kademe.ts → kademeTonu). Paylaşım görselinde klasik renkler. */
+.kademe-rozet {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 7px;
+  border-radius: 9px;
+  background: color-mix(in oklab, var(--accent) var(--ton, 100%), var(--surface-2));
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+.kademe-rozet.is-koyu { color: #fff; }
+.kademe-rozet.is-kucuk { min-width: 24px; height: 24px; padding: 0 5px; border-radius: 7px; font-size: 0.95rem; }
+.kademe-rozet.is-buyuk { min-width: 54px; height: 54px; padding: 0 8px; border-radius: 14px; font-size: 1.7rem; }
+.kademe-rozet.is-kademesiz,
+.kademe-rozet.is-asla { background: var(--tint); color: var(--mute); }
+.kademe-rozet.is-asla { color: var(--accent); }
+
+/* Dikey listedeki kademe başlığı: "Bir daha asla" çizgisinin akrabası. */
+.kademe-siniri {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 2px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--mute);
+}
+.kademe-siniri:first-child { margin-top: 4px; }
+.kademe-siniri::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.kademe-siniri-ad:empty { display: none; }
+.kademe-siniri-sayi { font-variant-numeric: tabular-nums; }
+.kademe-siniri-bos { font-weight: 500; color: var(--faint); }
+.rows-kart .kademe-siniri { grid-column: 1 / -1; }
+
+/* Kademe görünümü: her kademe bir satır, solda etiket, sağda kutucuklar. */
+.kademe-tablo { display: flex; flex-direction: column; gap: 8px; padding: 8px 0 120px; }
+.kademe-satir {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  padding: 8px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--hair);
+}
+.kademe-satir.is-asla { background: color-mix(in oklab, var(--surface) 70%, transparent); }
+.kademe-satir-kayitlar { display: flex; flex-wrap: wrap; gap: 6px; min-height: 54px; align-content: flex-start; }
+.kademe-satir-bos { align-self: center; padding: 0 4px; font-size: 0.82rem; color: var(--faint); }
+.kademe-kutu {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 72px;
+  padding: 0 0 2px;
+  border-radius: 12px;
+  text-align: center;
+  transition: transform var(--t) var(--ease);
+}
+.kademe-kutu:hover .kademe-kutu-foto { box-shadow: 0 0 0 2px var(--ink); }
+.kademe-kutu:active { transform: scale(0.96); }
+.kademe-kutu-foto {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--surface-2);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--faint);
+  transition: box-shadow var(--t) var(--ease);
+}
+.kademe-kutu-no {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  min-width: 20px;
+  padding: 1px 5px;
+  border-radius: var(--pill);
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  font-family: var(--serif);
+  font-size: 0.85rem;
+  font-style: normal;
+  line-height: 1.2;
+}
+.kademe-kutu-ad {
+  display: -webkit-box;
+  width: 100%;
+  overflow: hidden;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.kademe-kutu-ad small { font-weight: 500; color: var(--mute); }
+.kademe-kutu.is-asla .kademe-kutu-foto { filter: grayscale(0.85); opacity: 0.7; }
+@media (min-width: 640px) {
+  .kademe-satir { grid-template-columns: 64px minmax(0, 1fr); padding: 10px; }
+  .kademe-satir > .kademe-rozet.is-buyuk { min-width: 64px; height: 64px; }
+  .kademe-kutu, .kademe-kutu-foto { width: 88px; }
+  .kademe-kutu-foto { height: 88px; }
+}
+
+/* "Dokun, kademeyi seç". */
+.kademe-secici { display: flex; flex-direction: column; gap: 14px; padding-bottom: 20px; }
+.kademe-secenekler { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.kademe-secenek { border-radius: 16px; transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease); }
+.kademe-secenek:hover { transform: translateY(-2px); }
+.kademe-secenek:active { transform: scale(0.95); }
+.kademe-secenek.is-on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ink); }
+
+/* Liste ayarları. */
+.ayar-aciklama { font-size: 0.86rem; line-height: 1.45; color: var(--mute); }
+.kademe-ac-onizleme { display: flex; gap: 6px; }
+.kademe-ac { align-self: flex-start; }
+.kat-satir.kademe-ayar-satir { grid-template-columns: 30px minmax(0, 1fr) 62px 36px; }
+.kademe-ayar-islemler { display: flex; flex-wrap: wrap; gap: 8px; }
+.kademe-ayar-islemler .btn-quiet { min-height: 40px; padding: 0 14px; font-size: 0.88rem; }
+.kademe-kapat { color: var(--accent-ink); }
+
+/* Araç satırındaki Kademe / Liste seçici. Telefonda filtre şeridiyle "Seç" arasına sığsın diye
+   şerit o kadar daralıyor (şerit zaten yatay kayıyor). */
+.liste-arac:has(.kademe-gorunum-secici) .liste-arac-filtre { flex-basis: calc(100% - 96px - 84px); }

@@ -36,6 +36,7 @@ Versal kullanılmıyor: kullanıcının yazdığı adlar ve düğme metinleri ol
 
 - **Yüzey kıl çizgisiyle, derinlik az gölgeyle** — kartlar ve satırlar `--hair` (1px, mürekkebin %10'u) ve çok hafif bir gölge taşıyor; üstüne gelince çizgi koyulaşıyor, yüzen öğeler (`fab`, seçim çubuğu, pencere) `--shadow-lift` ile ayrılıyor.
 - **Tek vurgu rengi** — ilk üç sıranın numarası, şampiyonun kartı, detaydaki sıra rozeti, raydaki açık listenin sayısı, liste kartındaki sayı ve "Denedim" düğmesi `--accent`. Listelerin kendi rengi yok; onları ad ve sayı ayırıyor.
+- **Kademeler vurgunun tonları** — kademe rozeti (`.kademe-rozet`) en üstte dolu vurgu, aşağı indikçe `--surface-2`'ye karışıyor (`--ton`, `color-mix`); koyu tonda yazı beyaz. Listeyi renkler değil sıra ayırıyor; klasik tier renkleri yalnızca paylaşım görselinde.
 - **Şampiyon ayrışıyor** — sıralamanın 1.'si (`.row.is-sampiyon`) vurgunun hafif tonlu zemini ve vurgu tonlu çerçevesiyle; kart görünümünde numara hapı dolu vurgu renginde.
 - **Seçili durum mürekkep halka** — `--ring` (`0 0 0 2px var(--ink)`); vurgu renginde halka, şampiyonun vurgu tonlu kartında kaybolurdu. Klavye odağı vurgu renginde dış çizgi.
 - **Eylemler hap** — birincil düğme mürekkep (koyu temada açık renk), ikincil yüzey + kıl çizgisi, tehlikeli işlem vurgunun açık tonu.

@@ -25,3 +25,24 @@ export function useGorunum(isDesktop: boolean) {
   };
   return { gorunum, gorunumSec, kart: isDesktop && gorunum === 'kart' };
 }
+
+const KADEME_GORUNUMU_ANAHTARI = 'siralama-defteri:kademe-gorunumu';
+
+/**
+ * Kademeler açık listede "Tier" (her kademe bir satır) ile "Liste" (ayırıcılı sıralama)
+ * arasında seçim; telefonda da var. Tercih tarayıcıda, bütün listeler için tek.
+ */
+export function useKademeGorunumu() {
+  const [acik, setAcik] = useState(false);
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (window.localStorage.getItem(KADEME_GORUNUMU_ANAHTARI) === '1') setAcik(true);
+    } catch { /* depolama kapalı: liste görünümü */ }
+  }, []);
+  const sec = (next: boolean) => {
+    setAcik(next);
+    try { window.localStorage.setItem(KADEME_GORUNUMU_ANAHTARI, next ? '1' : '0'); } catch { /* yok say */ }
+  };
+  return [acik, sec] as const;
+}

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import type { Gorunum } from '@/hooks/useGorunum';
-import { KartIkon, SatirIkon } from './Ikonlar';
+import { KademeIkon, KartIkon, SatirIkon } from './Ikonlar';
 import { messages } from '@/lib/i18n';
 
 export type Sekme = 'siralama' | 'sirada';
@@ -14,7 +14,7 @@ export type Sekme = 'siralama' | 'sirada';
  */
 export default function ListeAraci({
   sekme, onSekme, siralamaAdet, bekleyenAdet, filtreSeridi, arama,
-  gorunum, onGorunum, secimAcik, onSecim,
+  gorunum, onGorunum, kademeGorunumu, onKademeGorunumu, secimAcik, onSecim,
 }: {
   sekme: Sekme;
   onSekme: (s: Sekme) => void;
@@ -27,10 +27,14 @@ export default function ListeAraci({
   /** Yalnızca masaüstünde verilir; telefonda görünüm seçici yok. */
   gorunum?: Gorunum;
   onGorunum: (g: Gorunum) => void;
+  /** Kademeler açık listede Tier / Liste seçimi; verilmezse seçici yok. */
+  kademeGorunumu?: boolean;
+  onKademeGorunumu: (acik: boolean) => void;
   secimAcik: boolean;
   onSecim: () => void;
 }) {
-  const t = messages().liste;
+  const m = messages();
+  const t = m.liste;
   const acikAdet = sekme === 'sirada' ? bekleyenAdet : siralamaAdet;
 
   const sekmeDugmesi = (s: Sekme, etiket: string) => (
@@ -67,7 +71,19 @@ export default function ListeAraci({
         <div className="mobile-filters">{filtreSeridi}</div>
         <div className="desk-arama">{arama}</div>
       </div>
-      {gorunum && acikAdet > 0 && (
+      {kademeGorunumu !== undefined && acikAdet > 0 && !secimAcik && (
+        <div className="gorunum-secici kademe-gorunum-secici" role="group" aria-label={t.gorunum}>
+          <button type="button" className={kademeGorunumu ? 'is-on' : ''} aria-pressed={kademeGorunumu}
+                  aria-label={m.kademe.tierGorunumu} title={m.kademe.tierGorunumu} onClick={() => onKademeGorunumu(true)}>
+            {KademeIkon}
+          </button>
+          <button type="button" className={kademeGorunumu ? '' : 'is-on'} aria-pressed={!kademeGorunumu}
+                  aria-label={m.kademe.listeGorunumu} title={m.kademe.listeGorunumu} onClick={() => onKademeGorunumu(false)}>
+            {SatirIkon}
+          </button>
+        </div>
+      )}
+      {gorunum && acikAdet > 0 && !kademeGorunumu && (
         <div className="gorunum-secici" role="group" aria-label={t.gorunum}>
           {gorunumDugmesi('kart', t.kartGorunumu, KartIkon)}
           {gorunumDugmesi('satir', t.satirGorunumu, SatirIkon)}

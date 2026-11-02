@@ -17,6 +17,15 @@ export interface AlanTanimi {
   kategori_id?: string;
 }
 
+/**
+ * Kademe (tier list'in bir satırı). `anahtar` kalıcı, kayıtlar onu taşıyor (`Item.kademe`);
+ * `etiket` değiştirilebilir ("S", "A", "Efsane"). Sıra dizideki yer: ilki en üstteki.
+ */
+export interface Kademe {
+  anahtar: string;
+  etiket: string;
+}
+
 export interface Liste {
   id: string;
   user_id: string;
@@ -30,6 +39,8 @@ export interface Liste {
   paylasim_kodu?: string | null;
   /** "Ben de sıralayayım" ile kopyalandığı paylaşımın kodu — karşılaştırma bununla eşleşiyor. */
   kaynak_kod?: string | null;
+  /** Kademeler açıksa yukarıdan aşağı; kapalıysa null (`lib/kademe.ts`). */
+  kademeler?: Kademe[] | null;
   created_at?: string;
 }
 
@@ -57,6 +68,8 @@ export interface Item {
   /** true ise denenmiş ama sıralamada değil: kırmızı çizginin altındaki "Bir daha asla" bölümünde. */
   asla?: boolean;
   notlar?: string | null;
+  /** Kademeler açıksa kaydın kademesinin anahtarı; boşsa kademesiz (en altta). */
+  kademe?: string | null;
   /** Listenin `alanlar` tanımına karşılık gelen değerler. */
   ozellikler: Record<string, OzellikDeger>;
   created_at?: string;

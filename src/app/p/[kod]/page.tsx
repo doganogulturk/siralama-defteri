@@ -10,6 +10,7 @@ import {
 import { paylasilanListe } from '@/lib/paylasim-sunucu';
 import { DIL_PARAMETRE, sozluk, type Mesajlar } from '@/lib/i18n';
 import { sunucuDili } from '@/lib/i18n/sunucu';
+import { kademeGruplari, kademeTonu, kademeliMi } from '@/lib/kademe';
 
 /** Canlı: sahibi sıralamayı değiştirdikçe bağlantı da değişsin, önbellekte kalmasın. */
 export const dynamic = 'force-dynamic';
@@ -185,9 +186,37 @@ export default async function PaylasimSayfasi({ params, searchParams }: Props) {
           </div>
         ) : (
           <>
-            <ol className="rows" aria-label={p.siralama}>
-              {siralama.map((k, i) => satir(k, i + 1))}
-            </ol>
+            {kademeliMi(liste.kademeler) ? (
+              // Kademeler açıksa sıralama kademe başlıklarıyla bölünüyor; numaralar baştan sona sürüyor.
+              (() => {
+                const kademeler = liste.kademeler;
+                let no = 0;
+                return kademeGruplari(siralama, kademeler).filter(g => g.kademe || g.items.length > 0).map((g, i) => {
+                  const ton = kademeTonu(i, kademeler.length);
+                  return (
+                    <section key={g.kademe?.anahtar ?? '-'} aria-label={g.kademe ? t.kademe.kademesi(g.kademe.etiket) : t.kademe.kademesiz}>
+                      <div className="kademe-siniri" role="separator">
+                        <span
+                          className={`kademe-rozet${!g.kademe ? ' is-kademesiz' : ton >= 55 ? ' is-koyu' : ''}`}
+                          style={{ '--ton': `${ton}%` } as React.CSSProperties}
+                        >
+                          {g.kademe?.etiket ?? '–'}
+                        </span>
+                        {!g.kademe && <span className="kademe-siniri-ad">{t.kademe.kademesiz}</span>}
+                        {g.items.length > 0
+                          ? <span className="kademe-siniri-sayi">{g.items.length}</span>
+                          : <span className="kademe-siniri-bos">{t.kademe.bos}</span>}
+                      </div>
+                      {g.items.length > 0 && <ol className="rows">{g.items.map(k => satir(k, ++no))}</ol>}
+                    </section>
+                  );
+                });
+              })()
+            ) : (
+              <ol className="rows" aria-label={p.siralama}>
+                {siralama.map((k, i) => satir(k, i + 1))}
+              </ol>
+            )}
             {asla.length > 0 && (
               <>
                 <div className="asla-siniri" role="separator">

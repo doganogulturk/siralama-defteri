@@ -100,7 +100,7 @@ export default function PaylasMenusu({ liste, korAdet, onClose, onAyarlar, onBil
             {gorselHata
               ? t.storyHata
               : gorsel
-                ? t.storyAciklama
+                ? (liste.kademeler?.length ? t.storyKademeAciklama : t.storyAciklama)
                 : t.hazirlaniyor}
           </em>
         </button>

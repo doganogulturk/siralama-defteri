@@ -22,7 +22,11 @@
   --line:  color-mix(in oklab, var(--ink) 10%, transparent);
   --tint:  color-mix(in oklab, var(--ink) 5.5%, transparent);
   /* Defter zeminindeki kare çizgileri */
-  --kare:  color-mix(in oklab, var(--ink) 9%, transparent);
+  --kare:  color-mix(in oklab, var(--ink) 7%, transparent);
+  /* Sarmal teller: kâğıttaki delik ve üstten gelip deliğe giren tel, 28px aralıkla. */
+  --tel: 20px;
+  --tel-renk: color-mix(in oklab, var(--ink) 42%, transparent);
+  --tel-cizim: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='20' viewBox='0 0 28 20'%3E%3Ccircle cx='14' cy='14.5' r='3.2'/%3E%3Cpath d='M18.6 0.5C12.5 1.2 10.2 7.5 12.6 13.4' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
 
   /* Uygulamanın tek vurgu rengi ve ondan türeyenler */
   --accent:      oklch(0.62 0.205 36);
@@ -74,7 +78,8 @@
     --ink:   oklch(0.955 0.005 85);
     --line:  color-mix(in oklab, var(--ink) 11%, transparent);
     --tint:  color-mix(in oklab, var(--ink) 7%, transparent);
-    --kare:  color-mix(in oklab, var(--ink) 10%, transparent);
+    --kare:  color-mix(in oklab, var(--ink) 8%, transparent);
+    --tel-renk: color-mix(in oklab, var(--ink) 48%, transparent);
 
     --accent:      oklch(0.68 0.185 38);
     --accent-ink:  oklch(0.8 0.13 42);
@@ -116,20 +121,35 @@ body {
 /* Kareli defter sayfası: ekranın üstünde ince bir ızgara, aşağı doğru eriyor (Sensetorial'ın
    giriş bölümünden). Sayfanın kendisi kayarken (telefon, ana ekran) onunla gidiyor; masaüstü
    sıralama ekranında sütunlar kendi içinde kaydığı için başlığın arkasında kalıyor. */
+/*
+ * Defter: ekranın tamamı kareli kâğıt (sabit; içerik üstünden kayıyor) ve en üstte sarmal
+ * teller. Teller kendi şeridinde (`--tel`): içeriğin üstüne binmiyor; tam ekran yükseklikler
+ * bu şeridi düşüyor.
+ */
+body { padding-top: var(--tel); }
 body::before {
   content: "";
-  position: absolute;
-  inset: 0 0 auto;
+  position: fixed;
+  inset: 0;
   z-index: -1;
-  height: 460px;
   pointer-events: none;
   background-image:
     linear-gradient(to right, var(--kare) 1px, transparent 1px),
     linear-gradient(to bottom, var(--kare) 1px, transparent 1px);
-  background-size: 32px 32px;
+  background-size: 28px 28px;
   background-position: center top;
-  -webkit-mask-image: radial-gradient(ellipse 70% 100% at 50% 0, #000 25%, transparent 75%);
-  mask-image: radial-gradient(ellipse 70% 100% at 50% 0, #000 25%, transparent 75%);
+}
+body::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--tel);
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--tel-renk), color-mix(in oklab, var(--tel-renk) 70%, transparent));
+  -webkit-mask: var(--tel-cizim) center top / 28px var(--tel) repeat-x;
+  mask: var(--tel-cizim) center top / 28px var(--tel) repeat-x;
 }
 button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
 input, select, textarea { font: inherit; color: inherit; }
@@ -168,6 +188,8 @@ a { color: var(--accent-ink); }
   letter-spacing: -0.015em;
   white-space: nowrap;
 }
+/* Ad iki satırda: "Sıralama / Defteri", işaretin yanında sıkı bir blok. */
+.marka-ad { line-height: 1.02; }
 .marka-isaret {
   display: grid;
   place-items: center;
@@ -185,7 +207,7 @@ a { color: var(--accent-ink); }
 /* ═══════════════════════════════════════════════════════
    İSKELET — mobil önce (tek sütun)
 ═══════════════════════════════════════════════════════ */
-.app { min-height: 100dvh; }
+.app { min-height: calc(100dvh - var(--tel)); }
 .rail { display: none; }
 .pane { display: none; }
 
@@ -250,16 +272,14 @@ a { color: var(--accent-ink); }
 .mobile-brand-yan { display: none; }
 
 
-/* Başlık, sekmeler ve filtreler kaydırmada sabit: yarı saydam cam, altındaki kayıtlar bulanık görünüyor. */
+/* Başlık, sekmeler ve filtreler kaydırmada sabit: düz kâğıt zemini (bulanık cam değil), altına kıl çizgisi. */
 .sticky-top {
   position: sticky;
   top: 0;
   z-index: 30;
   margin: 0 -16px;
   padding: 0 16px;
-  background: var(--glass);
-  -webkit-backdrop-filter: var(--blur);
-  backdrop-filter: var(--blur);
+  background: var(--bg);
 }
 /* Kaydırma başlayınca altına kıl çizgisi ve yumuşak gölge iniyor (desteklenen tarayıcılarda). */
 @supports (animation-timeline: scroll()) {
@@ -775,7 +795,13 @@ a { color: var(--accent-ink); }
 /* Sağ taraf: masaüstünde ekleme düğmesi + hesap, mobilde yalnızca hesap. */
 .home-head-yan { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .home-head { padding: 36px 0 26px; }
-.home-hello { font-size: 1rem; color: var(--mute); }
+.home-hello {
+  font-family: var(--serif);
+  font-size: clamp(1.9rem, 8vw, 2.4rem);
+  font-style: italic;
+  line-height: 1.05;
+  color: var(--soft);
+}
 .home-title {
   font-size: clamp(3.2rem, 15vw, 4.2rem);
   line-height: 0.95;
@@ -2424,7 +2450,7 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   .app {
     display: grid;
     grid-template-columns: 280px minmax(420px, 560px) 1fr;
-    height: 100dvh;
+    height: calc(100dvh - var(--tel));
     overflow: hidden;
   }
   .app-solo { display: block; height: auto; overflow: visible; }
@@ -3293,7 +3319,7 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   display: flex;
   flex-direction: column;
   max-width: 520px;
-  min-height: 100dvh;
+  min-height: calc(100dvh - var(--tel));
   margin: 0 auto;
   padding: 0 16px env(safe-area-inset-bottom);
 }
@@ -3506,7 +3532,7 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   isolation: isolate;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  height: 100dvh;
+  height: calc(100dvh - var(--tel));
   overflow: hidden;
 }
 .tn::before {
@@ -4346,6 +4372,9 @@ body:has(.mobil-menu) .kor-sayfa { padding-bottom: calc(110px + env(safe-area-in
   .home-oyun { flex-direction: row; align-items: stretch; gap: 28px; }
   .home-oyun-grup:last-child { flex: 1; }
   .home-oyun .oyun-seridi { flex-wrap: nowrap; }
+  /* Modlar satırın kalanını eşit paylaşıyor: kart sayısı arttıkça taşmıyor. */
+  .home-oyun .oyun-seridi li { flex: 1 1 0; min-width: 0; }
+  .home-oyun .oyun-kart { width: auto; }
 }
 
 /* Oyna sayfası: bölümler ve giriş yapmamış ziyaretçinin çağrısı. */

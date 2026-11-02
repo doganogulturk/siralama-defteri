@@ -14,12 +14,12 @@ export const MarkaIsareti = () => (
   </span>
 );
 
-/** İşaret ve ad: ana ekranın üst çubuğu, masaüstü rayı ve giriş ekranı. */
+/** İşaret ve ad ("Sıralama / Defteri" iki satırda): ana ekranın üst çubuğu, masaüstü rayı, Oyna ve giriş ekranı. */
 export default function Marka({ className = '' }: { className?: string }) {
   return (
     <span className={`marka ${className}`}>
       <MarkaIsareti />
-      <span className="marka-ad">Sıralama Defteri</span>
+      <span className="marka-ad">Sıralama<br />Defteri</span>
     </span>
   );
 }

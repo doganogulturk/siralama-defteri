@@ -80,7 +80,8 @@ export default function ListelerPage() {
           </div>
         </div>
 
-        {ilkAd && <p className="home-hello">{a.merhaba(ilkAd)}</p>}
+        {/* Yalnızca ad italik: "Merhaba *Doğan*,". */}
+        {ilkAd && <p className="home-hello">{a.merhaba[0]}<em>{ilkAd}</em>{a.merhaba[1]}</p>}
 
         {/* Oyunlar: günün iki oyunu ve modların şeridi. Kişisel listeler aşağıda. */}
         <section className="home-oyun" aria-label={m.oyna.oyunlar}>

@@ -798,10 +798,10 @@ a { color: var(--accent-ink); }
 .home-hello {
   font-family: var(--serif);
   font-size: clamp(1.9rem, 8vw, 2.4rem);
-  font-style: italic;
   line-height: 1.05;
   color: var(--soft);
 }
+.home-hello em { font-style: italic; color: var(--ink); }
 .home-title {
   font-size: clamp(3.2rem, 15vw, 4.2rem);
   line-height: 0.95;

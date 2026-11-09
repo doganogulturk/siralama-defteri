@@ -176,7 +176,11 @@ function adimlar() {
 
 const ARALIK_MS = 5200;
 
-export default function Tanitim({ girisDugmesi }: { girisDugmesi: React.ReactNode }) {
+/**
+ * `girisDugmesi` yoksa (giriş yapmış kullanıcı Hesabım → "Nasıl çalışır?" ile açtı) altta
+ * giriş yerine listelerine dönüş.
+ */
+export default function Tanitim({ girisDugmesi }: { girisDugmesi?: React.ReactNode }) {
   const iz = useRef<HTMLDivElement>(null);
   const [aktif, setAktif] = useState(0);
   /** Kullanıcı dokunduysa kendiliğinden ilerleme duruyor: elindekini kaydırmasın. */
@@ -244,11 +248,17 @@ export default function Tanitim({ girisDugmesi }: { girisDugmesi: React.ReactNod
             />
           ))}
         </div>
-        {girisDugmesi}
-        <p className="gate-yasal">
-          {m.giris.yasalOnay[0]}<a href="/kullanim-kosullari">{m.giris.kosullar}</a>{m.giris.yasalOnay[1]}
-          <a href="/gizlilik">{m.giris.gizlilik}</a>{m.giris.yasalOnay[2]}
-        </p>
+        {girisDugmesi ? (
+          <>
+            {girisDugmesi}
+            <p className="gate-yasal">
+              {m.giris.yasalOnay[0]}<a href="/kullanim-kosullari">{m.giris.kosullar}</a>{m.giris.yasalOnay[1]}
+              <a href="/gizlilik">{m.giris.gizlilik}</a>{m.giris.yasalOnay[2]}
+            </p>
+          </>
+        ) : (
+          <Link href="/" className="gate-btn tn-don">{m.liste.listelerimeDon}</Link>
+        )}
       </footer>
     </div>
   );

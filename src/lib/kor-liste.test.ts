@@ -39,6 +39,8 @@ describe('kendi listeni kör sıralat', () => {
     // İki "Bir daha asla" kaydı aralarında sayılmıyor, ikisi de sıralananların altında.
     const asla = [kayit(0, 1), kayit(1, 2), kayit(2, null), kayit(3, null)];
     expect(korUyum(asla)).toBe(100);
-    expect(korUyum([asla[2], asla[0], asla[1], asla[3]])).toBe(60);
+    // Aynı yerde duran kayıt başına eşit pay: dördüncü yerdeki "asla" yine asla bölgesinde.
+    expect(korUyum([asla[2], asla[0], asla[1], asla[3]])).toBe(25);
+    expect(korUyum([asla[0], asla[1], asla[3], asla[2]])).toBe(100);
   });
 });

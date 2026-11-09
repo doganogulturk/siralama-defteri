@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { sortIstekListesi, sortSirali } from './sort';
 import { benzersizSlug, slugify } from './slug';
-import { sonucCoz, sonucYaz } from './kor';
+import { sonucCoz, sonucYaz, yerindeUyum } from './kor';
 import { korOyunListesi } from './katalog';
 import { KATEGORISIZ, bosFiltre, filtreBos, filtreUygula } from './filtre';
 import {
@@ -144,5 +144,13 @@ describe('sözlükler', () => {
 
   it('İngilizce sözlükte Türkçedeki her anahtar var', () => {
     expect(anahtarlar(en)).toEqual(anahtarlar(tr));
+  });
+});
+
+describe('yerindeUyum', () => {
+  it('aynı yerde duran kayıt başına eşit pay', () => {
+    expect(yerindeUyum([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])).toBe(100);
+    expect(yerindeUyum([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 0, 2, 3, 4, 5, 6, 7, 8, 9])).toBe(80);
+    expect(yerindeUyum([], [])).toBe(0);
   });
 });

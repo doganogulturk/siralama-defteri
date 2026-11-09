@@ -59,6 +59,8 @@ export default function HesapPenceresi({ user, ad, onClose }: {
 
         <DilSecici className="hesap-dil" />
 
+        <Link href="/tanitim" className="hesap-nasil" onClick={onClose}>{m.oyna.nasil}</Link>
+
         <nav className="hesap-yasal" aria-label={m.hesap.yasalSayfalar}>
           {yasalSayfalar().map(s => (
             <Link key={s.href} href={s.href} onClick={onClose}>{s.ad}</Link>

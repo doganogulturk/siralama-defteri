@@ -118,3 +118,14 @@ export function sonucCoz(liste: KorListe, s?: string | null): number[] | null {
 }
 
 export const sonucYaz = (sira: number[]) => sira.join('-');
+
+/**
+ * İki sıralamanın uyumu, yüzde: aynı yerde duran kayıt başına eşit pay (on kayıtta her biri
+ * 10). `a` ve `b` birinciden sonuncuya kayıtların listedeki yerleri, aynı kayıtlarla. Bütün
+ * sıralama oyunlarında aynı kural (bkz. `lib/sayilar.ts` → `puanla`).
+ */
+export function yerindeUyum(a: number[], b: number[]): number {
+  if (a.length === 0) return 0;
+  const ayni = a.filter((k, i) => k === b[i]).length;
+  return Math.round((100 * ayni) / a.length);
+}

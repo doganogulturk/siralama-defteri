@@ -95,35 +95,14 @@ export interface Puan {
 }
 
 /**
- * Puan, yuvalardaki sayıların en uzun artan alt dizisi. "Tam yerinde olanları saymak"
- * tek bir erken hatayı bütün oyuna yayardı: 50'yi birinci yuvaya koyup kalanını
- * kusursuz dizen biri 0 alırdı; burada 9 alıyor.
- *
- * Aynı uzunlukta birden çok dizi olabilir; puan değişmez ama hangi yuvaların "sıranın
- * dışında" işaretleneceği değişir. Tam yerindeki sayıyı (80'in 8. yuvada durması)
- * dışarıda bırakmak tuhaf görünürdü: eşitlikte tam yerinde duran sayıları en çok
- * içeren dizi seçiliyor.
+ * Puan: olması gereken (küçükten büyüğe) dizi ile oyuncunun dizisi yan yana; tam yerinde duran
+ * her sayı 1 (on sayıda 10 üzerinden). Bütün sıralama oyunlarında aynı kural (Doğru Sıra,
+ * Kör Sıralama'da arkadaşla ve sahiple uyum; sahibinin kararı, Kasım 2026). Önceki ölçü en
+ * uzun artan alt diziydi: tek erken hatayı az cezalandırıyordu ama "8'i yerinde"ye 9 diyordu.
+ * Bedeli: bir sayıyı başa koymak altındakilerin hepsini kaydırıyor.
  */
 export function puanla(yuvalar: number[]): Puan {
-  const n = yuvalar.length;
   const dogrusu = [...yuvalar].sort((a, b) => a - b);
-  const tam = yuvalar.map((x, i) => (x === dogrusu[i] ? 1 : 0));
-  const uzunluk = new Array<number>(n).fill(1);
-  const isabet: number[] = [...tam];
-  const onceki = new Array<number>(n).fill(-1);
-  const dahaIyi = (u: number, is: number, i: number) => u > uzunluk[i] || (u === uzunluk[i] && is > isabet[i]);
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j < i; j++) {
-      if (yuvalar[j] < yuvalar[i] && dahaIyi(uzunluk[j] + 1, isabet[j] + tam[i], i)) {
-        uzunluk[i] = uzunluk[j] + 1;
-        isabet[i] = isabet[j] + tam[i];
-        onceki[i] = j;
-      }
-    }
-  }
-  let son = 0;
-  for (let i = 1; i < n; i++) if (dahaIyi(uzunluk[i], isabet[i], son)) son = i;
-  const yerinde = new Array<boolean>(n).fill(false);
-  for (let i = n ? son : -1; i !== -1; i = onceki[i]) yerinde[i] = true;
-  return { puan: n ? uzunluk[son] : 0, yerinde, dogrusu };
+  const yerinde = yuvalar.map((x, i) => x === dogrusu[i]);
+  return { puan: yerinde.filter(Boolean).length, yerinde, dogrusu };
 }

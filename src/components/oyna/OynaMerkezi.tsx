@@ -92,7 +92,6 @@ export default function OynaMerkezi({ misafir }: { misafir?: React.ReactNode }) 
               <p>{o.misafirAlt}</p>
               <div className="oyna-misafir-islem">
                 {misafir}
-                <Link href="/tanitim" className="oyna-nasil">{o.nasil}</Link>
               </div>
             </section>
           )}

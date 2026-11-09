@@ -83,24 +83,18 @@ export function korSonucCoz<T extends Pick<KorKayit, 'id'>>(kayitlar: T[], s?: s
 }
 
 /**
- * Kör sıralama ile sahibinin sırası arasındaki uyum (Kendall, `lib/kiyas.ts` ile aynı
- * kural): her kayıt çiftinde ikisi de aynı olanı mı öne koymuş? "Bir daha asla"daki
- * kayıtlar sahibinin sıralamasının altında ve kendi aralarında eşit; eşit çift sayılmıyor.
- * Kayıtlar adla değil kimlikle eşleşiyor: aynı listede aynı adlı iki kayıt olabilir.
+ * Kör sıralama ile sahibinin sırası arasındaki uyum, yüzde: oynanan kayıtlar sahibinin
+ * sırasına göre dizilip oyuncunun dizisiyle yan yana konuyor; aynı yerde duran her kayıt eşit
+ * pay (on kayıtta 10). "Bir daha asla"daki kayıtlar sahibinin sıralamasının altında, aralarında
+ * eşit: o bölgedeki her yer onlardan birine uyuyor. Kayıtlar kimlikle eşleşiyor (aynı listede aynı
+ * adlı iki kayıt olabilir). Bütün sıralama oyunlarında aynı kural (`lib/sayilar.ts` → `puanla`).
  */
 export function korUyum(sira: Pick<KorKayit, 'sahipSirasi'>[]): number | null {
+  if (sira.length === 0) return null;
   const sahipKonum = (k: Pick<KorKayit, 'sahipSirasi'>) => k.sahipSirasi ?? Number.MAX_SAFE_INTEGER;
-  let ayni = 0;
-  let ters = 0;
-  for (let i = 0; i < sira.length; i++) {
-    for (let j = i + 1; j < sira.length; j++) {
-      // Benim sıramda i her zaman j'nin önünde.
-      const o = Math.sign(sahipKonum(sira[j]) - sahipKonum(sira[i]));
-      if (o > 0) ayni++;
-      else if (o < 0) ters++;
-    }
-  }
-  return ayni + ters > 0 ? Math.round((100 * ayni) / (ayni + ters)) : null;
+  const dogru = [...sira].sort((a, b) => sahipKonum(a) - sahipKonum(b));
+  const ayni = sira.filter((k, i) => sahipKonum(k) === sahipKonum(dogru[i])).length;
+  return Math.round((100 * ayni) / sira.length);
 }
 
 /** Kör sıralama bağlantısı: paylaşanın dilinde (`?l=en`), paylaşım bağlantısıyla aynı kural. */

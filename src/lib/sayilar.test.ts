@@ -37,28 +37,19 @@ describe('sayılar', () => {
     expect(yerlesimCoz('0-1-2-3-4-5-6-7-8-10')).toBeNull();
   });
 
-  it('puan en uzun artan alt dizi: tek erken hata bütün oyunu sıfırlamıyor', () => {
+  it('puan tam yerinde duran sayı sayısı: on sayıda her biri 1', () => {
     const kusursuz = puanla([3, 12, 25, 40, 51, 66, 70, 82, 90, 97]);
     expect(kusursuz.puan).toBe(10);
     expect(kusursuz.yerinde.every(Boolean)).toBe(true);
 
-    const erkenHata = puanla([50, 3, 12, 25, 40, 66, 70, 82, 90, 97]);
-    expect(erkenHata.puan).toBe(9);
-    expect(erkenHata.yerinde[0]).toBe(false);
-    expect(erkenHata.dogrusu).toEqual([3, 12, 25, 40, 50, 66, 70, 82, 90, 97]);
+    // İki komşu yer değiştirmiş: 8 yerinde.
+    const ikiHata = puanla([3, 12, 40, 25, 51, 66, 70, 82, 90, 97]);
+    expect(ikiHata.puan).toBe(8);
+    expect(ikiHata.yerinde[2]).toBe(false);
+    expect(ikiHata.dogrusu).toEqual([3, 12, 25, 40, 51, 66, 70, 82, 90, 97]);
 
-    // Kullanıcının örneği: 90'dan büyüğü gelir diye 9'a koydu, gelmedi; daha küçüğü 10'a düştü.
-    const ornek = puanla([5, 14, 22, 31, 47, 58, 63, 77, 90, 85]);
-    expect(ornek.puan).toBe(9);
-    expect(ornek.yerinde.filter(x => !x)).toHaveLength(1);
-
-    expect(puanla([97, 90, 82, 70, 66, 51, 40, 25, 12, 3]).puan).toBe(1);
-  });
-
-  it('eşit uzunlukta diziler arasından tam yerinde duranları içereni seçiyor', () => {
-    // Doğrusu 2,10,22,40,46,47,53,80,91,94: 80 sekizinci yuvada tam yerinde.
-    const p = puanla([10, 91, 53, 46, 2, 94, 22, 80, 47, 40]);
-    expect(p.puan).toBe(3);
-    expect(p.yerinde[7]).toBe(true);
+    // Bedeli: baştaki tek hata altındakilerin hepsini kaydırıyor.
+    expect(puanla([50, 3, 12, 25, 40, 66, 70, 82, 90, 97]).puan).toBe(5);
+    expect(puanla([97, 90, 82, 70, 66, 51, 40, 25, 12, 3]).puan).toBe(0);
   });
 });

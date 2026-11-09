@@ -2427,6 +2427,14 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   transition: color var(--t) var(--ease), background var(--t) var(--ease);
 }
 .hesap-cikis:hover { color: var(--accent-ink); background: var(--accent-soft); }
+.hesap-nasil {
+  align-self: flex-start;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--accent-ink);
+  text-decoration: none;
+}
+.tn-don { justify-content: center; text-decoration: none; }
 .hesap-yasal {
   display: flex;
   flex-wrap: wrap;
@@ -4468,7 +4476,6 @@ body:has(.mobil-menu) .kor-sayfa { padding-bottom: calc(110px + env(safe-area-in
 .oyna-misafir p { font-size: 0.9rem; line-height: 1.45; color: var(--soft); }
 .oyna-misafir-islem { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 8px; }
 .oyna-misafir .gate-btn { min-height: 48px; margin-top: 0; padding: 0 22px 0 12px; }
-.oyna-nasil { font-size: 0.88rem; font-weight: 600; color: var(--accent-ink); text-decoration: none; }
 
 /* Oyna: mod seçici ve katalog bir kez, ızgarada. Seçili mod kendi renginde. */
 .oyna-katalog { margin-top: 8px; }
@@ -4671,9 +4678,10 @@ button.tier-madde:hover { box-shadow: 0 0 0 1px var(--faint); }
 
 /* ── Oyunların tanıtım kartı (components/oyna/OyunSahnesi.tsx) ──────────
    Giriş ekranında kuralların üstünde: oyunun kendi arayüzünden küçük, dönen bir parça.
-   Açılış tanıtımının sahneleriyle aynı dil; renk listenin (`--kor`). Bir tur 4.8 saniye. */
+   Açılış tanıtımının sahneleriyle aynı dil; renk listenin (`--kor`). Bir tur 8 saniye, iki hamle:
+   `os-h1` ilk yarıda, `os-h2` ikinci yarıda; tur sonunda başa dönüyor. */
 .oyun-sahne {
-  --os-sure: 4.8s;
+  --os-sure: 8s;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -4697,15 +4705,15 @@ button.tier-madde:hover { box-shadow: 0 0 0 1px var(--faint); }
 .os-bas span { font-size: 1.1rem; letter-spacing: 0; }
 .os-govde { position: relative; display: flex; flex-direction: column; gap: 5px; }
 
-/* Gelen kart: üstten düşüyor, bekliyor, hedefe inip kayboluyor. */
+/* Gelen kartlar üst üste aynı yerde: biri düşüp kaybolunca öbürü geliyor. */
+.os-gelenler { position: relative; display: grid; justify-items: center; height: 46px; margin-bottom: 6px; }
 .os-gelen {
-  align-self: center;
+  grid-area: 1 / 1;
   display: grid;
   place-items: center;
   min-width: 150px;
   max-width: 100%;
   height: 46px;
-  margin-bottom: 6px;
   padding: 0 16px;
   border-radius: 14px;
   background: var(--kor);
@@ -4716,24 +4724,40 @@ button.tier-madde:hover { box-shadow: 0 0 0 1px var(--faint); }
   overflow: hidden;
   text-overflow: ellipsis;
   box-shadow: 0 14px 24px -16px var(--kor);
-  animation: os-gelen var(--os-sure) var(--ease) infinite;
+  opacity: 0;
 }
-@keyframes os-gelen {
-  0% { translate: 0 -24px; rotate: -5deg; scale: 0.75; opacity: 0; }
-  14%, 40% { translate: 0 0; rotate: 0deg; scale: 1; opacity: 1; }
-  56% { translate: 0 70px; scale: 0.45; opacity: 0; }
-  100% { opacity: 0; }
+.os-gelen.os-h1 { animation: os-gelen-1 var(--os-sure) var(--ease) infinite; }
+.os-gelen.os-h2 { animation: os-gelen-2 var(--os-sure) var(--ease) infinite; }
+@keyframes os-gelen-1 {
+  0% { translate: 0 -20px; rotate: -5deg; scale: 0.75; opacity: 0; }
+  8%, 20% { translate: 0 0; rotate: 0deg; scale: 1; opacity: 1; }
+  29%, 100% { translate: 0 70px; scale: 0.45; opacity: 0; }
 }
-/* Hedef yuva: önce halkalanıyor, kart inince doluyor. */
-.os-hedef { animation: os-hedef var(--os-sure) var(--ease) infinite; }
-.os-hedef em, .os-hedef-hap { animation: os-belir var(--os-sure) var(--ease) infinite; }
-@keyframes os-hedef {
-  0%, 30% { box-shadow: inset 0 0 0 1.5px var(--line); }
-  36%, 48% { box-shadow: inset 0 0 0 2px var(--kor); }
-  56%, 92% { background: var(--surface); box-shadow: var(--hair); }
+@keyframes os-gelen-2 {
+  0%, 44% { translate: 0 -20px; rotate: 5deg; scale: 0.75; opacity: 0; }
+  52%, 64% { translate: 0 0; rotate: 0deg; scale: 1; opacity: 1; }
+  73%, 100% { translate: 0 70px; scale: 0.45; opacity: 0; }
+}
+
+/* Hedef: önce halkalanıyor, hamle inince doluyor; tur sonunda boşalıyor. */
+.os-hedef.os-h1 { animation: os-hedef-1 var(--os-sure) var(--ease) infinite; }
+.os-hedef.os-h2 { animation: os-hedef-2 var(--os-sure) var(--ease) infinite; }
+@keyframes os-hedef-1 {
+  0%, 18% { box-shadow: inset 0 0 0 1.5px var(--line); }
+  22%, 28% { box-shadow: inset 0 0 0 2px var(--kor); }
+  31%, 94% { background: var(--surface); box-shadow: var(--hair); }
   100% { background: transparent; box-shadow: inset 0 0 0 1.5px var(--line); }
 }
-@keyframes os-belir { 0%, 52% { opacity: 0; } 60%, 92% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes os-hedef-2 {
+  0%, 62% { box-shadow: inset 0 0 0 1.5px var(--line); }
+  66%, 72% { box-shadow: inset 0 0 0 2px var(--kor); }
+  75%, 94% { background: var(--surface); box-shadow: var(--hair); }
+  100% { background: transparent; box-shadow: inset 0 0 0 1.5px var(--line); }
+}
+.os-hedef.os-h1 em, .os-yeni.os-h1 { animation: os-belir-1 var(--os-sure) var(--ease) infinite; }
+.os-hedef.os-h2 em, .os-yeni.os-h2 { animation: os-belir-2 var(--os-sure) var(--ease) infinite; }
+@keyframes os-belir-1 { 0%, 29% { opacity: 0; } 33%, 94% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes os-belir-2 { 0%, 73% { opacity: 0; } 77%, 94% { opacity: 1; } 100% { opacity: 0; } }
 
 /* Kör Sıralama: dikey yuvalar. */
 .os-yuvalar { display: flex; flex-direction: column; gap: 5px; }
@@ -4796,9 +4820,12 @@ button.tier-madde:hover { box-shadow: 0 0 0 1px var(--faint); }
 }
 .os-kademe > span { display: flex; gap: 4px; min-width: 0; }
 .os-kademe.is-dolu { opacity: 0.55; }
-.os-kademe.os-hedef { background: transparent; }
+.os-kademe.os-hedef.os-h1 { animation-name: os-kademe-1; }
+.os-kademe.os-hedef.os-h2 { animation-name: os-kademe-2; }
+@keyframes os-kademe-1 { 0%, 20% { box-shadow: var(--hair); } 23%, 30% { box-shadow: 0 0 0 2px var(--kor); } 34%, 100% { box-shadow: var(--hair); } }
+@keyframes os-kademe-2 { 0%, 64% { box-shadow: var(--hair); } 67%, 74% { box-shadow: 0 0 0 2px var(--kor); } 78%, 100% { box-shadow: var(--hair); } }
 .os-hap {
-  max-width: 96px;
+  max-width: 92px;
   padding: 3px 8px;
   border-radius: 999px;
   background: color-mix(in oklab, var(--kor) 12%, var(--surface));
@@ -4809,37 +4836,40 @@ button.tier-madde:hover { box-shadow: 0 0 0 1px var(--faint); }
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.os-hap.is-soluk { opacity: 0.5; }
 .os-tepsi {
   display: flex;
   gap: 4px;
+  min-height: 32px;
   margin-top: 6px;
   padding: 4px;
   border-radius: 10px;
   border: 1.5px dashed var(--line);
 }
-/* Tier: tepsideki madde seçiliyor (halka), sonra A kademesine çıkıyor. */
-.os-tasinan { position: relative; z-index: 1; animation: os-tasi var(--os-sure) var(--ease) infinite; }
-@keyframes os-tasi {
-  0%, 16% { translate: 0 0; box-shadow: 0 0 0 1px color-mix(in oklab, var(--kor) 25%, transparent); }
-  24%, 40% { translate: 0 0; box-shadow: 0 0 0 2px var(--kor); scale: 1.06; }
-  58%, 92% { translate: 26px -77px; box-shadow: 0 0 0 1px color-mix(in oklab, var(--kor) 25%, transparent); scale: 1; }
-  100% { translate: 0 0; }
+/* Tier: tepsideki madde seçiliyor (halka), sonra tepsiden kalkıp kademesinde beliriyor. */
+.os-giden.os-h1 { animation: os-giden-1 var(--os-sure) var(--ease) infinite; }
+.os-giden.os-h2 { animation: os-giden-2 var(--os-sure) var(--ease) infinite; }
+@keyframes os-giden-1 {
+  0%, 10% { opacity: 1; scale: 1; }
+  14%, 24% { opacity: 1; scale: 1.08; box-shadow: 0 0 0 2px var(--kor); }
+  30%, 94% { opacity: 0; scale: 0.8; }
+  100% { opacity: 1; scale: 1; }
 }
-.os-tier .os-hedef { animation-name: os-hedef-tier; }
-@keyframes os-hedef-tier {
-  0%, 36% { box-shadow: var(--hair); }
-  42%, 54% { box-shadow: 0 0 0 2px var(--kor); }
-  62%, 100% { box-shadow: var(--hair); }
+@keyframes os-giden-2 {
+  0%, 54% { opacity: 1; scale: 1; }
+  58%, 68% { opacity: 1; scale: 1.08; box-shadow: 0 0 0 2px var(--kor); }
+  74%, 94% { opacity: 0; scale: 0.8; }
+  100% { opacity: 1; scale: 1; }
 }
 
-/* Doğru Sıra: numaralar yerinde, satırlar altlarında yer değiştiriyor, sonra ✓. */
+/* Doğru Sıra: numaralar yerinde, satırlar altlarında yer değiştiriyor, sonra ✓.
+   Başta b, d, a, c; önce a başa (a, b, d, c), sonra c bir yukarı (a, b, c, d). Adım 33px. */
 .os-dogru { flex-direction: row; gap: 6px; }
 .os-nolar { display: grid; gap: 5px; }
 .os-nolar i { display: grid; place-items: center; width: 18px; height: 28px; font-family: var(--serif); font-size: 1rem; font-style: normal; color: var(--kor); }
 .os-satirlar { position: relative; flex: 1; height: calc(4 * 28px + 3 * 5px); }
 .os-satir {
   position: absolute;
+  top: 0;
   inset-inline: 0;
   display: flex;
   align-items: center;
@@ -4855,27 +4885,45 @@ button.tier-madde:hover { box-shadow: 0 0 0 1px var(--faint); }
   white-space: nowrap;
 }
 .os-satir b { color: var(--kor); opacity: 0; animation: os-isaret var(--os-sure) var(--ease) infinite; }
-.os-ds1 { top: 0; animation: os-ds1 var(--os-sure) var(--ease) infinite; }
-.os-ds2 { top: 33px; animation: os-ds2 var(--os-sure) var(--ease) infinite; }
-.os-ds3 { top: 66px; z-index: 1; animation: os-ds3 var(--os-sure) var(--ease) infinite; }
-.os-ds4 { top: 99px; }
-@keyframes os-ds1 { 0%, 26% { translate: 0 0; } 42%, 92% { translate: 0 33px; } 100% { translate: 0 0; } }
-@keyframes os-ds2 { 0%, 26% { translate: 0 0; } 42%, 92% { translate: 0 33px; } 100% { translate: 0 0; } }
-@keyframes os-ds3 {
-  0%, 12% { translate: 0 0; box-shadow: var(--hair); }
-  18%, 26% { translate: 0 0; box-shadow: 0 0 0 2px var(--kor), var(--shadow); scale: 1.03; }
-  42% { translate: 0 -66px; box-shadow: 0 0 0 2px var(--kor), var(--shadow); scale: 1.03; }
-  50%, 92% { translate: 0 -66px; box-shadow: var(--hair); scale: 1; }
-  100% { translate: 0 0; }
+.os-ds-a { z-index: 1; animation: os-ds-a var(--os-sure) var(--ease) infinite; }
+.os-ds-b { animation: os-ds-b var(--os-sure) var(--ease) infinite; }
+.os-ds-c { z-index: 1; animation: os-ds-c var(--os-sure) var(--ease) infinite; }
+.os-ds-d { animation: os-ds-d var(--os-sure) var(--ease) infinite; }
+@keyframes os-ds-a {
+  0%, 8% { translate: 0 66px; box-shadow: var(--hair); }
+  13%, 18% { translate: 0 66px; box-shadow: 0 0 0 2px var(--kor), var(--shadow); scale: 1.03; }
+  32% { translate: 0 0; box-shadow: 0 0 0 2px var(--kor), var(--shadow); scale: 1.03; }
+  38%, 94% { translate: 0 0; box-shadow: var(--hair); scale: 1; }
+  100% { translate: 0 66px; }
 }
-@keyframes os-isaret { 0%, 54% { opacity: 0; } 62%, 92% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes os-ds-b { 0%, 18% { translate: 0 0; } 32%, 94% { translate: 0 33px; } 100% { translate: 0 0; } }
+@keyframes os-ds-d {
+  0%, 18% { translate: 0 33px; }
+  32%, 52% { translate: 0 66px; }
+  66%, 94% { translate: 0 99px; }
+  100% { translate: 0 33px; }
+}
+@keyframes os-ds-c {
+  0%, 44% { translate: 0 99px; box-shadow: var(--hair); }
+  48%, 52% { translate: 0 99px; box-shadow: 0 0 0 2px var(--kor), var(--shadow); scale: 1.03; }
+  66% { translate: 0 66px; box-shadow: 0 0 0 2px var(--kor), var(--shadow); scale: 1.03; }
+  72%, 94% { translate: 0 66px; box-shadow: var(--hair); scale: 1; }
+  100% { translate: 0 99px; }
+}
+@keyframes os-isaret { 0%, 74% { opacity: 0; } 80%, 94% { opacity: 1; } 100% { opacity: 0; } }
 
 /* Giriş ekranında kart kuralların üstünde; telefonda başlıkla birlikte ekrana sığsın. */
 .kor-giris .oyun-sahne { margin-bottom: 4px; }
 @media (max-height: 700px) { .kor-giris .oyun-sahne { scale: 0.88; margin: -12px 0 -8px; } }
+/* Hareketi azaltmak isteyen cihazda kart durağan, iki hamle yapılmış hâliyle. */
 @media (prefers-reduced-motion: reduce) {
   .oyun-sahne *, .oyun-sahne { animation: none !important; }
-  .os-hedef em, .os-hedef-hap, .os-satir b { opacity: 1; }
+  .os-gelen, .os-giden { display: none; }
+  .os-hedef em, .os-yeni, .os-satir b { opacity: 1; }
+  .os-ds-a { translate: 0 0; }
+  .os-ds-b { translate: 0 33px; }
+  .os-ds-c { translate: 0 66px; }
+  .os-ds-d { translate: 0 99px; }
 }
 
 /* ── Bildir ve engelle (components/PaylasimGuvenligi.tsx) ──────────────────────

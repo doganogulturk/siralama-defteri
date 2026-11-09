@@ -4,13 +4,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import OyunSahnesi from '@/components/oyna/OyunSahnesi';
 import OyunGeri from '@/components/oyna/OyunGeri';
-import { KorListe, sonucYaz } from '@/lib/kor';
+import { KorListe, sonucYaz, yerindeUyum } from '@/lib/kor';
 import { katalogListesi, korOyunListesi, oyunSecimi, tohumGerekli } from '@/lib/katalog';
 import { degerYaz, puanla, yuzde } from '@/lib/dogru-sira';
 import { rastgeleTohum } from '@/lib/sayilar';
 import { DIL_PARAMETRE } from '@/lib/i18n';
 import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
-import { kiyasAnahtari, kiyasla, uyumEtiketi } from '@/lib/kiyas';
+import { uyumEtiketi } from '@/lib/kiyas';
 import { titret } from '@/lib/his';
 import { useAuth } from '@/hooks/useAuth';
 import KorKamera, { KameraDugmesi, useKameraVar } from './KorKamera';
@@ -28,10 +28,6 @@ function karistir<T>(dizi: T[]): T[] {
   }
   return a;
 }
-
-/** Sıralama (kayıtların listedeki yerleri) → karşılaştırma kaydı. */
-const kiyasKayitlari = (liste: KorListe, sira: number[]) =>
-  sira.map((k, n) => ({ id: String(k), ad: liste.kayitlar[k], sira: n + 1 }));
 
 /**
  * Kör Sıralama: kayıtlar birer birer, karışık sırayla geliyor; her biri hemen boş bir
@@ -250,9 +246,9 @@ function KorSonuc({ liste, tohum, sira, arkadas, onTekrar }: {
 
   const uyum = useMemo(() => {
     if (!arkadas) return null;
-    const benim = kiyasKayitlari(liste, sira);
-    return kiyasla(benim, kiyasKayitlari(liste, arkadas), new Set(benim.map(kiyasAnahtari))).uyum;
-  }, [liste, sira, arkadas]);
+    // Aynı on kayıt: aynı yere konan her kayıt 10 puan (`yerindeUyum`).
+    return yerindeUyum(sira, arkadas);
+  }, [sira, arkadas]);
 
   // Görsel sonuç ekranı açılınca hazırlanıyor: iOS paylaşım menüsünü yalnızca dokunuşun
   // hemen ardından açıyor, dokunuştan sonra indirmeye başlamak menüyü engellerdi.

@@ -12,7 +12,8 @@
     "test:db": "bash supabase/test/calistir.sh",
     "apple:anahtar": "node scripts/apple-gizli-anahtar.mjs",
     "mobil": "NEXT_PUBLIC_MOBIL=1 next build && cap sync",
-    "ios": "NEXT_PUBLIC_MOBIL=1 next build && cap sync ios && cap open ios"
+    "ios": "NEXT_PUBLIC_MOBIL=1 next build && cap sync ios && cap open ios",
+    "uygulama:gorseller": "node scripts/uygulama-gorselleri.mjs && npx --yes @capacitor/assets@3.0.5 generate --ios"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

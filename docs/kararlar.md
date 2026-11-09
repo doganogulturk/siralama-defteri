@@ -2,7 +2,7 @@
 
 Bunlar iş değil, bilinçli kararlar. Birini değiştirmeden önce gerekçesini oku.
 
-- **Apple girişi yok** — Supabase'de hazır provider ama Apple Developer hesabı ($99/yıl) gerektiriyor. Web'de Google girişi tek yol; iOS uygulamasında Apple 4.8 gereği zorunlu olacak ([yol haritası](yol-haritasi.md) → Mobil uygulama 3).
+- **Apple girişi bayrakla kapalı** — kodu hazır ("Apple ile devam et"), ama Apple Developer ve Supabase kurulumu bitmeden düğme görünmüyor (`NEXT_PUBLIC_APPLE_GIRIS`); basan kişi hata almasın. iOS uygulamasında Apple 4.8 gereği zorunlu ([yol haritası](yol-haritasi.md) → Mobil uygulama 2).
 - **Liste simgesi yok** — kayıtların çoğunda zaten fotoğraf var, listenin ayrıca simge taşımasına gerek yok. `lists.emoji` kolonu şemada duruyor ama kod ne yazıyor ne okuyor.
 - **Kademe görselinde klasik renkler** — uygulamanın tek vurgu rengi kuralına bilinçli istisna, yalnızca paylaşım görselinde (`lib/kademe-gorsel.tsx`): uygulama dışında dolaşan bir tier tablosunda tanıdık renkler okunmayı kolaylaştırıyor. Uygulamanın içinde kademeler vurgu renginin tonları.
 - **Kademe sırası elle değiştirilmez** — kademeler eklendiği sırada; yeni kademe en alta. Sırayı değiştirmek bütün kayıtları yeniden numaralamak demek; etiketler değiştirilebildiği için ihtiyaç zayıf.

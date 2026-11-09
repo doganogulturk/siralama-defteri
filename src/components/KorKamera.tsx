@@ -3,10 +3,14 @@
 import { type PointerEvent, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   BASLIK_Y, KAMERA_GENISLIK as W, KAMERA_YUKSEKLIK as H, KART, type Kutu,
-  gruptaBos, isabet, kameraDestekleniyor, kapakKirp, kayitBicimi, sigdir, sureYaz, tuvalNoktasi, uzantiTurden, yumusak, yuvaKutulari,
+  KAMERA_GENISLIKLERI, KAMERA_GENISLIGI_VARSAYILAN, type KameraGenisligi,
+  gruptaBos, isabet, kameraDestekleniyor, kameraYerlesimi, kapakKirp, kayitBicimi, sigdir, sureYaz, tuvalNoktasi, uzantiTurden, yumusak, yuvaKutulari,
 } from '@/lib/kamera';
 import { useMesajlar } from '@/lib/i18n/DilBaglami';
 import { brandInitials } from '@/types/item';
+
+/** Görüntü genişliği seçiminin bu cihazdaki anahtarı. */
+const GENISLIK_ANAHTARI = 'siralama-defteri:kamera-genislik';
 
 /** Kamerada gösterilecek kayıt: adı, varsa alt adı ve (yalnızca kendi kovadan) fotoğrafı. */
 export interface KameraKaydi { ad: string; alt?: string | null; foto?: string | null }
@@ -70,6 +74,23 @@ export default function KorKamera(props: {
   const [sessiz, setSessiz] = useState(false);
   const [sure, setSure] = useState(0);
   const [video, setVideo] = useState<{ dosya: File; url: string } | null>(null);
+  /** Görüntünün genişliği (yakın · orta · geniş); bu cihazda hatırlanıyor. */
+  const [genislik, setGenislik] = useState<KameraGenisligi>(KAMERA_GENISLIGI_VARSAYILAN);
+  const genislikRef = useRef<number>(0.5);
+  useEffect(() => {
+    try {
+      const kayitli = localStorage.getItem(GENISLIK_ANAHTARI);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (KAMERA_GENISLIKLERI.some(g => g.ad === kayitli)) setGenislik(kayitli as KameraGenisligi);
+    } catch { /* depolama kapalı */ }
+  }, []);
+  useEffect(() => {
+    genislikRef.current = KAMERA_GENISLIKLERI.find(g => g.ad === genislik)!.deger;
+  }, [genislik]);
+  const genislikSec = (g: KameraGenisligi) => {
+    setGenislik(g);
+    try { localStorage.setItem(GENISLIK_ANAHTARI, g); } catch { /* depolama kapalı */ }
+  };
 
   const tuvalRef = useRef<HTMLCanvasElement>(null);
   const kameraRef = useRef<HTMLVideoElement>(null);
@@ -179,11 +200,16 @@ export default function KorKamera(props: {
     if (!tuval || !ctx) return;
     const yazi = yaziTipleri();
     const renk = renkCoz(anlikRef.current.renk, tuval);
+    // Geniş görüntüde boş kalan yerin zemini: aynı kare küçük bir tuvale çizilip büyütülüyor
+    // (ucuz bir bulanıklık; her karede `filter: blur` telefonda kayıtta kare kaçırtırdı).
+    const zemin = document.createElement('canvas');
+    zemin.width = 27;
+    zemin.height = 48;
     let kare = 0;
     const dongu = (simdi: number) => {
       ciz(ctx, simdi, {
         anlik: anlikRef.current, anim: animRef.current, kamera: kameraRef.current, kutular: yuvaKutulari_,
-        fotolar: fotolar.current, yazi, renk, t,
+        fotolar: fotolar.current, yazi, renk, t, genislik: genislikRef.current, zemin,
         durumBasi: anlikRef.current.durum === 'kapanis' ? animRef.current.kapanisT0 : durumBasiRef.current,
       });
       kare = requestAnimationFrame(dongu);
@@ -307,6 +333,20 @@ export default function KorKamera(props: {
       {durum === 'hazir' && (
         <div className="kamera-alt">
           <p className="kamera-not">{k.ipucu}{sessiz && <><br />{k.sessiz}</>}</p>
+          <div className="kamera-genislik" role="radiogroup" aria-label={k.genislik}>
+            {KAMERA_GENISLIKLERI.map(g => (
+              <button
+                key={g.ad}
+                type="button"
+                role="radio"
+                aria-checked={genislik === g.ad}
+                className={genislik === g.ad ? 'is-on' : ''}
+                onClick={() => genislikSec(g.ad)}
+              >
+                {k.genislikler[g.ad]}
+              </button>
+            ))}
+          </div>
           <button type="button" className="kamera-basla" onClick={kaydaBasla}>
             <i aria-hidden="true" />{k.kaydaBasla}
           </button>
@@ -445,6 +485,9 @@ function ciz(ctx: CanvasRenderingContext2D, simdi: number, o: {
   yazi: YaziTipleri;
   renk: string;
   durumBasi: number;
+  /** Kamera görüntüsünün genişliği, 0 (doldur) – 1 (tamamı). */
+  genislik: number;
+  zemin: HTMLCanvasElement;
   t: ReturnType<typeof useMesajlar>['kor'];
 }) {
   const { anlik, anim, kamera, kutular, fotolar, yazi, renk, t } = o;
@@ -454,11 +497,25 @@ function ciz(ctx: CanvasRenderingContext2D, simdi: number, o: {
   ctx.fillStyle = '#111';
   ctx.fillRect(0, 0, W, H);
   if (kamera && kamera.readyState >= 2 && kamera.videoWidth) {
-    const c = kapakKirp(kamera.videoWidth, kamera.videoHeight, W, H);
+    const vw = kamera.videoWidth;
+    const vh = kamera.videoHeight;
+    const y = kameraYerlesimi(vw, vh, W, H, o.genislik);
     ctx.save();
     ctx.translate(W, 0);
     ctx.scale(-1, 1);
-    ctx.drawImage(kamera, c.sx, c.sy, c.sw, c.sh, 0, 0, W, H);
+    if (y.dw < W - 1 || y.dh < H - 1) {
+      // Boş kalan yer: aynı görüntü doldurularak, bulanık ve karartılmış.
+      const c = kapakKirp(vw, vh, W, H);
+      const z = o.zemin.getContext('2d');
+      if (z) {
+        z.drawImage(kamera, c.sx, c.sy, c.sw, c.sh, 0, 0, o.zemin.width, o.zemin.height);
+        ctx.imageSmoothingEnabled = true;
+        ctx.drawImage(o.zemin, 0, 0, W, H);
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.fillRect(0, 0, W, H);
+      }
+    }
+    ctx.drawImage(kamera, y.sx, y.sy, y.sw, y.sh, y.dx, y.dy, y.dw, y.dh);
     ctx.restore();
   }
 

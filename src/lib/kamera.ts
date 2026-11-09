@@ -77,6 +77,41 @@ export function tuvalNoktasi(
   return { x: (istemciX - alan.left - solBosluk) / olcek, y: (istemciY - alan.top - ustBosluk) / olcek };
 }
 
+/**
+ * Kamera görüntüsünün genişliği: 0 hedefi tamamen dolduruyor (`cover`, yakın), 1 kaynağın
+ * tamamını gösteriyor (`contain`, geniş; kalan yer zeminle doluyor). Ön kamera çoğu
+ * telefonda yatay ya da 4:3 görüntü veriyor; 9:16'ya doldurmak onu ortadan kırpıp yüzü
+ * büyütüyordu. Oyuncu önizlemede seçiyor (`KAMERA_GENISLIKLERI`).
+ */
+export const KAMERA_GENISLIKLERI = [
+  { ad: 'yakin', deger: 0 },
+  { ad: 'orta', deger: 0.5 },
+  { ad: 'genis', deger: 1 },
+] as const;
+export type KameraGenisligi = (typeof KAMERA_GENISLIKLERI)[number]['ad'];
+export const KAMERA_GENISLIGI_VARSAYILAN: KameraGenisligi = 'orta';
+
+/**
+ * Kaynağın hedefe çizimi, `genislik` (0–1) kadar uzaklaştırılmış: ölçek doldurmakla
+ * sığdırmak arasında. Taşan eksen ortadan kırpılıyor, sığan eksen ortalanıyor.
+ * Kaynak dikdörtgeni (`sx…sh`) ve hedefteki yeri (`dx…dh`).
+ */
+export function kameraYerlesimi(kaynakW: number, kaynakH: number, hedefW: number, hedefH: number, genislik: number) {
+  const doldur = Math.max(hedefW / kaynakW, hedefH / kaynakH);
+  const sigdir_ = Math.min(hedefW / kaynakW, hedefH / kaynakH);
+  const g = Math.min(1, Math.max(0, genislik));
+  const olcek = doldur + (sigdir_ - doldur) * g;
+  const eksen = (kaynak: number, hedef: number) => {
+    const boy = kaynak * olcek;
+    return boy >= hedef
+      ? { s: (kaynak - hedef / olcek) / 2, sb: hedef / olcek, d: 0, db: hedef }
+      : { s: 0, sb: kaynak, d: (hedef - boy) / 2, db: boy };
+  };
+  const x = eksen(kaynakW, hedefW);
+  const y = eksen(kaynakH, hedefH);
+  return { sx: x.s, sy: y.s, sw: x.sb, sh: y.sb, dx: x.d, dy: y.d, dw: x.db, dh: y.db };
+}
+
 /** Kaynağı hedefi tamamen dolduracak biçimde ortadan kırpar (`object-fit: cover`). */
 export function kapakKirp(kaynakW: number, kaynakH: number, hedefW: number, hedefH: number) {
   const oran = Math.max(hedefW / kaynakW, hedefH / kaynakH);

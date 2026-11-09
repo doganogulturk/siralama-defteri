@@ -2198,6 +2198,10 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   border-radius: var(--pill);
   background: #fff;
 }
+.giris-dugmeleri { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.giris-dugmeleri .gate-btn { margin-top: 0; }
+/* Apple: uygulamanın birincil düğmesiyle aynı (açık temada siyah, koyuda açık), beyaz kutusuz logo. */
+.gate-apple { display: grid; place-items: center; width: 30px; height: 30px; }
 .gate-error { padding: 10px 14px; border-radius: var(--r-sm); background: var(--accent-soft); color: var(--accent-ink); font-size: 0.88rem; }
 .gate-ipucu { align-self: center; padding: 6px 4px; color: var(--mute); font-size: 0.9rem; font-weight: 500; text-decoration: none; }
 .gate-ipucu:hover { color: var(--ink); }
@@ -3994,6 +3998,22 @@ body:has(.mobil-menu) .kor-sayfa { padding-bottom: calc(110px + env(safe-area-in
   gap: 14px;
   padding: 0 16px;
 }
+.kamera-genislik {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+}
+.kamera-genislik button {
+  min-height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.kamera-genislik button.is-on { background: #fff; color: #111; }
 .kamera-basla {
   display: inline-flex;
   align-items: center;
@@ -4319,8 +4339,11 @@ body:has(.mobil-menu) .kor-sayfa { padding-bottom: calc(110px + env(safe-area-in
   grid-auto-flow: column;
   grid-auto-columns: minmax(150px, 44%);
   gap: 10px;
-  margin: 0 -16px;
-  padding: 0 16px 4px;
+  /* Kaydırma kutusu taşanı kırpıyor: kartların çerçevesi, gölgesi ve üzerine gelince
+     kalkışı için üstte ve altta pay; kenarlara yapışmasın diye kaydırma payı. */
+  margin: -4px -16px -4px;
+  padding: 4px 16px 8px;
+  scroll-padding-inline: 16px;
   overflow-x: auto;
   scroll-snap-type: x proximity;
   scrollbar-width: none;
@@ -4356,8 +4379,9 @@ body:has(.mobil-menu) .kor-sayfa { padding-bottom: calc(110px + env(safe-area-in
 .oyun-seridi {
   display: flex;
   gap: 10px;
-  margin: 0 -16px;
-  padding: 2px 16px 6px;
+  margin: -2px -16px 0;
+  padding: 4px 16px 6px;
+  scroll-padding-inline: 16px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;

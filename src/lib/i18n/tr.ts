@@ -21,6 +21,7 @@ export const tr = {
   },
   giris: {
     googleIle: 'Google ile devam et',
+    appleIle: 'Apple ile devam et',
     yonlendiriliyor: 'Yönlendiriliyor…',
     /** Aralara Koşullar ve Gizlilik bağlantıları giriyor. */
     yasalOnay: ['Devam ederek ', "'nı ve ", "'nı kabul etmiş olursun."] as [string, string, string],
@@ -645,6 +646,8 @@ Doritos, Nacho`,
       kayitAlinamadi: 'Video kaydı başlatılamadı.',
       kamerasiz: 'Kamerasız oyna',
       kaydaBasla: 'Kayda başla',
+      genislik: 'Görüntü',
+      genislikler: { yakin: 'Yakın', orta: 'Orta', genis: 'Geniş' },
       ipucu: 'Telefonu karşına al. Kayıt başlayınca yuvalara dokunarak yerleştir.',
       sessiz: 'Mikrofon izni yok: video sessiz kaydedilecek.',
       kayit: 'Kayıt',

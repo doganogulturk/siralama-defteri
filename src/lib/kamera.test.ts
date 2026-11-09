@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  KAMERA_GENISLIK, KAMERA_YUKSEKLIK, KART, gruptaBos, isabet, kapakKirp, kayitBicimi, sigdir, sureYaz,
+  KAMERA_GENISLIK, KAMERA_YUKSEKLIK, KART, gruptaBos, isabet, kameraYerlesimi, kapakKirp, kayitBicimi, sigdir, sureYaz,
   tuvalNoktasi, uzantiTurden, yuvaKutulari,
 } from './kamera';
 
@@ -33,6 +33,26 @@ describe('tuvalNoktasi', () => {
     const alan = { left: 0, top: 0, width: 900, height: 800 };
     expect(tuvalNoktasi(225, 0, alan)).toEqual({ x: 0, y: 0 });
     expect(tuvalNoktasi(450, 400, alan)).toEqual({ x: 360, y: 640 });
+  });
+});
+
+describe('kameraYerlesimi', () => {
+  it('yakın hedefi dolduruyor, geniş kaynağın tamamını gösteriyor, orta arada', () => {
+    const yakin = kameraYerlesimi(1280, 720, 720, 1280, 0);
+    expect(yakin).toMatchObject({ dx: 0, dy: 0, dw: 720, dh: 1280 });
+    expect(yakin.sw).toBeCloseTo(405, 0);
+    const genis = kameraYerlesimi(1280, 720, 720, 1280, 1);
+    expect(genis).toMatchObject({ sx: 0, sy: 0, sw: 1280, sh: 720, dx: 0, dw: 720 });
+    expect(genis.dh).toBeCloseTo(405, 0);
+    const orta = kameraYerlesimi(1280, 720, 720, 1280, 0.5);
+    expect(orta.sw).toBeGreaterThan(yakin.sw);
+    expect(orta.sw).toBeLessThan(1280);
+    expect(orta.dh).toBeLessThan(1280);
+    expect(orta.dh).toBeGreaterThan(genis.dh);
+  });
+
+  it('kaynak hedefle aynı orandaysa genişlik fark etmiyor', () => {
+    expect(kameraYerlesimi(720, 1280, 720, 1280, 1)).toEqual(kameraYerlesimi(720, 1280, 720, 1280, 0));
   });
 });
 

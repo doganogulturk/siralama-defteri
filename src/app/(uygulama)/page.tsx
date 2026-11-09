@@ -59,7 +59,9 @@ export default function ListelerPage() {
 
   // Selamlamada yalnızca ilk ad: Google adı yoksa e-postanın kullanıcı adı kısmı.
   const meta = user?.user_metadata as { full_name?: string; name?: string } | undefined;
-  const adTam = meta?.full_name ?? meta?.name ?? user?.email?.split('@')[0] ?? '';
+  // Apple'ın gizli e-postasında (…@privaterelay.appleid.com) kullanıcı adı rastgele: selamlamada yok.
+  const gizliEposta = user?.email?.endsWith('@privaterelay.appleid.com');
+  const adTam = meta?.full_name ?? meta?.name ?? (gizliEposta ? '' : user?.email?.split('@')[0]) ?? '';
   const ilkAd = adTam.trim().split(/\s+/)[0] ?? '';
   const m = messages();
   const a = m.ana;

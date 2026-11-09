@@ -23,6 +23,8 @@
 # misc
 .DS_Store
 *.pem
+# Apple'ın özel anahtarları (Sign in with Apple): depoya asla girmesin.
+*.p8
 
 # debug
 npm-debug.log*

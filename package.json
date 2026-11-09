@@ -9,7 +9,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:db": "bash supabase/test/calistir.sh"
+    "test:db": "bash supabase/test/calistir.sh",
+    "apple:anahtar": "node scripts/apple-gizli-anahtar.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

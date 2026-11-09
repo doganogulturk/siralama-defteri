@@ -15,6 +15,7 @@ import { titret } from '@/lib/his';
 import { useAuth } from '@/hooks/useAuth';
 import KorKamera, { KameraDugmesi, useKameraVar } from './KorKamera';
 import ModGecisi from './oyna/ModGecisi';
+import { paylasimKoku, sunucuAdresi } from '@/lib/site';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 
@@ -178,7 +179,7 @@ export default function KorOyun({ slug, tohum: adresTohumu, arkadas }: {
           onYerlestir={yerlestir}
           adres={`${window.location.host}/oyna/kor/${liste.slug}`}
           dosyaAdi={t.kamera.dosyaAdi(liste.slug)}
-          paylasimMetni={`${t.paylasimDuz(liste.ad)} ${window.location.origin}/oyna/kor/${liste.slug}${tohumlu && tohum ? `?t=${tohum}${dil === 'tr' ? '' : `&${DIL_PARAMETRE}=${dil}`}` : dil === 'tr' ? '' : `?${DIL_PARAMETRE}=${dil}`}`}
+          paylasimMetni={`${t.paylasimDuz(liste.ad)} ${paylasimKoku()}/oyna/kor/${liste.slug}${tohumlu && tohum ? `?t=${tohum}${dil === 'tr' ? '' : `&${DIL_PARAMETRE}=${dil}`}` : dil === 'tr' ? '' : `?${DIL_PARAMETRE}=${dil}`}`}
           onSonuc={() => setKamera(false)}
           onYenidenCek={kameraylaBasla}
           onKapat={() => setKamera(false)}
@@ -257,7 +258,7 @@ function KorSonuc({ liste, tohum, sira, arkadas, onTekrar }: {
   // hemen ardından açıyor, dokunuştan sonra indirmeye başlamak menüyü engellerdi.
   useEffect(() => {
     let iptal = false;
-    fetch(`/oyna/kor/${liste.slug}/gorsel?${sorgu}&${DIL_PARAMETRE}=${dil}`)
+    fetch(sunucuAdresi(`/oyna/kor/${liste.slug}/gorsel?${sorgu}&${DIL_PARAMETRE}=${dil}`))
       .then(y => (y.ok ? y.blob() : Promise.reject(new Error(String(y.status)))))
       .then(b => { if (!iptal) setGorsel(new File([b], `${t.dosyaAdi(liste.slug)}.png`, { type: 'image/png' })); })
       .catch(() => { /* görsel yoksa yalnızca bağlantı paylaşılır */ });
@@ -271,7 +272,7 @@ function KorSonuc({ liste, tohum, sira, arkadas, onTekrar }: {
   }, [bildirim]);
 
   const paylas = async () => {
-    const url = `${window.location.origin}/oyna/kor/${liste.slug}?${sorgu}${dilEki}`;
+    const url = `${paylasimKoku()}/oyna/kor/${liste.slug}?${sorgu}${dilEki}`;
     const metin = uyum !== null ? t.paylasimUyum(liste.ad, uyum) : t.paylasimDuz(liste.ad);
     try {
       if (gorsel && navigator.canShare?.({ files: [gorsel] })) {

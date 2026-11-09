@@ -16,6 +16,7 @@ import { useListeler, siralanan } from '@/hooks/useListeler';
 import { brandInitials } from '@/types/item';
 import ListeRayi from '../ListeRayi';
 import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
+import { listeAdresi } from '@/lib/site';
 
 /**
  * Oyna: giriş istemeyen oyunların merkezi (`/oyna`; giriş yapmamış ziyaretçiye ana sayfada
@@ -229,7 +230,7 @@ export function KendiListelerin({ bosGizle }: { bosGizle?: boolean }) {
                     {t.gonder}
                   </button>
                 ) : (
-                  <Link href={`/l/${l.slug}?ayarlar=1`} className="kor-kendi-ac">{t.paylasimiAc}</Link>
+                  <Link href={`${listeAdresi(l.slug)}&ayarlar=1`} className="kor-kendi-ac">{t.paylasimiAc}</Link>
                 )}
               </li>
             );

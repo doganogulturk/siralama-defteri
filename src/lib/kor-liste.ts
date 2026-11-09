@@ -9,6 +9,7 @@
 
 import { PaylasilanKayit, guvenliFoto } from './paylasim';
 import { DIL_PARAMETRE, simdikiDil, sozluk, type Dil } from './i18n';
+import { paylasimKoku } from './site';
 
 /** Oyundaki kayıt sayısı; bundan kısa liste kör sıralatılamıyor. */
 export const KOR_ADET = 10;
@@ -111,7 +112,7 @@ export const korAdresi = (kod: string, koken: string, dil: Dil = simdikiDil()) =
  * Dönüş: 'paylasildi' | 'kopyalandi' | 'olmadi' (menü kapatıldı ya da pano kapalı).
  */
 export async function korBaglantisiGonder(kod: string, listeAdi: string): Promise<'paylasildi' | 'kopyalandi' | 'olmadi'> {
-  const url = korAdresi(kod, window.location.origin);
+  const url = korAdresi(kod, paylasimKoku());
   const metin = sozluk(simdikiDil()).paylasim.korMetin(listeAdi);
   try {
     if (typeof navigator.share === 'function') {

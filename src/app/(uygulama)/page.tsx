@@ -17,6 +17,7 @@ import { messages } from '@/lib/i18n';
 import { BugunKartlari, OyunSeridi } from '@/components/oyna/OyunKartlari';
 import { KendiListelerin } from '@/components/oyna/OynaMerkezi';
 import ListeRayi from '@/components/ListeRayi';
+import { listeAdresi } from '@/lib/site';
 
 /**
  * Liste kartının vitrini: ilk üçün fotoğrafları kartın bütün yüksekliğinde, soldan
@@ -154,7 +155,7 @@ export default function ListelerPage() {
               return (
                 <Link
                   key={l.id}
-                  href={`/l/${l.slug}`}
+                  href={listeAdresi(l.slug)}
                   className={`liste-card${sampiyon ? ' has-vitrin' : ' is-bos'}`}
                 >
                   {sampiyon && <Vitrin ilkUc={ilkUc} />}

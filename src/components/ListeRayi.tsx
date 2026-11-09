@@ -10,6 +10,7 @@ import { KATEGORISIZ } from '@/lib/filtre';
 import { Kategori, brandInitials } from '@/types/item';
 import { messages } from '@/lib/i18n';
 import { KorIkon, ListelerIkon } from './MobilMenu';
+import { listeAdresi } from '@/lib/site';
 
 const ArtiIkon = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -101,7 +102,7 @@ export default function ListeRayi({ aktifSayfa, aktifSlug, aktifKategoriler }: L
               <div key={l.id} className={`rail-index-item${aktif ? ' is-on' : ''}${acik && dalVar ? ' is-acik' : ''}`}>
                 <div className="rail-index-satir">
                   <Link
-                    href={`/l/${l.slug}`}
+                    href={listeAdresi(l.slug)}
                     className="rail-index-link"
                     aria-current={aktif ? 'page' : undefined}
                   >
@@ -162,7 +163,7 @@ export default function ListeRayi({ aktifSayfa, aktifSlug, aktifKategoriler }: L
                     ) : (
                       ozet?.ilkUc.map((k, i) => (
                         <li key={k.id}>
-                          <Link href={`/l/${l.slug}`} className="rail-dal-oge">
+                          <Link href={listeAdresi(l.slug)} className="rail-dal-oge">
                             <span className="rail-dal-sira">{i + 1}</span>
                             <span className="rail-dal-ad">{k.ad}</span>
                           </Link>

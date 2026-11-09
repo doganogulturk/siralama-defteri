@@ -107,3 +107,17 @@ Apple ile girmiş hesap silinirken Apple jetonları iptal edilmeli. Supabase App
 - **Gizli değişkenler** (Supabase → Edge Functions → Secrets): `APPLE_P8` (.p8 dosyasının içeriği), `APPLE_TEAM_ID`, `APPLE_KEY_ID`.
 - **Kurulum:** Supabase CLI yok; fonksiyon panelden (Edge Functions → Deploy a new function → Via Editor) `apple-iptal` adıyla, dosyanın içeriği yapıştırılarak kuruluyor. "Verify JWT" açık kalmalı.
 
+## Uygulama paketi (Capacitor, App Store)
+
+Web sitesi ve iOS uygulaması aynı koddan iki derleme (`lib/site.ts`, `next.config.ts`):
+
+- **Web** (`npm run build`, Vercel): bugünkü gibi, sunucu rotalarıyla.
+- **Uygulama** (`npm run mobil` = `NEXT_PUBLIC_MOBIL=1 next build && cap sync`; `npm run ios` Xcode'u da açıyor): statik dışa aktarma `out/`, Capacitor onu `ios/App/App/public`'e kopyalıyor (o klasör depoda değil). `appId` `com.siralamadefteri.app` (Apple Developer'daki App ID).
+- **Dosya ayrımı** (`pageExtensions`): `*.web.tsx` / `*.web.ts` yalnızca webde (paylaşım sayfaları `/p/[kod]`, bütün görsel rotaları, `/ikon/[boyut]`, oyun sayfalarının önizleme kartlı sunucu sürümleri), `*.mobil.tsx` yalnızca uygulamada (oyun sayfalarının statik sürümleri: katalogdaki her liste için bir sayfa, adres cihazda okunuyor — `components/oyna/MobilOyunlar.tsx`). İkisi de olmayan her dosya ortak. Adresteki tohum ve sonucu okuma kuralı iki yolda aynı: `lib/oyun-adresi.ts`.
+- **Kullanıcıya özel adresler sorguda:** liste ekranı `/liste?s=<slug>`, karşılaştırma `/kiyasla?k=<kod>` (statik pakette kullanıcının listeleri derlemede bilinemiyor). Eski `/l/<slug>`, `/l/<slug>/ayarlar` ve `/kiyasla/<kod>` webde 308 ile yönleniyor (`next.config.ts` → `redirects`). Başka listeye geçince ekran baştan kuruluyor (anahtar), eski dinamik adresteki gibi.
+- **Uygulamada sunucuya giden her şey canlı siteden:** paylaşım bağlantıları (`paylasimKoku`), sonuç ve story görselleri (`sunucuAdresi`; webde bu rotalara CORS başlığı var), paylaşım sayfası (`paylasimSayfasi`; uygulamanın dışında, sistem tarayıcısında açılıyor).
+- **Dil:** uygulama derlemesinde çerez yok; sayfalar Türkçe çiziliyor, `DilKoku` cihazdaki seçimi uyguluyor.
+- **Giriş:** uygulamada Google ve Apple girişi iOS'un güvenli tarayıcı penceresinde (`@capacitor/browser`; Google, uygulamanın web görünümünde girişi engelliyor). Dönüş `com.siralamadefteri.app://giris` (Info.plist → CFBundleURLTypes; Supabase Redirect URLs'te olmalı), `UygulamaKoprusu` → `uygulamaDonusunuDinle` kodu oturuma çeviriyor. Apple'ın iPhone'daki kendi giriş penceresi (yerel Sign in with Apple) henüz yok; yol haritasında.
+- **İkon ve açılış ekranı:** marka işaretinden (`src/app/icon.svg` ile aynı çizim) `scripts/uygulama-gorselleri.mjs` `assets/` altına kaynak PNG'leri üretiyor (ikon kenara kadar koyu zemin, saydamlık yok; açılış ekranı kâğıt zemin ortada işaret, koyu temada koyu zemin), `@capacitor/assets` onlardan iOS boyutlarını. İkisi birden: `npm run uygulama:gorseller`. Marka değişirse bu betik ve `lib/ikon-cizim.tsx` birlikte güncellenmeli.
+- **Derleme ve deneme:** `npm run mobil`, sonra Xcode'da ya da `xcodebuild -project ios/App/App.xcodeproj -scheme App -sdk iphonesimulator` ile simülatör.
+

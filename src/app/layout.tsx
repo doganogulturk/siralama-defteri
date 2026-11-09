@@ -4,6 +4,7 @@ import "./globals.css";
 import Analitik from "@/components/Analitik";
 import Pencereler from "@/components/Pencereler";
 import { GezintiIzi } from "@/components/oyna/OyunGeri";
+import UygulamaKoprusu from "@/components/UygulamaKoprusu";
 import DilKoku from "@/components/DilKoku";
 import { istekDili } from "@/lib/i18n/sunucu";
 
@@ -77,6 +78,7 @@ export default async function RootLayout({
           {children}
           <Pencereler />
           <GezintiIzi />
+          <UygulamaKoprusu />
         </DilKoku>
         <Analitik />
       </body>

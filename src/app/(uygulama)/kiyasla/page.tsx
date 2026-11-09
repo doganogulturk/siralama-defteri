@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { BildirEngelle, EngelPerdesi } from '@/components/PaylasimGuvenligi';
-import { useParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { listeAdresi, paylasimSayfasi } from '@/lib/site';
 import Marka from '@/components/Marka';
 import KopyaSiralama from '@/components/KopyaSiralama';
 import KiyasEkrani from '@/components/KiyasEkrani';
@@ -32,7 +33,20 @@ const tr = (s: string) => s.trim().toLocaleLowerCase('tr');
  * yoksa liste adıyla — iki kişi aynı adla ayrı ayrı liste kurmuşsa da karşılaştırılsın.
  */
 export default function KiyaslaSayfasi() {
-  const { kod } = useParams<{ kod: string }>();
+  return (
+    <Suspense fallback={null}>
+      <KiyasAnahtari />
+    </Suspense>
+  );
+}
+
+function KiyasAnahtari() {
+  const kod = useSearchParams().get('k') ?? '';
+  return <Kiyasla key={kod} kod={kod} />;
+}
+
+/** `/kiyasla?k=<paylaşım kodu>`; webde eski `/kiyasla/<kod>` buraya yönlendiriyor (uygulama paketi statik). */
+function Kiyasla({ kod }: { kod: string }) {
   const [durum, setDurum] = useState<Durum>({ tur: 'yukleniyor' });
 
   const yukle = useCallback(async () => {
@@ -61,7 +75,7 @@ export default function KiyaslaSayfasi() {
     <div className="kiyas-sayfa">
       <header className="paylasim-bar kiyas-bar">
         {/* iOS'ta donanım geri tuşu yok: her ekranda görünür bir geri yolu. Gelinen yer paylaşım sayfası. */}
-        <Link href={`/p/${kod}`} className="mobile-brand-back" aria-label={messages().kiyas.paylasilanaDon}>
+        <Link href={paylasimSayfasi(kod)} className="mobile-brand-back" aria-label={messages().kiyas.paylasilanaDon}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 5l-7 7 7 7" />
@@ -88,7 +102,7 @@ export default function KiyaslaSayfasi() {
         <div className="state-empty">
           <p className="state-empty-title">{messages().kiyas.kendiListen}</p>
           <p>{messages().kiyas.seninListenMetin}</p>
-          <Link href={`/l/${durum.liste.slug}`} className="btn-quiet">{messages().kiyas.listeyeGit}</Link>
+          <Link href={listeAdresi(durum.liste.slug)} className="btn-quiet">{messages().kiyas.listeyeGit}</Link>
         </div>
       )}
 

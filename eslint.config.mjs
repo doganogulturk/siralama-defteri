@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Supabase Edge Functions Deno'da çalışıyor; kendi ortamları var.
     "supabase/functions/**",
+    // Capacitor iOS projesi: içindeki public/ statik paketin kopyası (derlenmiş JS).
+    "ios/**",
   ]),
 ]);
 

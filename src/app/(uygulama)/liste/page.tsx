@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { Suspense, useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Item } from '@/types/item';
 import {
   KATEGORISIZ, bosFiltre, filtreBos, filtreUygula, kategoriSayilari, bayrakSayilari,
@@ -38,14 +38,36 @@ import ListeAltMenusu from '@/components/liste/ListeAltMenusu';
 import { uyar } from '@/lib/pencere';
 import { useGeriAlinabilirSilme } from '@/hooks/useGeriAlinabilirSilme';
 import { messages } from '@/lib/i18n';
+import { listeAdresi } from '@/lib/site';
 
-/** Açık sekme adreste: Denenmemiş `?sekme=denenmemis`, sıralama yalın adres. */
-const sekmeAdresi = (sekme: Sekme) =>
-  window.location.pathname + (sekme === 'sirada' ? '?sekme=denenmemis' : '');
+/** Açık sekme adreste: Denenmemiş `&sekme=denenmemis`, sıralama yalın adres. */
+const sekmeAdresi = (slug: string, sekme: Sekme) =>
+  listeAdresi(slug) + (sekme === 'sirada' ? '&sekme=denenmemis' : '');
 
+/**
+ * Bir listenin sıralama ekranı: `/liste?s=<slug>`. Sorgu parametresi, çünkü uygulama paketi statik
+ * (kullanıcının liste adları derlemede bilinemiyor); webde eski `/l/<slug>` buraya yönlendiriyor.
+ * `useSearchParams` statik çizimde Suspense sınırı istiyor.
+ */
 export default function ListePage() {
+  return (
+    <Suspense fallback={null}>
+      <ListeAnahtari />
+    </Suspense>
+  );
+}
+
+/**
+ * Başka bir listeye geçince ekran baştan kuruluyor (eski `/l/[slug]` adresindeki gibi): sekme,
+ * filtre, seçim ve açık pencereler önceki listeden taşınmasın.
+ */
+function ListeAnahtari() {
+  const slug = useSearchParams().get('s') ?? '';
+  return <ListeSayfasi key={slug} SLUG={slug} />;
+}
+
+function ListeSayfasi({ SLUG }: { SLUG: string }) {
   const isDesktop = useIsDesktop();
-  const SLUG = String(useParams().slug ?? '');
   const m = messages();
   const t = m.liste;
   const magaza = useListStore(SLUG);
@@ -109,8 +131,8 @@ export default function ListePage() {
     if (params.has('ayarlar')) setAyarlarAcik(true);
     if (params.get('sekme') === 'denenmemis') setSekme('sirada');
     // `ayarlar` adreste kalırsa yenilemede popup yeniden açılırdı; `sekme` kalıyor.
-    if (params.has('ayarlar')) window.history.replaceState(null, '', sekmeAdresi(params.get('sekme') === 'denenmemis' ? 'sirada' : 'siralama'));
-  }, []);
+    if (params.has('ayarlar')) window.history.replaceState(null, '', sekmeAdresi(SLUG, params.get('sekme') === 'denenmemis' ? 'sirada' : 'siralama'));
+  }, [SLUG]);
 
   /* ── Derived data ────────────────────────────────── */
   const visible = useMemo(() => filtreUygula(ranked, filtre), [ranked, filtre]);
@@ -180,7 +202,7 @@ export default function ListePage() {
 
   const sekmeSec = (next: Sekme) => {
     setSekme(next);
-    window.history.replaceState(null, '', sekmeAdresi(next));
+    window.history.replaceState(null, '', sekmeAdresi(SLUG, next));
     setSelectedId(null);
     // Seçim sekmeye ait: diğer sekmedeki görünmeyen kayıtlar yanlışlıkla taşınmasın.
     secimModu.temizle();

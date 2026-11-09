@@ -24,7 +24,10 @@
   /* Defter zeminindeki kare çizgileri */
   --kare:  color-mix(in oklab, var(--ink) 7%, transparent);
   /* Sarmal teller: kâğıttaki delik ve üstten gelip deliğe giren tel, 28px aralıkla. */
-  --tel: 20px;
+  /* Çentik / Dynamic Island payı: tarayıcıda 0, uygulamada (viewport-fit: cover) durum çubuğu. */
+  --guvenli-ust: env(safe-area-inset-top, 0px);
+  /* Tel şeridi güvenli alanın altında: şerit yüksekliği payı da içeriyor, teller dibinde çiziliyor. */
+  --tel: calc(20px + var(--guvenli-ust));
   --tel-renk: color-mix(in oklab, var(--ink) 42%, transparent);
   --tel-cizim: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='20' viewBox='0 0 28 20'%3E%3Ccircle cx='14' cy='14.5' r='3.2'/%3E%3Cpath d='M18.6 0.5C12.5 1.2 10.2 7.5 12.6 13.4' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
 
@@ -148,8 +151,20 @@ body::after {
   height: var(--tel);
   pointer-events: none;
   background: linear-gradient(to bottom, var(--tel-renk), color-mix(in oklab, var(--tel-renk) 70%, transparent));
-  -webkit-mask: var(--tel-cizim) center top / 28px var(--tel) repeat-x;
-  mask: var(--tel-cizim) center top / 28px var(--tel) repeat-x;
+  -webkit-mask: var(--tel-cizim) center bottom / 28px 20px repeat-x;
+  mask: var(--tel-cizim) center bottom / 28px 20px repeat-x;
+}
+/* Durum çubuğunun arkası kâğıt renginde ve sabit: içerik kayarken saatin altına girmesin. */
+html::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  height: var(--guvenli-ust);
+  background: var(--bg);
+  pointer-events: none;
 }
 button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
 input, select, textarea { font: inherit; color: inherit; }
@@ -275,7 +290,7 @@ a { color: var(--accent-ink); }
 /* Başlık, sekmeler ve filtreler kaydırmada sabit: düz kâğıt zemini (bulanık cam değil), altına kıl çizgisi. */
 .sticky-top {
   position: sticky;
-  top: 0;
+  top: var(--guvenli-ust);
   z-index: 30;
   margin: 0 -16px;
   padding: 0 16px;

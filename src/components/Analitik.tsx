@@ -1,6 +1,7 @@
 'use client';
 
 import { Analytics, type BeforeSendEvent } from '@vercel/analytics/next';
+import { MOBIL } from '@/lib/site';
 
 /**
  * Adresteki kişisel ya da gizli parçalar istatistiğe gitmeden kalıba çevriliyor:
@@ -32,5 +33,7 @@ function maskele(event: BeforeSendEvent): BeforeSendEvent {
  * panelinde proje için Analytics açılmadıkça üretimde de veri toplanmıyor.
  */
 export default function Analitik() {
+  // Uygulama paketinde analitik yok: mağaza beyanlarında "analitik yok" denebilsin (yol haritası → Mobil 7).
+  if (MOBIL) return null;
   return <Analytics beforeSend={maskele} />;
 }

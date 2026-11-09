@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Liste } from '@/types/item';
 import { AyarlarIkon, PaylasIkon } from './Ikonlar';
 import { messages } from '@/lib/i18n';
+import { kiyasAdresi } from '@/lib/site';
 
 /**
  * Liste sayfasının başlığı: geri, listenin adı, kopyalanmış listede "Karşılaştır", Paylaş ve
@@ -33,7 +34,7 @@ export default function ListeBasligi({ liste, ad, yukleniyor, onPaylas, onAyarla
         <strong>{yukleniyor && !liste ? ' ' : ad}</strong>
         {/* "Ben de sıralayayım" ile kopyalanan listede kaynağıyla karşılaştırmaya kısa yol. */}
         {liste?.kaynak_kod && (
-          <Link href={`/kiyasla/${liste.kaynak_kod}`} className="mobile-brand-kiyas">{t.karsilastir}</Link>
+          <Link href={kiyasAdresi(liste.kaynak_kod)} className="mobile-brand-kiyas">{t.karsilastir}</Link>
         )}
       </span>
       <div className="mobile-brand-yan">

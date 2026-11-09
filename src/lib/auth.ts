@@ -1,5 +1,6 @@
 import type { Session, UserIdentity } from '@supabase/supabase-js';
 import { supabase } from './supabase';
+import { MOBIL } from './site';
 
 /**
  * Girişten sonra dönülecek sayfa. Google ve Apple dönüşü her zaman köke (`redirectTo` yalnızca
@@ -19,8 +20,28 @@ export type GirisSaglayici = 'google' | 'apple';
  */
 export const appleGirisAcik = process.env.NEXT_PUBLIC_APPLE_GIRIS === '1';
 
-/** Sağlayıcıya yönlendirir; dönüş adresi Supabase'deki Redirect URLs listesinde olmalı. */
+/**
+ * Uygulama paketinde girişten dönüş adresi (özel URL şeması; ios/App/App/Info.plist →
+ * CFBundleURLTypes). Supabase → Authentication → URL Configuration → Redirect URLs'te olmalı.
+ */
+export const UYGULAMA_DONUSU = 'com.siralamadefteri.app://giris';
+
+/**
+ * Sağlayıcıya yönlendirir; dönüş adresi Supabase'deki Redirect URLs listesinde olmalı.
+ * Uygulama paketinde giriş sayfası iOS'un güvenli tarayıcı penceresinde açılıyor (Google,
+ * uygulamanın kendi web görünümünde girişi engelliyor); dönüşü `uygulamaDonusunuDinle` yakalıyor.
+ */
 export async function girisYap(saglayici: GirisSaglayici): Promise<void> {
+  if (MOBIL) {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: saglayici,
+      options: { redirectTo: UYGULAMA_DONUSU, skipBrowserRedirect: true },
+    });
+    if (error) throw error;
+    const { Browser } = await import('@capacitor/browser');
+    await Browser.open({ url: data.url, presentationStyle: 'popover' });
+    return;
+  }
   const yol = window.location.pathname + window.location.search;
   try {
     if (yol !== '/') sessionStorage.setItem(GIRIS_SONRASI, yol);
@@ -78,6 +99,29 @@ export async function appleJetonunuIptalEt(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * Uygulama paketinde girişten dönüş: güvenli tarayıcı `com.siralamadefteri.app://giris?code=…`
+ * adresini açınca uygulama uyanıyor; kod oturuma çevriliyor (PKCE; doğrulayıcı aynı web
+ * görünümünün depolamasında) ve tarayıcı penceresi kapanıyor. Kök düzende bir kez
+ * (`UygulamaKoprusu`). Dönen fonksiyon dinlemeyi bırakıyor.
+ */
+export function uygulamaDonusunuDinle(): () => void {
+  let birak: (() => void) | null = null;
+  let iptal = false;
+  void (async () => {
+    const [{ App }, { Browser }] = await Promise.all([import('@capacitor/app'), import('@capacitor/browser')]);
+    const dinleyici = await App.addListener('appUrlOpen', async ({ url }) => {
+      if (!url.startsWith(UYGULAMA_DONUSU)) return;
+      const adres = new URL(url);
+      const kod = adres.searchParams.get('code');
+      if (kod) await supabase.auth.exchangeCodeForSession(kod);
+      await Browser.close().catch(() => { /* zaten kapalı */ });
+    });
+    if (iptal) void dinleyici.remove(); else birak = () => void dinleyici.remove();
+  })();
+  return () => { iptal = true; birak?.(); };
 }
 
 export async function signOut(): Promise<void> {

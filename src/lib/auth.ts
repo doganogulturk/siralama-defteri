@@ -13,12 +13,12 @@ export const GIRIS_SONRASI = 'giris-sonrasi';
 export type GirisSaglayici = 'google' | 'apple';
 
 /**
- * Apple ile giriş açık mı. Panel kurulumu (Apple Developer: Services ID, anahtar; Supabase:
- * Apple sağlayıcısı) bitmeden düğme görünmesin: basan kişi hata alırdı. Vercel'de
- * `NEXT_PUBLIC_APPLE_GIRIS=1` ile açılıyor. App Store 4.8: Google girişi olan uygulamada
- * gizliliği koruyan ikinci bir seçenek zorunlu.
+ * Apple ile giriş açık mı: varsayılan açık (Apple Developer ve Supabase kurulumu Kasım 2026'da
+ * yapıldı). App Store 4.8: Google girişi olan uygulamada gizliliği koruyan ikinci bir seçenek
+ * zorunlu; uygulama paketinde de görünmeli. Bir sorun olursa `NEXT_PUBLIC_APPLE_GIRIS=0` ile
+ * derlemede kapatılabiliyor.
  */
-export const appleGirisAcik = process.env.NEXT_PUBLIC_APPLE_GIRIS === '1';
+export const appleGirisAcik = process.env.NEXT_PUBLIC_APPLE_GIRIS !== '0';
 
 /**
  * Uygulama paketinde girişten dönüş adresi (özel URL şeması; ios/App/App/Info.plist →

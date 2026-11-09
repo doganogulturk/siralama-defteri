@@ -3,6 +3,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { BildirEngelle } from '@/components/PaylasimGuvenligi';
 import OyunGeri from '@/components/oyna/OyunGeri';
 import { KOR_ADET, KorKayit, korSec, korSonucYaz, korUyum } from '@/lib/kor-liste';
 import { uyumEtiketi } from '@/lib/kiyas';
@@ -117,6 +118,8 @@ export default function KorListeOyun({ kod, listeAdi, sahip, kayitlar, arkadas }
           </ul>
           <button type="button" className="btn-primary kor-basla" onClick={basla}>{k.basla}</button>
           {kameraVar && <KameraDugmesi onKamera={kameraylaBasla} />}
+          {/* App Store 1.2: başkasının listesinde bildir ve engelle. */}
+          <BildirEngelle kod={kod} />
         </main>
       )}
 

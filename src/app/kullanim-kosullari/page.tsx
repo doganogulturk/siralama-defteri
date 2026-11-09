@@ -39,7 +39,8 @@ const TURKCE = (
       <li>Hukuka aykırı ya da başkasının haklarını ihlal eden içerik,</li>
       <li>Hizmetin çalışmasını bozmaya, sınırlarını aşmaya ya da güvenliğini aşmaya çalışmak.</li>
     </ul>
-    <p>Bu kurallara uymayan içeriği kaldırma ve hesabı kapatma hakkımız saklıdır.</p>
+    <p>Uygunsuz içeriğe ve kötüye kullanan kullanıcılara hiçbir şekilde müsamaha gösterilmez. Bu kurallara uymayan içeriği kaldırma ve hesabı kapatma hakkımız saklıdır.</p>
+    <p>Başkasının paylaşımında kurallara aykırı bir şey görürsen sayfanın altındaki <strong>Bildir</strong> ile bize bildirebilirsin; giriş yapmışsan paylaşanı <strong>engelleyebilirsin</strong>, o zaman paylaşımları sana gösterilmez. Bildirimler 24 saat içinde incelenir; kurallara aykırı içerik kaldırılır, gerekirse paylaşanın hesabı kapatılır.</p>
 
     <h2>Fikri mülkiyet ve kaynaklar</h2>
     <p>
@@ -103,7 +104,8 @@ const INGILIZCE = (
       <li>Unlawful content or content that infringes others&apos; rights,</li>
       <li>Attempting to disrupt the service, bypass its limits or break its security.</li>
     </ul>
-    <p>We reserve the right to remove content that breaks these rules and to close the account.</p>
+    <p>There is no tolerance for objectionable content or abusive users. We reserve the right to remove content that breaks these rules and to close the account.</p>
+    <p>If you see something that breaks the rules in someone else&apos;s share, use <strong>Report</strong> at the bottom of the page; if you are signed in you can also <strong>block</strong> the person who shared it, and their shares will no longer be shown to you. Reports are reviewed within 24 hours; content that breaks the rules is removed and, where needed, the sharer&apos;s account is closed.</p>
 
     <h2>Intellectual property and credits</h2>
     <p>

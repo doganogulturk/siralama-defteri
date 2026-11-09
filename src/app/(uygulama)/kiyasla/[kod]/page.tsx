@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { BildirEngelle, EngelPerdesi } from '@/components/PaylasimGuvenligi';
 import { useParams } from 'next/navigation';
 import Marka from '@/components/Marka';
 import KopyaSiralama from '@/components/KopyaSiralama';
@@ -92,26 +93,32 @@ export default function KiyaslaSayfasi() {
       )}
 
       {durum.tur === 'sirala' && (
-        <KopyaSiralama
-          kod={kod}
-          kaynak={durum.kaynak}
-          onBitti={() => {
-            listeleriTazele();
-            window.scrollTo({ top: 0 });
-            void yukle();
-          }}
-        />
+        <EngelPerdesi kod={kod}>
+          <KopyaSiralama
+            kod={kod}
+            kaynak={durum.kaynak}
+            onBitti={() => {
+              listeleriTazele();
+              window.scrollTo({ top: 0 });
+              void yukle();
+            }}
+          />
+          <footer className="paylasim-son"><BildirEngelle kod={kod} /></footer>
+        </EngelPerdesi>
       )}
 
       {durum.tur === 'kiyas' && (
-        <KiyasEkrani
-          kod={kod}
-          kaynak={durum.kaynak}
-          liste={durum.liste}
-          items={durum.items}
-          kategoriler={durum.kategoriler}
-          onDegisti={() => { listeleriTazele(); void yukle(); }}
-        />
+        <EngelPerdesi kod={kod}>
+          <KiyasEkrani
+            kod={kod}
+            kaynak={durum.kaynak}
+            liste={durum.liste}
+            items={durum.items}
+            kategoriler={durum.kategoriler}
+            onDegisti={() => { listeleriTazele(); void yukle(); }}
+          />
+          <footer className="paylasim-son"><BildirEngelle kod={kod} /></footer>
+        </EngelPerdesi>
       )}
     </div>
   );

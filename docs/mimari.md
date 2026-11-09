@@ -82,3 +82,28 @@ Kurulum notları:
 - Authorized domain olarak `supabase.co` kabul edilmiyor, **proje kodlu tam hâli** girilmeli
 - Supabase → Authentication → URL Configuration → Redirect URLs'e hem `http://localhost:3000/**` hem üretim adresi eklenmiş olmalı
 - Site URL örtük olarak izinli yönlendirme sayılıyor: Redirect URLs'te olmayan bir adres yalnızca Site URL olduğu için çalışıyor olabilir — alan adı değiştirirken bu sıralamayı bozmamak gerek
+
+## Bildirimler ve engeller (App Store 1.2)
+
+Başkasının paylaşımı uygulamada yalnızca bağlantıyla görünüyor: `/p/[kod]`, kör sıralatma (`/p/[kod]/kor`) ve karşılaştırma (`/kiyasla/[kod]`). Üçünde de altta **Bildir** (giriş istemiyor) ve giriş yapmışsa **Bu kişiyi engelle** var (`components/PaylasimGuvenligi.tsx`); kendi paylaşımında görünmüyor. Engellenen kişinin paylaşımı bu üç yerde perdeyle görünüyor, perdede "Engeli kaldır".
+
+- **Tablolar:** `bildirimler` (paylaşım kodu, liste, sahip, bildiren, sebep, açıklama, durum: `yeni / incelendi / kaldirildi`) ve `engellenenler` (kim, kimi). İkisine de istemciden doğrudan erişim yok; yalnızca `paylasimi_bildir`, `paylasani_engelle`, `paylasanin_engelini_kaldir`, `paylasan_engelli_mi` fonksiyonları. Sahibin kimliği istemciye hiç gitmiyor, fonksiyonlar paylaşım kodundan buluyor. Aynı paylaşıma saatte en fazla 30 bildirim.
+- **İnceleme (sahibi, 24 saat içinde):** Supabase → Table Editor → `do_siralama_defteri.bildirimler`, `durum = 'yeni'`. Ya da SQL Editor'da:
+
+  ```sql
+  select b.created_at, b.neden, b.aciklama, l.ad, b.paylasim_kodu
+  from do_siralama_defteri.bildirimler b
+  left join do_siralama_defteri.lists l on l.id = b.list_id
+  where b.durum = 'yeni' order by b.created_at;
+  ```
+
+  Paylaşımı kapatmak (bağlantı ölür, liste sahibinde kalır): `update do_siralama_defteri.lists set paylasim_kodu = null where paylasim_kodu = '<kod>';` sonra `update do_siralama_defteri.bildirimler set durum = 'kaldirildi' where paylasim_kodu = '<kod>';`. Uygunsuz değilse `durum = 'incelendi'`. Ağır durumda hesabı kapatmak: Authentication → Users → kullanıcı → Delete user (listeleri cascade ile gider; kovadaki fotoğrafları Storage'dan elle silmek gerekir).
+- **Yeni bildirim haberi:** şimdilik yok; panel elle kontrol ediliyor. Mağazaya çıkınca bir veritabanı webhook'u ya da Edge Function ile e-posta düşünülmeli.
+
+## Apple jetonunun iptali (App Store 5.1.1(v))
+
+Apple ile girmiş hesap silinirken Apple jetonları iptal edilmeli. Supabase Apple'ın yenileme jetonunu yalnızca girişten hemen sonra istemciye veriyor (`provider_refresh_token`): `AuthGate` → `lib/auth.ts` → `appleJetonunuIzle` onu `apple_jetonu_kaydet` ile `apple_jetonlari` tablosuna yazıyor (istemci okuyamıyor; yalnızca `apple_jetonu_al` ile kendi satırı). Hesap silinirken (`items.ts` → `hesabiSil`) silmeden önce `apple-iptal` Edge Function'ı (`supabase/functions/apple-iptal/index.ts`) kullanıcının oturumuyla çağrılıyor: jetonu okuyup .p8 anahtarıyla imzalı bir istemci sırrıyla Apple'ın `/auth/revoke` ucuna gönderiyor. İptal olmazsa silme yine sürüyor (silme hakkı iptale bağlı kalmamalı). Bu düzenden önce Apple ile girmiş hesapların jetonu yok; bir sonraki girişlerinde saklanıyor.
+
+- **Gizli değişkenler** (Supabase → Edge Functions → Secrets): `APPLE_P8` (.p8 dosyasının içeriği), `APPLE_TEAM_ID`, `APPLE_KEY_ID`.
+- **Kurulum:** Supabase CLI yok; fonksiyon panelden (Edge Functions → Deploy a new function → Via Editor) `apple-iptal` adıyla, dosyanın içeriği yapıştırılarak kuruluyor. "Verify JWT" açık kalmalı.
+

@@ -39,8 +39,10 @@ const TURKCE = (
     <h2>İşlenen veriler</h2>
     <ul>
       <li>
-        <strong>Hesap bilgileri:</strong> Google ile girişte adın, e-posta adresin ve profil fotoğrafının adresi.
-        Google şifrene hiçbir zaman erişmeyiz.
+        <strong>Hesap bilgileri:</strong> Google ile girişte adın, e-posta adresin ve profil fotoğrafının adresi;
+        Apple ile girişte Apple&apos;ın paylaşmana izin verdiği ad ve e-posta (gizlersen Apple&apos;ın aktarma adresi).
+        Google ya da Apple şifrene hiçbir zaman erişmeyiz. Apple ile girişte Apple&apos;ın verdiği oturum jetonu da
+        saklanır; tek kullanımı, hesabını sildiğinde Apple&apos;a bu girişi iptal ettirmektir.
       </li>
       <li>
         <strong>Listelerin:</strong> listeler, kategoriler, kayıtlar, notlar ve sıralaman.
@@ -52,6 +54,10 @@ const TURKCE = (
       <li>
         <strong>Teknik veriler:</strong> barındırma sağlayıcılarının güvenlik için kısa süre tuttuğu IP adresi ve
         cihaz bilgisi gibi sunucu kayıtları.
+      </li>
+      <li>
+        <strong>Bildirimler ve engeller:</strong> bir paylaşımı bildirirsen sebebi, açıklaman ve giriş yapmışsan
+        hesabın; birini engellersen kimi engellediğin. Bildirimi yalnızca biz görürüz, paylaşana kim olduğun söylenmez.
       </li>
       <li>
         <strong>Ziyaret istatistikleri:</strong> çerezsiz, anonim sayfa görüntüleme sayıları (Vercel Web Analytics).
@@ -141,7 +147,9 @@ const INGILIZCE = (
     <ul>
       <li>
         <strong>Account details:</strong> your name, email address and profile photo address when you sign in with
-        Google. We never have access to your Google password.
+        Google; with Apple, the name and email Apple lets you share (or Apple&apos;s relay address if you hide it). We
+        never have access to your Google or Apple password. With Apple sign-in we also keep the session token Apple
+        issues; its only use is asking Apple to revoke that sign-in when you delete your account.
       </li>
       <li>
         <strong>Your lists:</strong> lists, categories, entries, notes and your rankings.
@@ -153,6 +161,10 @@ const INGILIZCE = (
       <li>
         <strong>Technical data:</strong> server logs such as IP address and device information that hosting providers
         keep briefly for security.
+      </li>
+      <li>
+        <strong>Reports and blocks:</strong> if you report a share, the reason, your note and, if signed in, your
+        account; if you block someone, whom you blocked. Only we see reports; the sharer is not told who reported.
       </li>
       <li>
         <strong>Visit statistics:</strong> cookieless, anonymous page view counts (Vercel Web Analytics). They do not

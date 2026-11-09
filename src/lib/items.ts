@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { appleJetonunuIptalEt } from './auth';
 import { AlanTanimi, Item, Kategori, Liste } from '@/types/item';
 import { fotoKucult } from './foto';
 import { KOVA } from './kova';
@@ -375,6 +376,10 @@ export async function hesabiSil(): Promise<void> {
   // Kendi klasörü ve klasör kuralından önce köke yüklenmiş eski dosyaları (listeleme yalnızca sahibine açık).
   await klasoruBosalt(userData.user.id);
   await klasoruBosalt('');
+
+  // Apple ile girmiş hesapta Apple jetonunu iptal ettir (App Store 5.1.1(v)); hesap silinmeden,
+  // oturum hâlâ açıkken. Olmazsa silme yine sürüyor.
+  if (userData.user.identities?.some(k => k.provider === 'apple')) await appleJetonunuIptalEt();
 
   const { error } = await supabase.rpc('hesabimi_sil');
   if (error) throw error;

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { EngelPerdesi } from '@/components/PaylasimGuvenligi';
 import { notFound } from 'next/navigation';
 import KorListeOyun from '@/components/KorListeOyun';
 import Marka from '@/components/Marka';
@@ -69,12 +70,15 @@ export default async function KorListeSayfasi({ params, searchParams }: Props) {
   }
 
   return (
-    <KorListeOyun
-      kod={kod}
-      listeAdi={liste.ad}
-      sahip={liste.sahip}
-      kayitlar={kayitlar}
-      arkadas={korSonucCoz(kayitlar, s)}
-    />
+    // Engellenen kişinin listesi bu kullanıcıya perdeyle (App Store 1.2).
+    <EngelPerdesi kod={kod}>
+      <KorListeOyun
+        kod={kod}
+        listeAdi={liste.ad}
+        sahip={liste.sahip}
+        kayitlar={kayitlar}
+        arkadas={korSonucCoz(kayitlar, s)}
+      />
+    </EngelPerdesi>
   );
 }

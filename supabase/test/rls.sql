@@ -239,6 +239,54 @@ update do_siralama_defteri.items set ad = ad || '!' where list_id = '11111111-00
 select test.esit((select count(*) from do_siralama_defteri.items where ad like '%!')::int, 200,
   'dolu listede düzenleme sınıra takılmıyor');
 
+-- ── Apple jetonu ────────────────────────────────────────────────────────────────
+-- (oturum: B)
+select do_siralama_defteri.apple_jetonu_kaydet('jeton-B-1');
+select do_siralama_defteri.apple_jetonu_kaydet('jeton-B-2');
+select test.hata('select * from do_siralama_defteri.apple_jetonlari', 'kullanıcı Apple jetonlarını okuyamıyor', '42501');
+select test.esit((select yenileme_jetonu from do_siralama_defteri.apple_jetonu_al()), 'jeton-B-2', 'kullanıcı kendi jetonunu fonksiyonla alıyor');
+select test.hata($$select do_siralama_defteri.apple_jetonu_kaydet('x', 'baska.istemci')$$, 'bilinmeyen Apple istemcisi reddediliyor');
+reset role;
+select test.olarak(:A);
+set role authenticated;
+select test.esit((select count(*) from do_siralama_defteri.apple_jetonu_al())::int, 0, 'A, B''nin Apple jetonunu göremiyor');
+reset role;
+select test.olarak(:B);
+set role authenticated;
+reset role;
+select test.esit((select string_agg(yenileme_jetonu, ',') from do_siralama_defteri.apple_jetonlari where user_id = :B),
+  'jeton-B-2', 'jeton güncelleniyor, kullanıcı başına tek satır');
+
+-- ── Bildir ve engelle ───────────────────────────────────────────────────────────
+select test.olarak(null);
+set role anon;
+select test.hata($$select do_siralama_defteri.apple_jetonu_kaydet('x')$$, 'anon Apple jetonu kaydedemiyor', '42501');
+select do_siralama_defteri.paylasimi_bildir('PaylasimKoduAAAA0001', 'spam', 'deneme');
+select test.hata($$select do_siralama_defteri.paylasimi_bildir('PaylasimKoduAAAA0001', 'yok')$$, 'geçersiz neden reddediliyor', '23514');
+select test.hata($$select do_siralama_defteri.paylasimi_bildir('YanlisKodYanlisKod00', 'spam')$$, 'olmayan paylaşım bildirilemiyor');
+select test.hata('select * from do_siralama_defteri.bildirimler', 'anon bildirimleri okuyamıyor', '42501');
+select test.hata($$select do_siralama_defteri.paylasani_engelle('PaylasimKoduAAAA0001')$$, 'anon engelleyemiyor', '42501');
+reset role;
+select test.esit((select sahip_id from do_siralama_defteri.bildirimler where neden = 'spam'), :A::uuid,
+  'bildirim paylaşımın sahibini buluyor');
+
+select test.olarak(:A);
+set role authenticated;
+select test.hata($$select do_siralama_defteri.paylasani_engelle('PaylasimKoduAAAA0001')$$, 'kendini engelleyemiyor');
+select test.hata('select * from do_siralama_defteri.bildirimler', 'sahip bildirimleri okuyamıyor', '42501');
+reset role;
+
+select test.olarak(:B);
+set role authenticated;
+select test.esit(do_siralama_defteri.paylasan_engelli_mi('PaylasimKoduAAAA0001'), false, 'başta engel yok');
+select do_siralama_defteri.paylasani_engelle('PaylasimKoduAAAA0001');
+select do_siralama_defteri.paylasani_engelle('PaylasimKoduAAAA0001');
+select test.esit(do_siralama_defteri.paylasan_engelli_mi('PaylasimKoduAAAA0001'), true, 'B paylaşanı engelledi (iki kez de olur)');
+select do_siralama_defteri.paylasanin_engelini_kaldir('PaylasimKoduAAAA0001');
+select test.esit(do_siralama_defteri.paylasan_engelli_mi('PaylasimKoduAAAA0001'), false, 'engel kalktı');
+select do_siralama_defteri.paylasani_engelle('PaylasimKoduAAAA0001');
+select test.hata('select * from do_siralama_defteri.engellenenler', 'engel tablosu doğrudan okunamıyor', '42501');
+
 -- ── Hesap silme ─────────────────────────────────────────────────────────────────
 select do_siralama_defteri.hesabimi_sil();
 reset role;
@@ -246,5 +294,8 @@ reset role;
 select test.esit((select count(*) from auth.users where id = :B)::int, 0, 'B''nin giriş kaydı silindi');
 select test.esit((select count(*) from do_siralama_defteri.lists where user_id = :B)::int, 0, 'B''nin listeleri cascade ile gitti');
 select test.esit((select count(*) from do_siralama_defteri.items)::int, 4, 'A''nın kayıtları yerinde');
+select test.esit((select count(*) from do_siralama_defteri.apple_jetonlari where user_id = :B)::int, 0, 'B''nin Apple jetonu cascade ile gitti');
+select test.esit((select count(*) from do_siralama_defteri.engellenenler)::int, 0, 'B''nin engelleri cascade ile gitti');
+select test.esit((select count(*) from do_siralama_defteri.bildirimler)::int, 1, 'bildirim kalıyor (bildiren silinince boşalıyor)');
 
 \echo 'Bütün RLS testleri geçti.'

@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePathname, useRouter } from 'next/navigation';
-import { GIRIS_SONRASI } from '@/lib/auth';
+import { GIRIS_SONRASI, appleJetonunuIzle } from '@/lib/auth';
 import Hesap from './Hesap';
 import Tanitim from './Tanitim';
 import GirisDugmesi from './GirisDugmesi';
@@ -20,6 +20,9 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   const m = useMesajlar();
   const router = useRouter();
   const yol = usePathname();
+
+  // Apple ile girişin ardından Apple jetonunu sakla (hesap silmede iptal için).
+  useEffect(() => appleJetonunuIzle(), []);
 
   // Girişten dönüldü: kişi giriş ekranını hangi sayfada gördüyse oraya.
   useEffect(() => {

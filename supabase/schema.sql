@@ -408,6 +408,187 @@ $$;
 revoke all on function do_siralama_defteri.hesabimi_sil() from public, anon;
 grant execute on function do_siralama_defteri.hesabimi_sil() to authenticated;
 
+-- ── Apple jetonu: hesap silinirken iptal ────────────────────────────────────────────────────
+-- Apple, "Apple ile giriş" kullanan uygulamada hesap silinirken Apple jetonlarının iptalini istiyor
+-- (App Store 5.1.1(v)). İptal için Apple'ın yenileme jetonu gerekiyor; Supabase onu yalnızca girişin
+-- hemen ardından istemciye veriyor (provider_refresh_token). İstemci burada saklıyor; hesap silinirken
+-- `apple-iptal` Edge Function'ı (supabase/functions) kullanıcının oturumuyla `apple_jetonu_al`'ı çağırıp
+-- jetonu .p8 anahtarıyla imzalı bir istekle Apple'a iptal ettiriyor. Tabloya politika yok: kullanıcı
+-- yalnızca kendi satırına, yalnızca bu iki fonksiyonla erişiyor. Jeton bizim istemci sırrımız olmadan
+-- işe yaramıyor. Hesap silinince satır cascade ile gidiyor. `istemci`: jetonun verildiği Apple kimliği
+-- (web: Services ID; iOS uygulaması: bundle ID) — iptal isteği aynı kimlikle yapılmalı.
+create table if not exists do_siralama_defteri.apple_jetonlari (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  yenileme_jetonu text not null,
+  istemci text not null default 'com.siralamadefteri.web',
+  guncellendi timestamptz not null default now()
+);
+alter table do_siralama_defteri.apple_jetonlari
+  add column if not exists istemci text not null default 'com.siralamadefteri.web';
+alter table do_siralama_defteri.apple_jetonlari enable row level security;
+revoke all on do_siralama_defteri.apple_jetonlari from public, anon, authenticated;
+
+create or replace function do_siralama_defteri.apple_jetonu_kaydet(
+  p_jeton text, p_istemci text default 'com.siralamadefteri.web'
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Giriş gerekir.';
+  end if;
+  if p_jeton is null or char_length(p_jeton) = 0 or char_length(p_jeton) > 2000 then
+    raise exception 'Geçersiz jeton.';
+  end if;
+  if p_istemci not in ('com.siralamadefteri.web', 'com.siralamadefteri.app') then
+    raise exception 'Geçersiz istemci.';
+  end if;
+  insert into do_siralama_defteri.apple_jetonlari (user_id, yenileme_jetonu, istemci)
+  values (auth.uid(), p_jeton, p_istemci)
+  on conflict (user_id) do update
+    set yenileme_jetonu = excluded.yenileme_jetonu, istemci = excluded.istemci, guncellendi = now();
+end;
+$$;
+
+/** Kendi Apple jetonun (yoksa boş); yalnızca hesap silmedeki iptal için. */
+create or replace function do_siralama_defteri.apple_jetonu_al()
+returns table (yenileme_jetonu text, istemci text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select j.yenileme_jetonu, j.istemci
+  from do_siralama_defteri.apple_jetonlari j
+  where j.user_id = auth.uid();
+$$;
+
+drop function if exists do_siralama_defteri.apple_jetonu_kaydet(text);
+revoke all on function do_siralama_defteri.apple_jetonu_kaydet(text, text) from public, anon;
+grant execute on function do_siralama_defteri.apple_jetonu_kaydet(text, text) to authenticated;
+revoke all on function do_siralama_defteri.apple_jetonu_al() from public, anon;
+grant execute on function do_siralama_defteri.apple_jetonu_al() to authenticated;
+
+-- ── Bildir ve engelle (App Store 1.2) ───────────────────────────────────────────────────────
+-- Başkalarının içeriği uygulamada yalnızca paylaşım bağlantısıyla görünüyor (/p/[kod], kör sıralatma,
+-- karşılaştırma). Orada herkes paylaşımı bildirebiliyor; giriş yapmış kullanıcı paylaşanı
+-- engelleyebiliyor (onun paylaşımları bu kişiye perdeyle görünüyor). Sahibinin kimliği istemciye hiç
+-- verilmiyor: fonksiyonlar paylaşım kodundan buluyor.
+
+create table if not exists do_siralama_defteri.bildirimler (
+  id uuid primary key default gen_random_uuid(),
+  paylasim_kodu text not null,
+  list_id uuid references do_siralama_defteri.lists(id) on delete set null,
+  sahip_id uuid references auth.users(id) on delete set null,
+  bildiren uuid references auth.users(id) on delete set null,
+  neden text not null check (neden in ('uygunsuz', 'taciz', 'spam', 'telif', 'diger')),
+  aciklama text check (aciklama is null or char_length(aciklama) <= 1000),
+  durum text not null default 'yeni' check (durum in ('yeni', 'incelendi', 'kaldirildi')),
+  created_at timestamptz not null default now()
+);
+create index if not exists bildirimler_durum_idx on do_siralama_defteri.bildirimler (durum, created_at);
+alter table do_siralama_defteri.bildirimler enable row level security;
+revoke all on do_siralama_defteri.bildirimler from public, anon, authenticated;
+
+/** Paylaşımı bildirir; giriş istemiyor. Aynı paylaşıma bir saatte en fazla 30 bildirim (kötüye kullanım). */
+create or replace function do_siralama_defteri.paylasimi_bildir(p_kod text, p_neden text, p_aciklama text default null)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_liste do_siralama_defteri.lists%rowtype;
+begin
+  select * into v_liste from do_siralama_defteri.lists where paylasim_kodu = p_kod;
+  if not found then
+    raise exception 'Paylaşım bulunamadı.';
+  end if;
+  if (select count(*) from do_siralama_defteri.bildirimler
+      where paylasim_kodu = p_kod and created_at > now() - interval '1 hour') >= 30 then
+    raise exception 'Bu paylaşım için çok fazla bildirim var; biraz sonra yeniden dene.';
+  end if;
+  insert into do_siralama_defteri.bildirimler (paylasim_kodu, list_id, sahip_id, bildiren, neden, aciklama)
+  values (p_kod, v_liste.id, v_liste.user_id, auth.uid(), p_neden, nullif(trim(p_aciklama), ''));
+end;
+$$;
+
+revoke all on function do_siralama_defteri.paylasimi_bildir(text, text, text) from public;
+grant execute on function do_siralama_defteri.paylasimi_bildir(text, text, text) to anon, authenticated;
+
+create table if not exists do_siralama_defteri.engellenenler (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  engellenen uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (user_id, engellenen),
+  check (user_id <> engellenen)
+);
+alter table do_siralama_defteri.engellenenler enable row level security;
+revoke all on do_siralama_defteri.engellenenler from public, anon, authenticated;
+
+/** Paylaşımın sahibini engeller (kendini engelleyemez). */
+create or replace function do_siralama_defteri.paylasani_engelle(p_kod text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_sahip uuid;
+begin
+  if auth.uid() is null then
+    raise exception 'Engellemek için giriş gerekir.';
+  end if;
+  select user_id into v_sahip from do_siralama_defteri.lists where paylasim_kodu = p_kod;
+  if v_sahip is null then
+    raise exception 'Paylaşım bulunamadı.';
+  end if;
+  if v_sahip = auth.uid() then
+    raise exception 'Kendini engelleyemezsin.';
+  end if;
+  insert into do_siralama_defteri.engellenenler (user_id, engellenen)
+  values (auth.uid(), v_sahip)
+  on conflict do nothing;
+end;
+$$;
+
+/** Engeli kaldırır. */
+create or replace function do_siralama_defteri.paylasanin_engelini_kaldir(p_kod text)
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  delete from do_siralama_defteri.engellenenler e
+  using do_siralama_defteri.lists l
+  where l.paylasim_kodu = p_kod and e.user_id = auth.uid() and e.engellenen = l.user_id;
+$$;
+
+/** Bu paylaşımın sahibini engelledim mi; oturum yoksa false. */
+create or replace function do_siralama_defteri.paylasan_engelli_mi(p_kod text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from do_siralama_defteri.engellenenler e
+    join do_siralama_defteri.lists l on l.user_id = e.engellenen
+    where l.paylasim_kodu = p_kod and e.user_id = auth.uid()
+  );
+$$;
+
+revoke all on function do_siralama_defteri.paylasani_engelle(text) from public, anon;
+revoke all on function do_siralama_defteri.paylasanin_engelini_kaldir(text) from public, anon;
+revoke all on function do_siralama_defteri.paylasan_engelli_mi(text) from public, anon;
+grant execute on function do_siralama_defteri.paylasani_engelle(text) to authenticated;
+grant execute on function do_siralama_defteri.paylasanin_engelini_kaldir(text) to authenticated;
+grant execute on function do_siralama_defteri.paylasan_engelli_mi(text) to authenticated;
+
 -- ── Sunucu tarafı ───────────────────────────────────────────────────────────────────────────
 
 -- service_role RLS'ye takılmaz ama tablo yetkisine yine de ihtiyaç duyar (Dashboard, betikler).

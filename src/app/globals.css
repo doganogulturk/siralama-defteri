@@ -4862,3 +4862,21 @@ button.tier-madde:hover { box-shadow: 0 0 0 1px var(--faint); }
   .oyun-sahne *, .oyun-sahne { animation: none !important; }
   .os-hedef em, .os-hedef-hap, .os-satir b { opacity: 1; }
 }
+
+/* ── Bildir ve engelle (components/PaylasimGuvenligi.tsx) ──────────────────────
+   Başkasının paylaşımının altında sakin iki bağlantı; bildirim penceresi ve engel perdesi. */
+.guvenlik-eylemleri { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 18px; margin-top: 8px; }
+.guvenlik-baglanti { padding: 6px 2px; font-size: 0.82rem; font-weight: 500; color: var(--mute); text-decoration: underline; text-underline-offset: 3px; }
+.guvenlik-baglanti:hover { color: var(--ink); }
+.guvenlik-bilgi { flex-basis: 100%; font-size: 0.84rem; color: var(--soft); text-align: center; }
+.kor-giris .guvenlik-eylemleri { margin-top: 18px; }
+.bildir-form { display: flex; flex-direction: column; gap: 16px; padding-bottom: 24px; }
+.bildir-not { font-size: 0.86rem; line-height: 1.45; color: var(--soft); }
+.bildir-nedenler { display: flex; flex-direction: column; gap: 6px; border: 0; padding: 0; margin: 0; }
+.bildir-nedenler legend { margin-bottom: 6px; font-size: 0.8rem; font-weight: 600; color: var(--mute); }
+.bildir-neden { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border-radius: var(--r-sm); background: var(--surface); box-shadow: var(--hair); font-size: 0.92rem; cursor: pointer; }
+.bildir-neden.is-on { box-shadow: 0 0 0 1.5px var(--accent); }
+.bildir-neden input { accent-color: var(--accent); }
+.bildir-aciklama { display: flex; flex-direction: column; gap: 6px; font-size: 0.8rem; font-weight: 600; color: var(--mute); }
+.bildir-aciklama textarea { padding: 10px 12px; border-radius: var(--r-sm); background: var(--surface); box-shadow: var(--hair); font: inherit; font-weight: 400; font-size: 0.95rem; color: var(--ink); resize: vertical; }
+.engel-perdesi { padding-top: 64px; }

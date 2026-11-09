@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { BildirEngelle, EngelPerdesi } from '@/components/PaylasimGuvenligi';
 import { notFound } from 'next/navigation';
 import Marka from '@/components/Marka';
 import { AlanTanimi, altBilgi, brandInitials, rozetler } from '@/types/item';
@@ -159,6 +160,7 @@ export default async function PaylasimSayfasi({ params, searchParams }: Props) {
         </Link>
       </header>
 
+      <EngelPerdesi kod={kod}>
       <main>
         <section className="paylasim-bas">
           <p className="paylasim-sahip">
@@ -231,10 +233,13 @@ export default async function PaylasimSayfasi({ params, searchParams }: Props) {
           </>
         )}
       </main>
+      </EngelPerdesi>
 
       <footer className="paylasim-son">
         <p>{p.son}</p>
         <Link href={`/kiyasla/${kod}`} className="btn-quiet">{p.benDe}</Link>
+        {/* App Store 1.2: başkasının paylaşımında bildir ve engelle. */}
+        <BildirEngelle kod={kod} />
       </footer>
     </div>
   );

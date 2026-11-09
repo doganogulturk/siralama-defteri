@@ -6,6 +6,7 @@ import { kodUret, paylasimAdresi, paylasimMetni } from '@/lib/paylasim';
 import { useAuth } from '@/hooks/useAuth';
 import { onayla } from '@/lib/pencere';
 import { messages } from '@/lib/i18n';
+import { paylasimKoku } from '@/lib/site';
 
 interface PaylasimBolumuProps {
   liste: Liste;
@@ -40,7 +41,7 @@ export default function PaylasimBolumu({ liste, busy, kodKaydet }: PaylasimBolum
 
   const t = messages().paylasim;
   const kod = liste.paylasim_kodu;
-  const adres = kod ? paylasimAdresi(kod, window.location.origin) : '';
+  const adres = kod ? paylasimAdresi(kod, paylasimKoku()) : '';
   const mesaj = `${paylasimMetni(liste.ad)}: ${adres}`;
 
   const kopyala = async () => {

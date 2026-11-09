@@ -12,6 +12,7 @@ import { DIL_PARAMETRE, dilEtiketi } from '@/lib/i18n';
 import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 import { titret } from '@/lib/his';
 import { useAuth } from '@/hooks/useAuth';
+import { paylasimKoku, sunucuAdresi } from '@/lib/site';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 
@@ -215,7 +216,7 @@ function SayiSonuc({ tohum, yuvalar, arkadasPuani, onYeni }: {
   // hemen ardından açıyor (KorOyun ile aynı gerekçe).
   useEffect(() => {
     let iptal = false;
-    fetch(`/oyna/sayilar/gorsel?t=${tohum}&s=${s}&${DIL_PARAMETRE}=${dil}`)
+    fetch(sunucuAdresi(`/oyna/sayilar/gorsel?t=${tohum}&s=${s}&${DIL_PARAMETRE}=${dil}`))
       .then(y => (y.ok ? y.blob() : Promise.reject(new Error(String(y.status)))))
       .then(b => { if (!iptal) setGorsel(new File([b], `${t.dosyaAdi}.png`, { type: 'image/png' })); })
       .catch(() => { /* görsel yoksa yalnızca bağlantı paylaşılır */ });
@@ -230,7 +231,7 @@ function SayiSonuc({ tohum, yuvalar, arkadasPuani, onYeni }: {
 
   const paylas = async () => {
     const dilEki = dil === 'tr' ? '' : `&${DIL_PARAMETRE}=${dil}`;
-    const url = `${window.location.origin}/oyna/sayilar?t=${tohum}&s=${s}${dilEki}`;
+    const url = `${paylasimKoku()}/oyna/sayilar?t=${tohum}&s=${s}${dilEki}`;
     const metin = tarih ? t.paylasimGunluk(puan, tarihYaz(tarih, dilEtiketi(dil))) : t.paylasimSerbest(puan);
     try {
       if (gorsel && navigator.canShare?.({ files: [gorsel] })) {

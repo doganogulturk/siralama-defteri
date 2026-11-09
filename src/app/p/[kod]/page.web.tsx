@@ -12,6 +12,7 @@ import { paylasilanListe } from '@/lib/paylasim-sunucu';
 import { DIL_PARAMETRE, sozluk, type Mesajlar } from '@/lib/i18n';
 import { sunucuDili } from '@/lib/i18n/sunucu';
 import { kademeGruplari, kademeTonu, kademeliMi } from '@/lib/kademe';
+import { kiyasAdresi } from '@/lib/site';
 
 /** Canlı: sahibi sıralamayı değiştirdikçe bağlantı da değişsin, önbellekte kalmasın. */
 export const dynamic = 'force-dynamic';
@@ -175,7 +176,7 @@ export default async function PaylasimSayfasi({ params, searchParams }: Props) {
           )}
           {siralama.length > 0 && (
             <div className="paylasim-davet">
-              <Link href={`/kiyasla/${kod}`} className="btn-primary">{p.benDe}</Link>
+              <Link href={kiyasAdresi(kod)} className="btn-primary">{p.benDe}</Link>
               <p>{p.davet}</p>
             </div>
           )}
@@ -237,7 +238,7 @@ export default async function PaylasimSayfasi({ params, searchParams }: Props) {
 
       <footer className="paylasim-son">
         <p>{p.son}</p>
-        <Link href={`/kiyasla/${kod}`} className="btn-quiet">{p.benDe}</Link>
+        <Link href={kiyasAdresi(kod)} className="btn-quiet">{p.benDe}</Link>
         {/* App Store 1.2: başkasının paylaşımında bildir ve engelle. */}
         <BildirEngelle kod={kod} />
       </footer>

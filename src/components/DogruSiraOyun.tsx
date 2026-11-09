@@ -20,6 +20,7 @@ import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 import { titret } from '@/lib/his';
 import { useAuth } from '@/hooks/useAuth';
 import ModGecisi from './oyna/ModGecisi';
+import { paylasimKoku, sunucuAdresi } from '@/lib/site';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 
@@ -280,7 +281,7 @@ function DogruSiraSonuc({ liste, tohum, secim, dizilis, arkadasUyumu, onYeni }: 
   // hemen ardından açıyor (KorOyun ile aynı gerekçe).
   useEffect(() => {
     let iptal = false;
-    fetch(`/oyna/dogru-sira/${liste.slug}/gorsel?t=${tohum}&s=${s}&${DIL_PARAMETRE}=${dil}`)
+    fetch(sunucuAdresi(`/oyna/dogru-sira/${liste.slug}/gorsel?t=${tohum}&s=${s}&${DIL_PARAMETRE}=${dil}`))
       .then(y => (y.ok ? y.blob() : Promise.reject(new Error(String(y.status)))))
       .then(b => { if (!iptal) setGorsel(new File([b], `${t.dosyaAdi(liste.slug)}.png`, { type: 'image/png' })); })
       .catch(() => { /* görsel yoksa yalnızca bağlantı paylaşılır */ });
@@ -295,7 +296,7 @@ function DogruSiraSonuc({ liste, tohum, secim, dizilis, arkadasUyumu, onYeni }: 
 
   const paylas = async () => {
     const dilEki = dil === 'tr' ? '' : `&${DIL_PARAMETRE}=${dil}`;
-    const url = `${window.location.origin}/oyna/dogru-sira/${liste.slug}?t=${tohum}&s=${s}${dilEki}`;
+    const url = `${paylasimKoku()}/oyna/dogru-sira/${liste.slug}?t=${tohum}&s=${s}${dilEki}`;
     const metin = tarih
       ? t.paylasimGunluk(liste.ad, sonuc.uyum, tarihYaz(tarih, dilEtiketi(dil)))
       : t.paylasimSerbest(liste.ad, sonuc.uyum);

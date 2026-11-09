@@ -7,6 +7,7 @@ import { paylasimAdresi, paylasimMetni } from '@/lib/paylasim';
 import { slugify } from '@/lib/slug';
 import { KOR_ADET, korBaglantisiGonder, korUygun } from '@/lib/kor-liste';
 import { DIL_PARAMETRE, messages, simdikiDil } from '@/lib/i18n';
+import { paylasimKoku, sunucuAdresi } from '@/lib/site';
 
 /**
  * Başlıktaki "Paylaş"ın menüsü (liste paylaşılıyorken): bağlantıyı göndermek ya da
@@ -30,7 +31,7 @@ export default function PaylasMenusu({ liste, korAdet, onClose, onAyarlar, onBil
 
   useEffect(() => {
     let iptal = false;
-    fetch(`/p/${kod}/hikaye?${DIL_PARAMETRE}=${simdikiDil()}`)
+    fetch(sunucuAdresi(`/p/${kod}/hikaye?${DIL_PARAMETRE}=${simdikiDil()}`))
       .then(y => (y.ok ? y.blob() : Promise.reject(new Error(String(y.status)))))
       .then(b => {
         if (!iptal) setGorsel(new File([b], `${t.dosyaAdi(slugify(liste.ad) || 'liste')}.png`, { type: 'image/png' }));
@@ -40,7 +41,7 @@ export default function PaylasMenusu({ liste, korAdet, onClose, onAyarlar, onBil
   }, [kod, liste.ad, t]);
 
   const baglanti = async () => {
-    const url = paylasimAdresi(kod, window.location.origin);
+    const url = paylasimAdresi(kod, paylasimKoku());
     if (typeof navigator.share === 'function') {
       try {
         await navigator.share({ title: liste.ad, text: paylasimMetni(liste.ad), url });

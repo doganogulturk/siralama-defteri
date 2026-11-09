@@ -12,6 +12,7 @@ import { hataMetni } from '@/lib/hata';
 import { titret } from '@/lib/his';
 import { Item, Kategori, Liste, brandInitials } from '@/types/item';
 import { uyar } from '@/lib/pencere';
+import { listeAdresi, paylasimKoku, paylasimSayfasi } from '@/lib/site';
 
 /** Sıralama ekranındaki kuralla: denenmiş, "Bir daha asla"da olmayanlar sırayla 1'den. */
 function benimKayitlarim(items: Item[]): KiyasKayit[] {
@@ -129,7 +130,7 @@ export default function KiyasEkrani({ kod, kaynak, liste, items, kategoriler, on
   }, [bildirim]);
 
   const paylas = async () => {
-    const url = paylasimAdresi(kod, window.location.origin);
+    const url = paylasimAdresi(kod, paylasimKoku());
     const metin = sonuc.uyum !== null
       ? t.paylasimUyum(kaynak.sahip, kaynak.ad, sonuc.uyum)
       : t.paylasimDuz(kaynak.ad);
@@ -260,8 +261,8 @@ export default function KiyasEkrani({ kod, kaynak, liste, items, kategoriler, on
       )}
 
       <footer className="kiyas-son">
-        <Link href={`/l/${liste.slug}`} className="btn-primary">{t.listemeGit}</Link>
-        <Link href={`/p/${kod}`} className="btn-quiet">{kaynak.sahip ? m.paylasim.sahibinListesi(iyelik(onunAdi)) : t.onunListesi}</Link>
+        <Link href={listeAdresi(liste.slug)} className="btn-primary">{t.listemeGit}</Link>
+        <Link href={paylasimSayfasi(kod)} className="btn-quiet">{kaynak.sahip ? m.paylasim.sahibinListesi(iyelik(onunAdi)) : t.onunListesi}</Link>
       </footer>
 
       {bildirim && <div className="toast" role="status">{bildirim}</div>}

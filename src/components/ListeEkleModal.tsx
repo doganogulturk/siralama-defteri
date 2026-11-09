@@ -14,6 +14,7 @@ import Sheet from './Sheet';
 import { useIsDesktop } from '@/hooks/useIsDesktop';
 import { uyar } from '@/lib/pencere';
 import { dilEtiketi, messages } from '@/lib/i18n';
+import { listeAdresi } from '@/lib/site';
 
 const trAnahtar = (s: string) => s.trim().toLocaleLowerCase(dilEtiketi());
 
@@ -113,9 +114,9 @@ export default function ListeEkleModal({ isOpen, onClose, onCreated }: ListeEkle
       // girildiyse kullanıcı doğrudan sıralamasına düşsün.
       const kuruldu = topluAdet > 0 || adlar.length > 0;
       router.push(
-        !kuruldu ? `/l/${olusan.slug}?ayarlar=1`
-          : sablon && topluAdet > 0 ? `/l/${olusan.slug}?sekme=denenmemis`
-          : `/l/${olusan.slug}`,
+        !kuruldu ? `${listeAdresi(olusan.slug)}&ayarlar=1`
+          : sablon && topluAdet > 0 ? `${listeAdresi(olusan.slug)}&sekme=denenmemis`
+          : listeAdresi(olusan.slug),
       );
     } catch (err: unknown) {
       void uyar(t.olusturulamadi(hataMetni(err)));

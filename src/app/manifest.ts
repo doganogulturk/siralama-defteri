@@ -5,6 +5,9 @@ import type { MetadataRoute } from 'next';
  * çubuğu olmadan, kendi penceresinde açılıyor. Çevrimdışı çalışma yok: veriler
  * Supabase'de, bağlantısız açılınca tarayıcının kendi hata sayfası çıkar.
  */
+// Uygulama paketi statik dışa aktarılıyor: derlemede bir kez üretilsin.
+export const dynamic = 'force-static';
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Sıralama Defteri',

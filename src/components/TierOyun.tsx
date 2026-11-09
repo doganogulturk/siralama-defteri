@@ -16,6 +16,7 @@ import { titret } from '@/lib/his';
 import { useAuth } from '@/hooks/useAuth';
 import ModGecisi from './oyna/ModGecisi';
 import KorKamera, { KameraDugmesi, useKameraVar } from './KorKamera';
+import { paylasimKoku, sunucuAdresi } from '@/lib/site';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 
@@ -129,7 +130,7 @@ export default function TierOyun({ slug, kor, tohum: adresTohumu, arkadas }: {
   const yuvaEtiketleri = TIER_KADEMELERI.flatMap((h, k) =>
     Array.from({ length: KOR_TIER_SINIR }, () => ({ metin: h, renk: klasikRenk(k) })));
   const paylasimAdresi = () =>
-    `${window.location.origin}/oyna/kor-tier/${slug}${tohumlu && tohum ? `?t=${tohum}` : ''}`;
+    `${paylasimKoku()}/oyna/kor-tier/${slug}${tohumlu && tohum ? `?t=${tohum}` : ''}`;
   const yerlesmemis = kademeler.flatMap((k, i) => (k === null ? [i] : []));
 
   return (
@@ -300,7 +301,7 @@ function TierSonuc({ slug, kor, tohum, kademeler, arkadas, onTekrar }: {
 
   useEffect(() => {
     let iptal = false;
-    fetch(`/oyna/tier/${slug}/gorsel?${sorgu}${kor ? '&mod=kor' : ''}&${DIL_PARAMETRE}=${dil}`)
+    fetch(sunucuAdresi(`/oyna/tier/${slug}/gorsel?${sorgu}${kor ? '&mod=kor' : ''}&${DIL_PARAMETRE}=${dil}`))
       .then(y => (y.ok ? y.blob() : Promise.reject(new Error(String(y.status)))))
       .then(b => { if (!iptal) setGorsel(new File([b], `${t.dosyaAdi(slug)}.png`, { type: 'image/png' })); })
       .catch(() => { /* görsel yoksa yalnızca bağlantı */ });
@@ -314,7 +315,7 @@ function TierSonuc({ slug, kor, tohum, kademeler, arkadas, onTekrar }: {
   }, [bildirim]);
 
   const paylas = async () => {
-    const url = `${window.location.origin}${yol}?${sorgu}${dil === 'tr' ? '' : `&${DIL_PARAMETRE}=${dil}`}`;
+    const url = `${paylasimKoku()}${yol}?${sorgu}${dil === 'tr' ? '' : `&${DIL_PARAMETRE}=${dil}`}`;
     const metin = kor ? t.paylasimKor(liste.ad) : t.paylasim(liste.ad);
     try {
       if (gorsel && navigator.canShare?.({ files: [gorsel] })) {

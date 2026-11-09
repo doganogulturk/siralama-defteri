@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import TierOyun from '@/components/TierOyun';
-import { katalogListesi, tohumGerekli } from './katalog';
-import { KOR_TIER_SINIR, tierCoz } from './tier-oyun';
-import { tohumGecerli } from './sayilar';
+import { katalogListesi } from './katalog';
+import { tierAdresi } from './oyun-adresi';
 import { DIL_PARAMETRE, sozluk } from './i18n';
 import { sunucuDili } from './i18n/sunucu';
 
@@ -15,15 +14,8 @@ import { sunucuDili } from './i18n/sunucu';
 
 export type TierArama = { t?: string; s?: string; [DIL_PARAMETRE]?: string };
 
-function adresOku(slug: string, kor: boolean, arama: TierArama) {
-  const liste = katalogListesi(slug, 'tr');
-  if (!liste) return null;
-  const tohum = tohumGerekli(liste) && tohumGecerli(arama.t) ? arama.t! : null;
-  // Doğru cevabı olan listede tohumsuz sonuç geçersiz: hangi on maddenin oynandığı bilinmiyor.
-  // Zevk listesinde tohumsuz sonuç havuzun ilk onu (havuzlar büyümeden önceki bağlantılar).
-  const gecerli = !tohumGerekli(liste) || tohum || !liste.dogru;
-  return { tohum, arkadas: gecerli ? tierCoz(arama.s, kor ? KOR_TIER_SINIR : undefined) : null };
-}
+/** Adresi okuma kuralı uygulama paketiyle ortak (`lib/oyun-adresi.ts`). */
+const adresOku = (slug: string, kor: boolean, arama: TierArama) => tierAdresi(slug, kor, arama.t, arama.s);
 
 export async function tierMetadata(slug: string, arama: TierArama, kor: boolean): Promise<Metadata> {
   const dil = await sunucuDili(arama[DIL_PARAMETRE]);

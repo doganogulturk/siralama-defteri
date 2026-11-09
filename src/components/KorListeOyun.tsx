@@ -15,6 +15,7 @@ import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 import { titret } from '@/lib/his';
 import { useAuth } from '@/hooks/useAuth';
 import KorKamera, { KameraDugmesi, useKameraVar } from './KorKamera';
+import { paylasimKoku, paylasimSayfasi, sunucuAdresi } from '@/lib/site';
 
 type Asama = 'giris' | 'oyun' | 'sonuc';
 
@@ -180,7 +181,7 @@ export default function KorListeOyun({ kod, listeAdi, sahip, kayitlar, arkadas }
           onYerlestir={yerlestir}
           adres={`${window.location.host}/p/${kod}/kor`}
           dosyaAdi={k.kamera.dosyaAdi(slugify(listeAdi) || 'liste')}
-          paylasimMetni={`${t.paylasim(listeAdi, null)} ${window.location.origin}/p/${kod}/kor${dil === 'tr' ? '' : `?${DIL_PARAMETRE}=${dil}`}`}
+          paylasimMetni={`${t.paylasim(listeAdi, null)} ${paylasimKoku()}/p/${kod}/kor${dil === 'tr' ? '' : `?${DIL_PARAMETRE}=${dil}`}`}
           onSonuc={() => setKamera(false)}
           onYenidenCek={kameraylaBasla}
           onKapat={() => setKamera(false)}
@@ -207,7 +208,7 @@ function KorListeSonuc({ kod, listeAdi, sahip, sira, onTekrar }: {
   // hemen ardından açıyor (KorOyun ile aynı gerekçe).
   useEffect(() => {
     let iptal = false;
-    fetch(`/p/${kod}/kor/gorsel?s=${s}&${DIL_PARAMETRE}=${dil}`)
+    fetch(sunucuAdresi(`/p/${kod}/kor/gorsel?s=${s}&${DIL_PARAMETRE}=${dil}`))
       .then(y => (y.ok ? y.blob() : Promise.reject(new Error(String(y.status)))))
       .then(b => {
         if (!iptal) setGorsel(new File([b], `${t.dosyaAdi(slugify(listeAdi) || 'liste')}.png`, { type: 'image/png' }));
@@ -224,7 +225,7 @@ function KorListeSonuc({ kod, listeAdi, sahip, sira, onTekrar }: {
 
   const paylas = async () => {
     const dilEki = dil === 'tr' ? '' : `&${DIL_PARAMETRE}=${dil}`;
-    const url = `${window.location.origin}/p/${kod}/kor?s=${s}${dilEki}`;
+    const url = `${paylasimKoku()}/p/${kod}/kor?s=${s}${dilEki}`;
     const metin = t.paylasim(listeAdi, uyum);
     try {
       if (gorsel && navigator.canShare?.({ files: [gorsel] })) {
@@ -280,7 +281,7 @@ function KorListeSonuc({ kod, listeAdi, sahip, sira, onTekrar }: {
         <button type="button" className="btn-primary" onClick={paylas}>{k.paylas}</button>
         {gorsel && <button type="button" className="btn-quiet kor-indir" onClick={indir}>{k.gorseliIndir}</button>}
         <button type="button" className="btn-quiet" onClick={onTekrar}>{k.tekrar}</button>
-        <Link href={`/p/${kod}`} className="btn-quiet">{t.listeyiGor}</Link>
+        <Link href={paylasimSayfasi(kod)} className="btn-quiet">{t.listeyiGor}</Link>
       </div>
 
       <Link href="/" className="kor-davet">

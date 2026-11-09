@@ -3,6 +3,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import OyunGeri from '@/components/oyna/OyunGeri';
 import { KOR_ADET, KorKayit, korSec, korSonucYaz, korUyum } from '@/lib/kor-liste';
 import { uyumEtiketi } from '@/lib/kiyas';
 import { iyelik } from '@/lib/paylasim';
@@ -93,12 +94,7 @@ export default function KorListeOyun({ kod, listeAdi, sahip, kayitlar, arkadas }
   return (
     <div className="kor kor-kendi" style={{ '--kor': 'var(--accent)' } as React.CSSProperties}>
       <header className="kor-bar">
-        <Link href="/oyna" className="mobile-brand-back" aria-label={k.listeler}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M15 5l-7 7 7 7" />
-          </svg>
-        </Link>
+        <OyunGeri etiket={k.listeler} />
         <span className="kor-bar-ad">
           <em>{k.ad}</em>
           {asama !== 'giris' && <strong>{listeAdi}</strong>}

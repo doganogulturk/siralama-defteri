@@ -1,4 +1,5 @@
 import type { Dil } from './i18n';
+import { ISLEM_HAVUZU } from './islemler';
 
 /*
  * Doğru Sıra'nın listeleri: doğru cevabı olan sıralamalar. Her listede oyunun her
@@ -33,6 +34,11 @@ export interface DogruSiraTanimi {
   bicim: Bicim;
   /** Seçilen iki madde arasındaki en az fark: oran (büyüğün yüzdesi) ya da mutlak. */
   ayrim: { oran: number } | { fark: number };
+  /**
+   * Havuz veri değil, kurala göre üretilmiş (İşlemler): aynı değer birden çok maddede
+   * olabilir (56 = 7 × 8 = 93 − 37), günün listesi dönüşüne girmiyor; kendi günlük kartı var.
+   */
+  uretilmis?: true;
   metin: Record<Dil, {
     ad: string;
     /** Oyunun sorusu: "En kalabalıktan en aza sırala". */
@@ -309,5 +315,14 @@ export const DOGRU_SIRA_LISTELERI: DogruSiraTanimi[] = [
       m('Plüton (cüce gezegen)', 'Pluto (dwarf planet)', 5906.4),
       m('Eris (cüce gezegen)', 'Eris (dwarf planet)', 10_150),
     ],
+  },
+  {
+    // Üretilen liste (`lib/islemler.ts`): dört işlem, sonuçlar 10–100. Adlar iki dilde aynı.
+    slug: 'islemler', simge: '🧮', renk: '#9333ea', yon: 'artan', bicim: 'sayi', ayrim: { fark: 1 }, uretilmis: true,
+    metin: {
+      tr: { ad: 'İşlemler', soru: 'Sonuca göre en küçükten en büyüğe sırala.', ust: 'En küçük', alt: 'En büyük', kaynak: 'Dört işlem · sonuçlar 10–100 arası, bölmeler tam' },
+      en: { ad: 'Arithmetic', soru: 'Order by result, from smallest to largest.', ust: 'Smallest', alt: 'Largest', kaynak: 'Four operations · results from 10 to 100, exact divisions' },
+    },
+    maddeler: ISLEM_HAVUZU.map(x => ({ tr: x.ad, en: x.ad, deger: x.deger })),
   },
 ];

@@ -1,16 +1,19 @@
 import { korListeleri, type KorListe } from './kor';
 import { ADET, dogruDizi, dogruSiraListeleri, maddeleriSec, type DogruSiraListe } from './dogru-sira';
+import { uretec } from './sayilar';
 import type { Dil } from './i18n';
 
 /*
  * Oyunların ortak kataloğu: "neyi sıralıyorsun". Modlar ("nasıl sıralıyorsun": Kör Sıralama,
  * Tier, Kör Tier, Doğru Sıra) aynı listeleri kullanıyor; bir liste eklemek her modda yeni
  * bir oyun demek. İki kaynak var:
- *   • zevk listeleri (`lib/kor.ts`): on madde, doğru cevap yok;
+ *   • zevk listeleri (`lib/kor.ts`): otuz maddelik havuz, doğru cevap yok;
  *   • doğru cevabı olan listeler (`lib/dogru-sira-listeler.ts`): daha büyük bir havuz ve
  *     her maddenin değeri. Bunlar her modda oynanıyor; sonuçta gerçek sırayla da ölçülüyor.
  * Oyunda her zaman on madde var: havuz onluksa hepsi, büyükse tohumdan seçilen on
- * (Doğru Sıra'nın seçimi, fark kuralıyla). Burada React yok (`katalog.test.ts`).
+ * (doğru cevabı olanda Doğru Sıra'nın seçimi, fark kuralıyla; zevk listesinde düz
+ * karıştırma). Zevk listesinde tohum yoksa havuzun ilk onu: havuzlar büyümeden önceki
+ * tohumsuz sonuç bağlantıları o onu taşıyor. Burada React yok (`katalog.test.ts`).
  */
 
 export interface KatalogListe {
@@ -18,7 +21,7 @@ export interface KatalogListe {
   simge: string;
   renk: string;
   ad: string;
-  /** Maddelerin havuzu (adlar). Zevk listelerinde tam on. */
+  /** Maddelerin havuzu (adlar). */
   havuz: string[];
   /** Doğru cevabı olan listede Doğru Sıra tanımı; zevk listesinde null. */
   dogru: DogruSiraListe | null;
@@ -43,13 +46,26 @@ export const katalogListesi = (slug: string, dil: Dil): KatalogListe | null =>
 /** Oyunun on maddesini seçmek için tohum gerekiyor mu (havuz ondan büyükse). */
 export const tohumGerekli = (l: Pick<KatalogListe, 'havuz'>) => l.havuz.length > ADET;
 
+/** Zevk listesinde tohumdan on madde: havuzun tohumlu karıştırmasının ilk onu. */
+function zevkSecimi(slug: string, uzunluk: number, tohum: string): number[] {
+  const r = uretec(`${slug}:${tohum}`);
+  const dizi = Array.from({ length: uzunluk }, (_, i) => i);
+  for (let i = dizi.length - 1; i > 0; i--) {
+    const j = Math.floor(r() * (i + 1));
+    [dizi[i], dizi[j]] = [dizi[j], dizi[i]];
+  }
+  return dizi.slice(0, ADET);
+}
+
 /**
  * Oyunun on maddesi: havuzdaki yerleri, gösterilecek sırayla. Havuz onluksa hepsi
- * (karıştırmayı oyun yapıyor); büyükse tohumdan seçilen on. Tohum gerekip yoksa boş.
+ * (karıştırmayı oyun yapıyor); büyükse tohumdan seçilen on. Tohum yoksa zevk listesinde
+ * havuzun ilk onu (eski bağlantılar), doğru cevabı olanda boş.
  */
 export function oyunSecimi(l: KatalogListe, tohum: string | null): number[] {
   if (!tohumGerekli(l)) return l.havuz.map((_, i) => i);
-  return tohum ? maddeleriSec(l.slug, tohum) : [];
+  if (!tohum) return l.dogru ? [] : l.havuz.slice(0, ADET).map((_, i) => i);
+  return l.dogru ? maddeleriSec(l.slug, tohum) : zevkSecimi(l.slug, l.havuz.length, tohum);
 }
 
 /**

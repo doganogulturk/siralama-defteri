@@ -2,6 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import OyunSahnesi from '@/components/oyna/OyunSahnesi';
+import OyunGeri from '@/components/oyna/OyunGeri';
 import { KorListe, sonucYaz } from '@/lib/kor';
 import { katalogListesi, korOyunListesi, oyunSecimi, tohumGerekli } from '@/lib/katalog';
 import { degerYaz, puanla, yuzde } from '@/lib/dogru-sira';
@@ -73,7 +75,8 @@ export default function KorOyun({ slug, tohum: adresTohumu, arkadas }: {
   /** `yeni`: tekrar oynarken tohum gereken listede yeni on madde (arkadaşın bağlantısında aynı on madde kalıyor). */
   const basla = (yeni = false) => {
     titret('dokunus');
-    if (tohumlu && (yeni || !tohum)) setTohum(rastgeleTohum());
+    // Tohumsuz arkadaş bağlantısı (havuzlar büyümeden önceki) ilk onla oynanıyor: tohum üretme.
+    if (tohumlu && (yeni || (!tohum && !arkadas))) setTohum(rastgeleTohum());
     setGelis(karistir(Array.from({ length: n }, (_, i) => i)));
     setAdim(0);
     setYuvalar(new Array(n).fill(null));
@@ -113,12 +116,7 @@ export default function KorOyun({ slug, tohum: adresTohumu, arkadas }: {
   return (
     <div className="kor" style={{ '--kor': liste.renk } as React.CSSProperties}>
       <header className="kor-bar">
-        <Link href="/oyna" className="mobile-brand-back" aria-label={t.listeler}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M15 5l-7 7 7 7" />
-          </svg>
-        </Link>
+        <OyunGeri etiket={t.listeler} />
         {/* Girişte liste adı ortada büyük; başlıkta tekrarlanmasın. */}
         <span className="kor-bar-ad">
           <em>{t.ad}</em>
@@ -196,7 +194,7 @@ function KorGiris({ liste, arkadas, onBasla, onKamera }: {
   const t = useMesajlar().kor;
   return (
     <main className="kor-giris">
-      <span className="kor-giris-simge" aria-hidden="true">{liste.simge}</span>
+      <OyunSahnesi tur="kor" renk={liste.renk} simge={liste.simge} etiket={t.ad} maddeler={liste.kayitlar.slice(0, 4)} />
       <h1 className="kor-giris-baslik">{liste.ad}</h1>
       {arkadas && (
         <p className="kor-arkadas">
@@ -233,7 +231,7 @@ function KorSonuc({ liste, tohum, sira, arkadas, onTekrar }: {
   const [gorsel, setGorsel] = useState<File | null>(null);
   const [bildirim, setBildirim] = useState<string | null>(null);
 
-  /** Doğru cevabı olan listede gerçek sıra: uyum ve her maddenin gerçek yeri ile değeri. */
+  /** Doğru cevabı olan listede gerçek sıra: puan (yerindeki her madde 10) ve her maddenin gerçek yeri ile değeri. */
   const gercek = useMemo(() => {
     const k = katalogListesi(liste.slug, dil);
     if (!k?.dogru || !tohum) return null;
@@ -243,6 +241,7 @@ function KorSonuc({ liste, tohum, sira, arkadas, onTekrar }: {
     const dogru = k.dogru;
     return {
       uyum: p.uyum,
+      tamYerinde: p.tamYerinde,
       yer: (m: number) => (yer.get(m) ?? 0) + 1,
       deger: (m: number) => degerYaz(dogru.bicim, dogru.maddeler[secim[m]].deger, dil),
     };
@@ -317,7 +316,7 @@ function KorSonuc({ liste, tohum, sira, arkadas, onTekrar }: {
           <strong>{yuzde(gercek.uyum, dil)}</strong>
           <span>
             <b>{t.gercekSirayla}</b>
-            {t.gercekMetni(gercek.uyum)}
+            {t.gercekMetni(gercek.tamYerinde)}
           </span>
         </div>
       )}

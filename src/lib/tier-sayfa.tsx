@@ -19,8 +19,9 @@ function adresOku(slug: string, kor: boolean, arama: TierArama) {
   const liste = katalogListesi(slug, 'tr');
   if (!liste) return null;
   const tohum = tohumGerekli(liste) && tohumGecerli(arama.t) ? arama.t! : null;
-  // Tohum gereken listede tohumsuz sonuç geçersiz: hangi on maddenin oynandığı bilinmiyor.
-  const gecerli = !tohumGerekli(liste) || tohum;
+  // Doğru cevabı olan listede tohumsuz sonuç geçersiz: hangi on maddenin oynandığı bilinmiyor.
+  // Zevk listesinde tohumsuz sonuç havuzun ilk onu (havuzlar büyümeden önceki bağlantılar).
+  const gecerli = !tohumGerekli(liste) || tohum || !liste.dogru;
   return { tohum, arkadas: gecerli ? tierCoz(arama.s, kor ? KOR_TIER_SINIR : undefined) : null };
 }
 

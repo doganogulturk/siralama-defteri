@@ -15,6 +15,8 @@ import { brandInitials } from '@/types/item';
 import type { OzetKayit } from '@/lib/items';
 import { messages } from '@/lib/i18n';
 import { BugunKartlari, OyunSeridi } from '@/components/oyna/OyunKartlari';
+import { KendiListelerin } from '@/components/oyna/OynaMerkezi';
+import ListeRayi from '@/components/ListeRayi';
 
 /**
  * Liste kartının vitrini: ilk üçün fotoğrafları kartın bütün yüksekliğinde, soldan
@@ -63,9 +65,11 @@ export default function ListelerPage() {
   const a = m.ana;
 
   return (
-    <div className="app app-solo">
+    <div className="app app-ana">
+      {/* Masaüstünde sol ray: künye, Listelerim · Oyna, liste ağacı (liste ekranıyla aynı). */}
+      <ListeRayi aktifSayfa="listeler" />
       <main className="list">
-        {/* Üst çubuk: marka solda; masaüstünde ekleme düğmesi ve hesap sağda. */}
+        {/* Üst çubuk (telefon): marka solda, hesap sağda. Masaüstünde bu işler rayda. */}
         <div className="home-bar">
           <Marka />
           <div className="home-head-yan">
@@ -99,6 +103,9 @@ export default function ListelerPage() {
             <OyunSeridi />
           </div>
         </section>
+
+        {/* Listeler oyuna dönüşüyor: on kayıtlı listeyi arkadaşına kör sıralat. */}
+        <KendiListelerin bosGizle />
 
         <header className="home-head">
           <h1 className="home-title">{a.baslik}</h1>

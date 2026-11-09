@@ -2,6 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import OyunSahnesi from '@/components/oyna/OyunSahnesi';
+import OyunGeri from '@/components/oyna/OyunGeri';
 import {
   DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent,
 } from '@dnd-kit/core';
@@ -91,16 +93,16 @@ export default function DogruSiraOyun({ slug, tohum: adresTohumu, arkadas }: {
   }, [arkadas, adresTohumu, liste, slug]);
 
   const gunluk = tohum ? tohumTarihi(tohum) : null;
+  /** Tanıtım kartının dört maddesi, gerçek sırasıyla: sabit bir tohumdan, birbirinden ayrı değerler. */
+  const ornekMaddeler = useMemo(() => {
+    const ornek = maddeleriSec(slug, 'tanitim').slice(0, 4);
+    return dogruDizi(liste, ornek).map(k => liste.maddeler[ornek[k]].ad);
+  }, [slug, liste]);
 
   return (
     <div className="kor dogru-sira" style={{ '--kor': liste.renk } as React.CSSProperties}>
       <header className="kor-bar">
-        <Link href="/oyna" className="mobile-brand-back" aria-label={k.listeler}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M15 5l-7 7 7 7" />
-          </svg>
-        </Link>
+        <OyunGeri etiket={k.listeler} />
         <span className="kor-bar-ad">
           <em>{t.ad}</em>
           {asama !== 'giris' && <strong>{liste.simge} {liste.ad}</strong>}
@@ -110,9 +112,10 @@ export default function DogruSiraOyun({ slug, tohum: adresTohumu, arkadas }: {
 
       {asama === 'giris' && (
         <main className="kor-giris">
-          <span className="kor-giris-simge" aria-hidden="true">{liste.simge}</span>
+          <OyunSahnesi tur="dogru-sira" renk={liste.renk} simge={liste.simge} etiket={t.ad}
+                       maddeler={ornekMaddeler} />
           <h1 className="kor-giris-baslik">{liste.ad}</h1>
-          {gunluk && !arkadas && <p className="kor-arkadas">{t.gunun} · {tarihYaz(gunluk, dilEtiketi(dil))}</p>}
+          {gunluk && !arkadas && <p className="kor-arkadas">{slug === 'islemler' ? mesajlar.oyna.gununIslemleri : t.gunun} · {tarihYaz(gunluk, dilEtiketi(dil))}</p>}
           {arkadasUyumu !== null && <p className="kor-arkadas">{t.arkadas(arkadasUyumu)}</p>}
           <p className="ds-soru">{liste.soru}</p>
           <ul className="kor-kurallar">
@@ -326,7 +329,7 @@ function DogruSiraSonuc({ liste, tohum, secim, dizilis, arkadasUyumu, onYeni }: 
         <strong>{yuzde(sonuc.uyum, dil)}</strong>
         <span>
           <b>{t.puanEtiketi(sonuc.uyum)}</b>
-          {t.uyumMetni(sonuc.uyum)} {t.tamYerinde(sonuc.tamYerinde)}.
+          {t.puanMetni(sonuc.tamYerinde)}
         </span>
       </div>
 

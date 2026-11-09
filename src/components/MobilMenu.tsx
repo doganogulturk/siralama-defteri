@@ -14,7 +14,7 @@ export const ListelerIkon = (
   </svg>
 );
 
-const KorIkon = (
+export const KorIkon = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
        strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <rect x="3.5" y="3.5" width="17" height="17" rx="4" />

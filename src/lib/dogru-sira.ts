@@ -85,7 +85,7 @@ export function dogruDizi(liste: Pick<DogruSiraListe, 'yon' | 'maddeler'>, secim
 }
 
 export interface DogruSiraSonucu {
-  /** Gerçek sırayla uyum, yüzde: doğru dizilen ikililerin oranı. */
+  /** Puan, 100 üzerinden: tam yerinde duran her madde 10 puan (on maddede). */
   uyum: number;
   /** Tam yerinde duran madde sayısı. */
   tamYerinde: number;
@@ -95,24 +95,21 @@ export interface DogruSiraSonucu {
 
 /**
  * Puan. `dizilis`: oyuncunun yukarıdan aşağı dizdiği maddeler, seçimdeki konumlarıyla.
- * Uyum Kendall'ın ölçüsü: 45 ikilinin kaçı gerçek sıradaki gibi dizilmiş. Tam yerinde
- * olanları saymak tek bir kaymayı bütün oyuna yayardı; ikili ölçü kaymayı küçük cezalandırıyor.
+ * Olması gereken sıra ile oyuncunun sırası yan yana konuyor; yerinde olan her madde 10
+ * puan (on maddede; genel hâli yerindelerin oranı). Sahibinin kararı (Kasım 2026): oyuncu
+ * "10'un 8'i doğru" diye görüyor, puanını da öyle bekliyor. Önceki ölçü Kendall'dı (45
+ * ikilinin kaçı doğru); bir kaymayı az cezalandırıyordu ama 8/10 doğruya %98 diyordu.
+ * Bedeli: bir maddeyi en üste koymak altındakilerin hepsini bir aşağı kaydırıyor, onlar da
+ * yerinde sayılmıyor.
  */
 export function puanla(liste: Pick<DogruSiraListe, 'yon' | 'maddeler'>, secim: number[], dizilis: number[]): DogruSiraSonucu {
   const dogru = dogruDizi(liste, secim);
   const yer = new Map(dogru.map((k, i) => [k, i]));
   const gercekYer = dizilis.map(k => yer.get(k) ?? 0);
-  let uyan = 0;
-  let toplam = 0;
-  for (let i = 0; i < gercekYer.length; i++) {
-    for (let j = i + 1; j < gercekYer.length; j++) {
-      toplam++;
-      if (gercekYer[i] < gercekYer[j]) uyan++;
-    }
-  }
+  const tamYerinde = gercekYer.filter((g, i) => g === i).length;
   return {
-    uyum: toplam ? Math.round((uyan / toplam) * 100) : 0,
-    tamYerinde: gercekYer.filter((g, i) => g === i).length,
+    uyum: gercekYer.length ? Math.round((tamYerinde / gercekYer.length) * 100) : 0,
+    tamYerinde,
     gercekYer,
   };
 }
@@ -125,7 +122,10 @@ export function gununListesi(tohum: string): string | null {
   const tarih = gunlukMu(tohum) ? tohumTarihi(tohum) : null;
   if (!tarih) return null;
   const gun = Math.floor(Date.parse(`${tarih}T00:00:00Z`) / 86_400_000);
-  return DOGRU_SIRA_LISTELERI[gun % DOGRU_SIRA_LISTELERI.length].slug;
+  // Üretilen listeler (İşlemler) dönüşte yok: kendi günlük kartları var. Süzmek dönüşü
+  // değiştirmiyor, çünkü onlar dizinin sonunda.
+  const donus = DOGRU_SIRA_LISTELERI.filter(l => !l.uretilmis);
+  return donus[gun % donus.length].slug;
 }
 
 /** Yüzde: Türkçede işaret önde ("%82"), İngilizcede arkada ("82%"). */

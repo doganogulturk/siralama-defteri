@@ -5,21 +5,27 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Marka from '../Marka';
 import MobilMenu from '../MobilMenu';
-import { katalog, type KatalogListe } from '@/lib/katalog';
-import { BugunKartlari } from './OyunKartlari';
+import { katalog } from '@/lib/katalog';
+import { SAYILAR_RENK } from '@/lib/sayilar';
+import { BugunKartlari, MOD_IDLERI, useModlar, type ModId } from './OyunKartlari';
 import DilSecici from '../DilSecici';
 import { korBaglantisiGonder, korUygun } from '@/lib/kor-liste';
 import { guvenliFoto } from '@/lib/paylasim';
 import { useAuth } from '@/hooks/useAuth';
 import { useListeler, siralanan } from '@/hooks/useListeler';
 import { brandInitials } from '@/types/item';
+import ListeRayi from '../ListeRayi';
 import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 
 /**
  * Oyna: giriş istemeyen oyunların merkezi (`/oyna`; giriş yapmamış ziyaretçiye ana sayfada
- * da). Önce günün oyunları, sonra modlar kendi bölümlerinde: Kör Sıralama (giriş yapmışsa
- * kendi listeleri de), Tier, Kör Tier, Doğru Sıra. Her modun altında katalogdaki listeler
- * yatay bir şeritte (`lib/katalog.ts`). Sayılar tek oyun; günün kartında.
+ * da). Önce günün oyunları, sonra iki tür oyun:
+ *   • Zevkine göre (doğru cevap yok): mod seçici (Kör Sıralama, Tier, Kör Tier) ve zevk
+ *     listeleri bir kez; seçili mod kataloğun hangi oyuna açılacağını belirliyor. Seçim
+ *     adreste (`?mod=tier`); eski `#tier` bağlantıları da aynı modu açıyor.
+ *   • Doğrusunu bul (doğru cevap var): Sayılar ve Doğru Sıra listeleri, seçicisiz (`#dogru-sira`).
+ * Doğru cevabı olan listeler Kör Sıralama ve Tier'de de oynanıyor (sonuçtaki "başka modda
+ * oyna", doğrudan adres); yalnızca zevk kataloğunda görünmüyorlar. En altta kendi listeleri.
  * `misafir` verilirse (giriş yapmamış, ana sayfa) en üstte kendi defterini kurma çağrısı.
  */
 export default function OynaMerkezi({ misafir }: { misafir?: React.ReactNode }) {
@@ -28,68 +34,143 @@ export default function OynaMerkezi({ misafir }: { misafir?: React.ReactNode }) 
   const t = mesajlar.kor;
   const o = mesajlar.oyna;
   const { user } = useAuth();
-  /** Ortak katalog: her mod aynı listelerle (Doğru Sıra yalnızca doğru cevabı olanlarla). */
+  const tumModlar = useModlar();
+  /** Zevk modları seçicide; Doğru Sıra kendi bölümünde. */
+  const modlar = tumModlar.filter(x => !x.yalnizcaDogru);
+  const dogruMod = tumModlar.find(x => x.yalnizcaDogru)!;
+  const [modId, setModId] = useState<ModId>('kor');
+  const mod = modlar.find(x => x.id === modId) ?? modlar[0];
+
+  // Adresteki mod: sunucu çizimi varsayılanla, tarayıcı adresi okuyunca düzeltiyor.
+  // Doğru Sıra (`?mod=dogru-sira`, eski `#dogru-sira`) artık bir bölüm: oraya kaydırıyor.
+  useEffect(() => {
+    const adres = new URL(window.location.href);
+    const aday = adres.searchParams.get('mod') ?? adres.hash.slice(1);
+    if (aday === 'dogru-sira') {
+      document.getElementById('dogru-sira')?.scrollIntoView({ block: 'start' });
+      return;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if ((MOD_IDLERI as string[]).includes(aday)) setModId(aday as ModId);
+  }, []);
+
+  const sec = (id: ModId) => {
+    setModId(id);
+    const adres = new URL(window.location.href);
+    adres.searchParams.set('mod', id);
+    adres.hash = '';
+    window.history.replaceState(window.history.state, '', adres);
+  };
+
   const tum = katalog(dil);
+  const zevkListeleri = tum.filter(l => !l.dogru);
+  // İşlemler Sayılar'ın hemen yanında (ikisi de sayı oyunu), sonra veri listeleri.
+  const dogruListeleri = tum.filter(l => l.dogru).sort((x, y) => Number(y.slug === 'islemler') - Number(x.slug === 'islemler'));
   return (
-    <div className="kor-sayfa oyna">
-      <header className="paylasim-bar">
-        <Link href="/" className="paylasim-marka" aria-label={t.anaSayfa}>
-          <Marka />
-        </Link>
-        {misafir && <DilSecici />}
-      </header>
-      <main>
+    <div className={user ? 'oyna-kabuk' : undefined}>
+      {/* Giriş yapmışa masaüstünde ana ekranla aynı sol ray. */}
+      {user && <ListeRayi aktifSayfa="oyna" />}
+      <div className="kor-sayfa oyna">
+        <header className="paylasim-bar">
+          <Link href="/" className="paylasim-marka" aria-label={t.anaSayfa}>
+            <Marka />
+          </Link>
+          {misafir && <DilSecici />}
+        </header>
+        <main>
 
-        <h1 className="paylasim-baslik">{o.baslik}</h1>
-        <p className="kor-sayfa-alt">{o.alt}</p>
+          <h1 className="paylasim-baslik">{o.baslik}</h1>
+          <p className="kor-sayfa-alt">{o.alt}</p>
 
-        <h2 className="oyna-etiket">{o.bugun}</h2>
-        <BugunKartlari />
+          <h2 className="oyna-etiket">{o.bugun}</h2>
+          <BugunKartlari />
 
-        {misafir && (
-          <section className="oyna-misafir">
-            <h2>{o.misafirBaslik}</h2>
-            <p>{o.misafirAlt}</p>
-            <div className="oyna-misafir-islem">
-              {misafir}
-              <Link href="/tanitim" className="oyna-nasil">{o.nasil}</Link>
+          {misafir && (
+            <section className="oyna-misafir">
+              <h2>{o.misafirBaslik}</h2>
+              <p>{o.misafirAlt}</p>
+              <div className="oyna-misafir-islem">
+                {misafir}
+                <Link href="/tanitim" className="oyna-nasil">{o.nasil}</Link>
+              </div>
+            </section>
+          )}
+
+          <section className="oyna-katalog" aria-labelledby="oyna-zevk">
+            <h2 id="oyna-zevk" className="oyna-bolum-baslik">{o.zevkBaslik}</h2>
+            <p className="oyna-bolum-alt">{o.zevkAlt}</p>
+            <div className="mod-secici" role="tablist" aria-label={o.modSecici}>
+              {modlar.map(x => (
+                <button
+                  key={x.id}
+                  type="button"
+                  role="tab"
+                  id={`mod-${x.id}`}
+                  aria-selected={x.id === mod.id}
+                  aria-controls="oyna-katalog"
+                  className={`mod-sekme${x.id === mod.id ? ' is-secili' : ''}`}
+                  style={{ '--kor': x.renk } as React.CSSProperties}
+                  onClick={() => sec(x.id)}
+                >
+                  <span aria-hidden="true">{x.simge}</span>
+                  {x.ad}
+                </button>
+              ))}
+            </div>
+            <div id="oyna-katalog" role="tabpanel" aria-labelledby={`mod-${mod.id}`}
+                 style={{ '--mod': mod.renk } as React.CSSProperties}>
+              <p className="oyna-mod-alt">{mod.alt}</p>
+              <ul className="katalog-izgara">
+                {zevkListeleri.map(l => (
+                  <li key={l.slug} style={{ '--kor': l.renk } as React.CSSProperties}>
+                    <KatalogKarti href={`/oyna/${mod.id}/${l.slug}`} simge={l.simge} ad={l.ad}
+                                  alt={`${l.havuz.slice(0, 3).join(', ')}…`} />
+                  </li>
+                ))}
+              </ul>
             </div>
           </section>
-        )}
 
-        <OyunBolumu id="kor" baslik={t.ad} alt={o.korAlt} yol="kor" listeler={tum}>
+          {/* Doğru cevabı olan oyunlar: mod seçicisiz, Sayılar ve Doğru Sıra listeleri. */}
+          <section id="dogru-sira" className="oyna-katalog" aria-labelledby="oyna-dogru"
+                   style={{ '--mod': dogruMod.renk } as React.CSSProperties}>
+            <h2 id="oyna-dogru" className="oyna-bolum-baslik">{o.dogruBaslik}</h2>
+            <p className="oyna-bolum-alt">{o.dogruAlt}</p>
+            <ul className="katalog-izgara">
+              <li style={{ '--kor': SAYILAR_RENK } as React.CSSProperties}>
+                <KatalogKarti href="/oyna/sayilar" simge="🔢" ad={mesajlar.sayilar.ad} alt={o.sayilarKisa} />
+              </li>
+              {dogruListeleri.map(l => (
+                <li key={l.slug} style={{ '--kor': l.renk } as React.CSSProperties}>
+                  <KatalogKarti href={`/oyna/dogru-sira/${l.slug}`} simge={l.simge} ad={l.ad}
+                                alt={l.dogru ? `${l.dogru.ust} → ${l.dogru.alt}` : ''} />
+                </li>
+              ))}
+            </ul>
+          </section>
+
           {user && <KendiListelerin />}
-        </OyunBolumu>
-        <OyunBolumu id="tier" baslik={mesajlar.tier.ad} alt={mesajlar.tier.alt} yol="tier" listeler={tum} />
-        <OyunBolumu id="kor-tier" baslik={mesajlar.tier.korAd} alt={mesajlar.tier.korAlt} yol="kor-tier" listeler={tum} />
-        <OyunBolumu id="dogru-sira" baslik={mesajlar.dogruSira.ad} alt={mesajlar.dogruSira.bolumAlt} yol="dogru-sira"
-                    listeler={tum.filter(l => l.dogru)} />
-      </main>
-      <MobilMenu aktif="kor" />
+        </main>
+        <MobilMenu aktif="kor" />
+      </div>
     </div>
   );
 }
 
-/** Bir modun bölümü: başlık, kısa açıklama ve katalog listelerinin yatay şeridi. */
-function OyunBolumu({ id, baslik, alt, yol, listeler, children }: {
-  id: string; baslik: string; alt: string; yol: string; listeler: KatalogListe[]; children?: React.ReactNode;
-}) {
+/**
+ * Katalogda bir liste. Telefonda tek sütunluk satır (renkli simge kutusu, ad ve altında
+ * listeyi tanıtan bir satır: zevk listesinde ilk maddeler, Doğru Sıra'da yön), masaüstünde
+ * ızgarada kart. Alt satır neye dokunulduğunu söylüyor; yalnızca ad ve emoji yetmiyordu.
+ */
+function KatalogKarti({ href, simge, ad, alt }: { href: string; simge: string; ad: string; alt: string }) {
   return (
-    <section id={id} className="oyna-bolum" aria-labelledby={`${id}-baslik`}>
-      <h2 id={`${id}-baslik`} className="oyna-bolum-baslik">{baslik}</h2>
-      <p className="oyna-bolum-alt">{alt}</p>
-      {children}
-      <ul className="katalog-seridi">
-        {listeler.map(l => (
-          <li key={l.slug} style={{ '--kor': l.renk } as React.CSSProperties}>
-            <Link href={`/oyna/${yol}/${l.slug}`} className="katalog-kart">
-              <span aria-hidden="true">{l.simge}</span>
-              <strong>{l.ad}</strong>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <Link href={href} className="katalog-kart">
+      <span className="katalog-simge" aria-hidden="true">{simge}</span>
+      <span className="katalog-metin">
+        <strong>{ad}</strong>
+        {alt && <em>{alt}</em>}
+      </span>
+    </Link>
   );
 }
 
@@ -97,9 +178,11 @@ function OyunBolumu({ id, baslik, alt, yol, listeler, children }: {
  * Giriş yapmış kullanıcının kör sıralatılabilecek listeleri: en az on kayıtlı olanlar.
  * Paylaşılan listede "Gönder" kör sıralama bağlantısını yolluyor; paylaşılmayanda
  * liste ayarlarına (paylaşım bölümü en üstte) götüren bir bağlantı. Liste Paylaş
- * menüsündeki "Kör sıralat"la aynı iş, keşfedilsin diye burada da.
+ * menüsündeki "Kör sıralat"la aynı iş, keşfedilsin diye burada ve ana ekranda da: "liste
+ * ekleyince ne olacak?" sorusunun cevabı, listenin arkadaşa oyun olması.
  */
-function KendiListelerin() {
+/** `bosGizle`: uygun liste yoksa hiç çizme (ana ekran; Oyna'da nasıl uygun olunacağını söylüyor). */
+export function KendiListelerin({ bosGizle }: { bosGizle?: boolean }) {
   const t = useMesajlar().kor;
   const { listeler, sayilar, loading } = useListeler();
   const [bildirim, setBildirim] = useState<string | null>(null);
@@ -116,9 +199,9 @@ function KendiListelerin() {
     return () => clearTimeout(z);
   }, [bildirim]);
 
-  if (loading) return null;
+  if (loading || (bosGizle && uygunlar.length === 0)) return null;
   return (
-    <section className="kor-kendi-bolum">
+    <section className="kor-kendi-bolum oyna-kendi">
       <h2>{t.kendiListelerin}</h2>
       <p>{uygunlar.length ? t.kendiAlt : t.kendiBos}</p>
       {uygunlar.length > 0 && (

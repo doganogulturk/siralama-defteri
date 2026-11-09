@@ -2,6 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import OyunSahnesi from '@/components/oyna/OyunSahnesi';
+import OyunGeri from '@/components/oyna/OyunGeri';
 import { katalogListesi, gercekYerler, oyunSecimi, tohumGerekli } from '@/lib/katalog';
 import {
   KOR_TIER_SINIR, TIER_KADEMELERI, ayniKademe, dogruKademeler, tierGruplari, tierYaz, yakinKademe,
@@ -71,7 +73,8 @@ export default function TierOyun({ slug, kor, tohum: adresTohumu, arkadas }: {
 
   const basla = (yeni = false) => {
     titret('dokunus');
-    if (tohumlu && (yeni || !tohum)) setTohum(rastgeleTohum());
+    // Tohumsuz arkadaş bağlantısı (havuzlar büyümeden önceki) ilk onla oynanıyor: tohum üretme.
+    if (tohumlu && (yeni || (!tohum && !arkadas))) setTohum(rastgeleTohum());
     setKademeler(new Array(10).fill(null));
     setSecili(null);
     setGelis(karistir(Array.from({ length: 10 }, (_, i) => i)));
@@ -132,12 +135,7 @@ export default function TierOyun({ slug, kor, tohum: adresTohumu, arkadas }: {
   return (
     <div className="kor tier-oyun" style={{ '--kor': liste.renk } as React.CSSProperties}>
       <header className="kor-bar">
-        <Link href="/oyna" className="mobile-brand-back" aria-label={m.kor.listeler}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M15 5l-7 7 7 7" />
-          </svg>
-        </Link>
+        <OyunGeri etiket={m.kor.listeler} />
         <span className="kor-bar-ad">
           <em>{kor ? t.korAd : t.ad}</em>
           {asama !== 'giris' && <strong>{liste.simge} {liste.ad}</strong>}
@@ -147,7 +145,8 @@ export default function TierOyun({ slug, kor, tohum: adresTohumu, arkadas }: {
 
       {asama === 'giris' && (
         <main className="kor-giris">
-          <span className="kor-giris-simge" aria-hidden="true">{liste.simge}</span>
+          <OyunSahnesi tur={kor ? 'kor-tier' : 'tier'} renk={liste.renk} simge={liste.simge}
+                       etiket={kor ? t.korAd : t.ad} maddeler={liste.havuz.slice(0, 4)} />
           <h1 className="kor-giris-baslik">{liste.ad}</h1>
           {arkadas && <p className="kor-arkadas">{t.arkadas}</p>}
           <ul className="kor-kurallar">

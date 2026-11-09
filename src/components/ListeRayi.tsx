@@ -9,6 +9,7 @@ import Marka from './Marka';
 import { KATEGORISIZ } from '@/lib/filtre';
 import { Kategori, brandInitials } from '@/types/item';
 import { messages } from '@/lib/i18n';
+import { KorIkon, ListelerIkon } from './MobilMenu';
 
 const ArtiIkon = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -37,6 +38,8 @@ export interface RayKategorileri {
 }
 
 interface ListeRayiProps {
+  /** Üstteki gezinmede vurgulanacak sayfa (ana ekran ya da Oyna); bir listenin içindeyken yok. */
+  aktifSayfa?: 'listeler' | 'oyna';
   /** Rayda vurgulanacak liste. */
   aktifSlug?: string;
   /** Açık listenin kategori ağacı; yoksa liste satırı açılmıyor. */
@@ -44,12 +47,14 @@ interface ListeRayiProps {
 }
 
 /**
- * Masaüstü sol rayı: künye, liste ağacı ve yeni liste düğmesi. Sensetorial'ın
+ * Masaüstü sol rayı: künye, üst düzey gezinme (Listelerim · Oyna), liste ağacı ve yeni
+ * liste düğmesi. Ana ekranda, Oyna'da ve listelerde aynı ray: masaüstünde uygulamanın
+ * iskeleti bu. Sensetorial'ın
  * doküman ağacından: her liste bir dal, açık olan liste kendi kategorileriyle açık
  * doğuyor (kategoriye basmak sıralamayı süzüyor), diğer listelerin oku ilk üçünü
  * gösteriyor. Satırın kendisi listeye gidiyor, ok yalnızca dalı açıp kapatıyor.
  */
-export default function ListeRayi({ aktifSlug, aktifKategoriler }: ListeRayiProps) {
+export default function ListeRayi({ aktifSayfa, aktifSlug, aktifKategoriler }: ListeRayiProps) {
   const { listeler, sayilar, load } = useListeler();
   const [formAcik, setFormAcik] = useState(false);
   /** Kullanıcının elle açıp kapattığı dallar; açık listenin dalı varsayılan olarak açık. */
@@ -66,6 +71,17 @@ export default function ListeRayi({ aktifSlug, aktifKategoriler }: ListeRayiProp
         <Link href="/" className="rail-brand">
           <Marka />
         </Link>
+
+        <nav className="rail-gezinme" aria-label={m.menu.ana}>
+          <Link href="/" className={`rail-gezinme-oge${aktifSayfa === 'listeler' ? ' is-on' : ''}`}
+                aria-current={aktifSayfa === 'listeler' ? 'page' : undefined}>
+            {ListelerIkon}{m.menu.listelerim}
+          </Link>
+          <Link href="/oyna" className={`rail-gezinme-oge${aktifSayfa === 'oyna' ? ' is-on' : ''}`}
+                aria-current={aktifSayfa === 'oyna' ? 'page' : undefined}>
+            {KorIkon}{m.menu.kor}
+          </Link>
+        </nav>
 
         <p className="rail-baslik">
           {m.ray.listeler} <span>{listeler.length}</span>
@@ -163,7 +179,6 @@ export default function ListeRayi({ aktifSlug, aktifKategoriler }: ListeRayiProp
         <button type="button" className="rail-add" onClick={() => setFormAcik(true)}>
           {ArtiIkon}{m.menu.yeniListe}
         </button>
-        <Link href="/oyna" className="rail-oyun">{m.ray.korOyna}</Link>
       </aside>
 
       <ListeEkleModal isOpen={formAcik} onClose={() => setFormAcik(false)} onCreated={load} />

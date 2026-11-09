@@ -2,6 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import OyunSahnesi from '@/components/oyna/OyunSahnesi';
+import OyunGeri from '@/components/oyna/OyunGeri';
 import {
   ADET, SAYILAR_RENK, gunlukMu, gununTohumu, puanla, rastgeleTohum, sayilariUret, tarihYaz,
   tohumTarihi, yerlesimCoz, yerlesimYaz,
@@ -105,12 +107,7 @@ export default function SayiOyun({ tohum: adresTohumu, arkadas }: { tohum: strin
   return (
     <div className="kor" style={{ '--kor': SAYILAR_RENK } as React.CSSProperties}>
       <header className="kor-bar">
-        <Link href="/oyna" className="mobile-brand-back" aria-label={k.listeler}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M15 5l-7 7 7 7" />
-          </svg>
-        </Link>
+        <OyunGeri etiket={k.listeler} />
         <span className="kor-bar-ad">
           <em>{k.ad}</em>
           {asama !== 'giris' && <strong>🔢 {t.ad}</strong>}
@@ -122,7 +119,7 @@ export default function SayiOyun({ tohum: adresTohumu, arkadas }: { tohum: strin
 
       {asama === 'giris' && (
         <main className="kor-giris">
-          <span className="kor-giris-simge" aria-hidden="true">🔢</span>
+          <OyunSahnesi tur="sayi" renk={SAYILAR_RENK} simge="🔢" etiket={k.ad} />
           <h1 className="kor-giris-baslik">{t.ad}</h1>
           {arkadasPuani !== null && <p className="kor-arkadas">{t.arkadas(arkadasPuani)}</p>}
           <ul className="kor-kurallar">

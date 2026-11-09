@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { sortIstekListesi, sortSirali } from './sort';
 import { benzersizSlug, slugify } from './slug';
-import { korListeleri, sonucCoz, sonucYaz } from './kor';
+import { sonucCoz, sonucYaz } from './kor';
+import { korOyunListesi } from './katalog';
 import { KATEGORISIZ, bosFiltre, filtreBos, filtreUygula } from './filtre';
 import {
   KOD_BICIMI, guvenliFoto, iyelik, kodUret, paylasimAdresi, paylasimBasligi, sahibinSiralamasi, tamlayan,
@@ -38,10 +39,11 @@ describe('slug', () => {
 });
 
 describe('Kör Sıralama sonucu', () => {
-  const liste = korListeleri('tr')[0];
+  const liste = korOyunListesi('corbalar', null, 'tr')!;
 
-  it('her liste tam on kayıt', () => {
-    for (const l of [...korListeleri('tr'), ...korListeleri('en')]) expect(l.kayitlar).toHaveLength(10);
+  it('oyun listesi on kayıt: tohumsuz da, tohumlu da', () => {
+    expect(liste.kayitlar).toHaveLength(10);
+    expect(korOyunListesi('corbalar', 'rabc123', 'en')!.kayitlar).toHaveLength(10);
   });
 
   it('geçerli permütasyon gidip geliyor', () => {

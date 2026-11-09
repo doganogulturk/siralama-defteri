@@ -18,7 +18,8 @@ describe('listelerin verisi', () => {
   it('her listede değerler ve adlar benzersiz, havuz en az on madde', () => {
     for (const l of DOGRU_SIRA_LISTELERI) {
       expect(l.maddeler.length, l.slug).toBeGreaterThanOrEqual(ADET);
-      expect(new Set(l.maddeler.map(x => x.deger)).size, l.slug).toBe(l.maddeler.length);
+      // Üretilen listede aynı sonuç birden çok işlemde; eşitler aynı oyuna `ayrim` yüzünden girmiyor.
+      if (!l.uretilmis) expect(new Set(l.maddeler.map(x => x.deger)).size, l.slug).toBe(l.maddeler.length);
       expect(new Set(l.maddeler.map(x => x.tr)).size, l.slug).toBe(l.maddeler.length);
       expect(new Set(l.maddeler.map(x => x.en)).size, l.slug).toBe(l.maddeler.length);
     }
@@ -67,15 +68,21 @@ describe('dogruDizi ve puanla', () => {
     expect(dogruDizi({ ...liste, yon: 'artan' }, secim)).toEqual([0, 3, 2, 4, 1]);
   });
 
-  it('kusursuz: %100, hepsi yerinde; tam tersi: %0', () => {
+  it('kusursuz: 100, hepsi yerinde; tam tersinde yalnızca ortadaki yerinde', () => {
     expect(puanla(liste, secim, [1, 4, 2, 3, 0])).toMatchObject({ uyum: 100, tamYerinde: 5 });
-    expect(puanla(liste, secim, [0, 3, 2, 4, 1])).toMatchObject({ uyum: 0 });
+    expect(puanla(liste, secim, [0, 3, 2, 4, 1])).toMatchObject({ uyum: 20, tamYerinde: 1 });
   });
 
-  it('tek kayma küçük ceza: en alttakini en üste koymak', () => {
+  it('yerinde olan her madde 10 puan: on maddede iki yer değişmiş, 80', () => {
+    const on = { yon: 'artan' as const, maddeler: Array.from({ length: 10 }, (_, i) => ({ ad: String(i), deger: i })) };
+    const hepsi = Array.from({ length: 10 }, (_, i) => i);
+    expect(puanla(on, hepsi, [0, 1, 2, 4, 3, 5, 6, 7, 8, 9])).toMatchObject({ uyum: 80, tamYerinde: 8 });
+  });
+
+  it('kayma: en alttakini en üste koymak altındakilerin hepsini yerinden ediyor', () => {
     const s = puanla(liste, secim, [0, 1, 4, 2, 3]);
     expect(s.tamYerinde).toBe(0);
-    expect(s.uyum).toBe(60);
+    expect(s.uyum).toBe(0);
     expect(s.gercekYer).toEqual([4, 0, 1, 2, 3]);
   });
 });

@@ -19,11 +19,34 @@ describe('katalog', () => {
       expect(new Set(secim).size).toBe(10);
     }
     const corba = katalogListesi('corbalar', 'tr')!;
-    expect(tohumGerekli(corba)).toBe(false);
+    expect(tohumGerekli(corba)).toBe(true);
+    // Tohumsuz (havuzlar büyümeden önceki bağlantılar): havuzun ilk onu.
     expect(oyunSecimi(corba, null)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     const nufus = katalogListesi('ulke-nufusu', 'tr')!;
     expect(tohumGerekli(nufus)).toBe(true);
     expect(oyunSecimi(nufus, null)).toEqual([]);
+  });
+
+  it('zevk listesi: tohum aynı onu seçiyor, farklı tohum çoğunlukla farklı on', () => {
+    const corba = katalogListesi('corbalar', 'tr')!;
+    expect(oyunSecimi(corba, 'rabc123')).toEqual(oyunSecimi(corba, 'rabc123'));
+    const farkli = ['r1', 'r2', 'r3', 'r4', 'r5'].map(t => oyunSecimi(corba, t).join());
+    expect(new Set(farkli).size).toBeGreaterThan(1);
+    // Havuzun tamamı oyuna girebiliyor: yüz tohumda otuz maddenin hepsi en az bir kez.
+    const gorulen = new Set<number>();
+    for (let i = 0; i < 100; i++) oyunSecimi(corba, `r${i}`).forEach(k => gorulen.add(k));
+    expect(gorulen.size).toBe(corba.havuz.length);
+  });
+
+  it('zevk listelerinde havuz otuz, iki dilde aynı uzunlukta ve tekrarsız', () => {
+    const tr = katalog('tr').filter(l => !l.dogru);
+    const en = katalog('en').filter(l => !l.dogru);
+    tr.forEach((l, i) => {
+      expect(l.havuz, l.slug).toHaveLength(30);
+      expect(en[i].havuz, l.slug).toHaveLength(30);
+      expect(new Set(l.havuz).size, l.slug).toBe(30);
+      expect(new Set(en[i].havuz).size, l.slug).toBe(30);
+    });
   });
 
   it('gerçek yerler: doğru cevabı olan listede bir permütasyon, zevk listesinde yok', () => {

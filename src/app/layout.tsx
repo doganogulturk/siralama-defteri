@@ -3,6 +3,7 @@ import { Geist, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import Analitik from "@/components/Analitik";
 import Pencereler from "@/components/Pencereler";
+import { GezintiIzi } from "@/components/oyna/OyunGeri";
 import DilKoku from "@/components/DilKoku";
 import { istekDili } from "@/lib/i18n/sunucu";
 
@@ -75,6 +76,7 @@ export default async function RootLayout({
         <DilKoku baslangic={dil}>
           {children}
           <Pencereler />
+          <GezintiIzi />
         </DilKoku>
         <Analitik />
       </body>

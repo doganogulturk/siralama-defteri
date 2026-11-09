@@ -2,7 +2,7 @@
 
 Yeni bir çalışmaya buradan başla: önce **Durum**, sonra **Sıradaki adım**. Altındaki gruplar: video ve tier list, bekleyen temizlik, yayına çıkış için panellerde (Vercel, Supabase, Google Cloud) yapılacaklar, mobil uygulamaya (App Store / Play Store) geçiş ve sıradaki özellikler. Gruplar kendi içinde öncelik sırasında.
 
-## Durum (2 Kasım 2026)
+## Durum (9 Kasım 2026)
 
 Web sürümü canlıda: <https://siralama-defteri.vercel.app> (Vercel, `main`). Mağazalarda değil.
 
@@ -10,6 +10,11 @@ Son yapılanlar:
 
 | Ne | Ayrıntı |
 |---|---|
+| **Doğru Sıra'da puan: yerindeki her madde 10** | Kendall (ikili uyum) yerine olması gereken sıra ile oyuncunun sırası yan yana; tam yerinde her madde 10 puan. Doğru Sıra'nın bütün listeleri, İşlemler, Bugün kartları, paylaşım görseli ve Kör Sıralama'nın gerçek sıra puanı. Arkadaş ve sahip karşılaştırmaları Kendall kaldı. Sahibinin kararı: 8/10 doğruya %98 diyordu. |
+| **İşlemler ve Günün İşlemleri** | Doğrusunu bul'a üretilen bir liste: dört işlemi sonucuna göre dizmek (sayılar 2–99, sonuçlar 10–100, bölme tam, çıkarma negatif değil, × ÷ − işaretleri). Doğru Sıra'nın altyapısıyla çalışıyor (öbür modlar ve görsel dahil); Bugün'e üçüncü kart olarak Günün İşlemleri (telefonda kayan şerit). Sahibinin önerisi. Tarayıcıda serbest tohumla oynandı; gerçek telefonda denenmedi. İleride: Kolay / Zor seçimi (Doğru Sıra'nın zorluk fikriyle birlikte). |
+| **Oyna: Zevkine göre / Doğrusunu bul** | Doğru Sıra mod seçiciden çıktı: Oyna'da "Zevkine göre" (Kör Sıralama · Tier · Kör Tier ve on zevk listesi) ve "Doğrusunu bul" (Sayılar ve sekiz Doğru Sıra listesi) iki ayrı bölüm; her liste bir kez. Doğru cevabı olan listeler öbür modlarda oynanmaya devam ediyor. |
+| **Oyunlarda tanıtım kartı ve geri düğmesi** | Her oyunun girişinde zıplayan emojinin yerine modun hareketini gösteren dönen bir kart (açılış tanıtımının dili; maddeler listenin kendisinden). Masaüstünde oyunların geri düğmesi görünmüyordu (liste başlığı için yazılmış bir kural); düzeldi, düğme artık geldiğin sayfaya dönüyor. Tarayıcıda denendi. |
+| **Masaüstü düzeni, tek katalog, büyük havuz** | Masaüstünde ana ekran ve Oyna liste ekranının sol rayını taşıyor (rayın üstünde "Listelerim · Oyna"); ana ekran ekranın kalanını kullanıyor, Bugün kartları iri, gösterge kutuları başlığın yanında. Oyna'da modlar tek tek bölüm değil: mod seçici ve katalog bir kez (`?mod=`, eski `#mod` bağlantıları çalışıyor). Zevk listeleri on maddeden otuz maddelik havuza çıktı (iki dilde), her oyunda tohumdan on; tohumsuz eski bağlantılar ilk onu açıyor. "Listelerini kör sıralat" ana ekranda da. Sahibinin gözlemi: insanlar listelere "ee, ne olacak?" dedi, oyunları sıkılmadan oynadı. Tarayıcıda (1920, 1440, telefon) denendi. **Yeni maddeler gözden geçirilmeli** (`lib/kor.ts`, özellikle İngilizce adlar). |
 | **Defter görünümü** | Kareli kâğıt ekranın tamamında (üstte eriyen desen ve bulanıklık kalktı), en üstte sarmal defter telleri; yapışkan başlık cam değil düz zemin. Ana ekranda "Merhaba Doğan," iri serif, yalnızca ad italik; marka "Sıralama / Defteri" iki satırda. |
 | **Kameralı Kör Tier ve "başka modda oyna"** | Kör Tier'de "Kamerayla oyna": kamera tahtası ikişerli kademe grupları (S, S, A, A…), dolu yere dokunmak öbür yere koyuyor. Sonuç ekranlarının altında aynı listenin diğer modlarına bağlantılar. Sahte kamerayla denendi. |
 | **Ortak katalog, Tier ve Kör Tier (Oyunlar planı 2)** | Kör ve Doğru Sıra listeleri tek katalogda (`lib/katalog.ts`); her liste Kör Sıralama, Tier ve Kör Tier'de oynanıyor, doğru cevabı olanlar Doğru Sıra'da da. Kör Sıralama'da doğru cevabı olan listede gerçek sırayla uyum ve değerler. Tier (dokun, kademesine dokun) ve Kör Tier (birer birer, her kademede iki yer) modları; sonuç adreste, arkadaşla ve gerçek kademeyle karşılaştırma, tier görseli. Oyna sayfası mod mod, her modun altında katalog şeridi. Ayrıntılar [özellikler](ozellikler.md) → Katalog ve modlar. |

@@ -13,7 +13,8 @@
     "apple:anahtar": "node scripts/apple-gizli-anahtar.mjs",
     "mobil": "NEXT_PUBLIC_MOBIL=1 next build && cap sync",
     "ios": "NEXT_PUBLIC_MOBIL=1 next build && cap sync ios && cap open ios",
-    "uygulama:gorseller": "node scripts/uygulama-gorselleri.mjs && npx --yes @capacitor/assets@3.0.5 generate --ios"
+    "uygulama:gorseller": "node scripts/uygulama-gorselleri.mjs && npx --yes @capacitor/assets@3.0.5 generate --ios",
+    "ios:testflight": "npm run mobil && rm -rf build/ios && xcodebuild archive -project ios/App/App.xcodeproj -scheme App -configuration Release -destination generic/platform=iOS -archivePath build/ios/SiralamaDefteri.xcarchive -allowProvisioningUpdates -quiet && xcodebuild -exportArchive -archivePath build/ios/SiralamaDefteri.xcarchive -exportOptionsPlist ios/App/ExportOptions.plist -exportPath build/ios/disari -allowProvisioningUpdates"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

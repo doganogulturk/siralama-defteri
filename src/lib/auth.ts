@@ -32,6 +32,10 @@ export const UYGULAMA_DONUSU = 'com.siralamadefteri.app://giris';
  * uygulamanın kendi web görünümünde girişi engelliyor); dönüşü `uygulamaDonusunuDinle` yakalıyor.
  */
 export async function girisYap(saglayici: GirisSaglayici): Promise<void> {
+  if (MOBIL && saglayici === 'apple') {
+    await appleIleYerelGiris();
+    return;
+  }
   if (MOBIL) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: saglayici,
@@ -51,6 +55,62 @@ export async function girisYap(saglayici: GirisSaglayici): Promise<void> {
     options: { redirectTo: window.location.origin },
   });
   if (error) throw error;
+}
+
+/** Uygulamanın bundle kimliği: yerel Apple girişinde Supabase'e ve Apple'a giden istemci. */
+export const UYGULAMA_KIMLIGI = 'com.siralamadefteri.app';
+
+interface AppleGirisiSonucu { kimlikJetonu: string; kod?: string; ad?: string; soyad?: string }
+interface AppleGirisiEklentisi { giris(secenek: { nonce: string }): Promise<AppleGirisiSonucu> }
+let appleEklentisi: AppleGirisiEklentisi | null = null;
+
+/** Rastgele, tek kullanımlık nonce (Apple'a karıştırılmışı, Supabase'e kendisi gidiyor). */
+export function nonceUret(uzunluk = 32): string {
+  const bayt = crypto.getRandomValues(new Uint8Array(uzunluk));
+  return Array.from(bayt, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** SHA-256'nın onaltılık yazımı: Apple nonce'u bu biçimde bekliyor, Supabase de böyle karşılaştırıyor. */
+export async function nonceOzeti(nonce: string): Promise<string> {
+  const ozet = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(nonce));
+  return Array.from(new Uint8Array(ozet), b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** Apple'ın verdiği ad ve soyad tek satırda; ikisi de yoksa null. Saf (`auth.test.ts`). */
+export function appleAdi(ad?: string | null, soyad?: string | null): string | null {
+  const tam = [ad, soyad].map(x => x?.trim()).filter(Boolean).join(' ');
+  return tam || null;
+}
+
+/**
+ * Uygulama paketinde Apple ile giriş: tarayıcı penceresi yerine iOS'un kendi Apple girişi
+ * (`ios/App/App/AppleGirisi.swift`; App Store 4.8 ve Apple'ın tasarım rehberi). Kimlik jetonu
+ * Supabase'e gidiyor (`signInWithIdToken`; Supabase → Apple sağlayıcısının Client IDs'inde
+ * bundle kimliği olmalı). Ad yalnızca ilk girişte geliyor, kullanıcı verisine yazılıyor. Yetki
+ * kodu `apple-iptal` fonksiyonuna: yenileme jetonuna çevrilip saklanıyor, hesap silinirken iptal
+ * edilsin diye. Kullanıcı vazgeçerse sessizce dönüyor.
+ */
+async function appleIleYerelGiris(): Promise<void> {
+  if (!appleEklentisi) {
+    const { registerPlugin } = await import('@capacitor/core');
+    appleEklentisi = registerPlugin<AppleGirisiEklentisi>('AppleGirisi');
+  }
+  const nonce = nonceUret();
+  let sonuc: AppleGirisiSonucu;
+  try {
+    sonuc = await appleEklentisi.giris({ nonce: await nonceOzeti(nonce) });
+  } catch (e) {
+    if ((e as { code?: string })?.code === 'IPTAL') return;
+    throw e;
+  }
+  const { error } = await supabase.auth.signInWithIdToken({ provider: 'apple', token: sonuc.kimlikJetonu, nonce });
+  if (error) throw error;
+  const ad = appleAdi(sonuc.ad, sonuc.soyad);
+  if (ad) await supabase.auth.updateUser({ data: { full_name: ad, name: ad } });
+  if (sonuc.kod) {
+    // Başarısız olursa giriş yine geçerli; yalnızca hesap silmede iptal yapılamaz.
+    void supabase.functions.invoke('apple-iptal', { body: { islem: 'kaydet', kod: sonuc.kod } }).catch(() => {});
+  }
 }
 
 /**

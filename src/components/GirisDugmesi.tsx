@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { appleGirisAcik, girisYap as yonlendir, type GirisSaglayici } from '@/lib/auth';
+import { MOBIL } from '@/lib/site';
 import { hataMetni } from '@/lib/hata';
 import { useMesajlar } from '@/lib/i18n/DilBaglami';
 
@@ -36,6 +37,8 @@ export default function GirisDugmesi() {
     setError(null);
     try {
       await yonlendir(saglayici);
+      // Uygulamada sayfa değişmiyor: giriş penceresi kapanınca (vazgeçilse de) düğme geri gelsin.
+      if (MOBIL) setBusy(null);
     } catch (e: unknown) {
       setError(hataMetni(e));
       setBusy(null);

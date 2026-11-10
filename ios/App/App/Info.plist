@@ -5,7 +5,12 @@
   <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
+	<string>tr</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>tr</string>
+		<string>en</string>
+	</array>
 	<key>CFBundleDisplayName</key>
         <string>Sıralama Defteri</string>
 	<key>CFBundleExecutable</key>
@@ -49,13 +54,11 @@
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
@@ -64,6 +67,16 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Kamera, kameralı Kör Sıralama'da ve kayıtlarının fotoğrafını çekerken kullanılıyor.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Mikrofon, kameralı Kör Sıralama videosunda sesini kaydediyor.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Oyun videolarını ve paylaşım görsellerini fotoğraf arşivine kaydedebilmen için.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Kayıtlarına arşivinden fotoğraf seçebilmen için.</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 	<key>CFBundleURLTypes</key>

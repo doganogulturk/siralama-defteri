@@ -1,0 +1,5 @@
+/* iOS izin pencerelerinin Türkçe metinleri (Info.plist'teki anahtarlar). */
+"NSCameraUsageDescription" = "Kamera, kameralı Kör Sıralama'da ve kayıtlarının fotoğrafını çekerken kullanılıyor.";
+"NSMicrophoneUsageDescription" = "Mikrofon, kameralı Kör Sıralama videosunda sesini kaydediyor.";
+"NSPhotoLibraryAddUsageDescription" = "Oyun videolarını ve paylaşım görsellerini fotoğraf arşivine kaydedebilmen için.";
+"NSPhotoLibraryUsageDescription" = "Kayıtlarına arşivinden fotoğraf seçebilmen için.";

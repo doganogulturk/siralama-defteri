@@ -5,6 +5,12 @@
 // anahtarıyla imzalı bir istemci sırrı (JWT) üretiyor ve Apple'ın /auth/revoke ucuna gönderiyor.
 // Jeton yoksa (Apple ile hiç girilmemiş ya da jeton saklanmadan önceki bir giriş) iş yok sayılıyor.
 //
+// İkinci iş (`{ islem: 'kaydet', kod }`): uygulamadaki yerel Apple girişi Supabase'e yalnızca kimlik
+// jetonunu veriyor, yenileme jetonu gelmiyor. Uygulama Apple'ın yetki kodunu buraya gönderiyor;
+// fonksiyon kodu Apple'ın /auth/token ucunda yenileme jetonuna çevirip kullanıcının oturumuyla
+// `apple_jetonu_kaydet`'e yazıyor (istemci: uygulamanın bundle kimliği). Hesap silinirken yukarıdaki
+// iptal aynı jetonu kullanıyor.
+//
 // Tek dosya, dış bağımlılık yok: Supabase panelindeki düzenleyiciye olduğu gibi yapıştırılabiliyor.
 // Gizli değişkenler (Supabase → Edge Functions → Secrets):
 //   APPLE_P8       — AuthKey_XXXX.p8 dosyasının içeriği (-----BEGIN PRIVATE KEY----- dahil)
@@ -13,6 +19,8 @@
 // SUPABASE_URL Supabase'in kendisi tarafından veriliyor.
 
 const SEMA = 'do_siralama_defteri';
+/** Yerel girişin istemcisi: uygulamanın bundle kimliği (Apple'da App ID). */
+const UYGULAMA = 'com.siralamadefteri.app';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -58,8 +66,8 @@ Deno.serve(async (istek) => {
   const apikey = istek.headers.get('apikey');
   if (!yetki || !apikey) return yanit({ hata: 'Oturum gerekli.' }, 401);
 
-  // Kullanıcının kendi oturumuyla: yalnızca kendi jetonunu görebiliyor.
-  const rpc = await fetch(`${Deno.env.get('SUPABASE_URL')}/rest/v1/rpc/apple_jetonu_al`, {
+  // Kullanıcının kendi oturumuyla: yalnızca kendi jetonunu görebiliyor / yazabiliyor.
+  const rpcCagir = (ad: string, govde: unknown) => fetch(`${Deno.env.get('SUPABASE_URL')}/rest/v1/rpc/${ad}`, {
     method: 'POST',
     headers: {
       Authorization: yetki,
@@ -68,8 +76,35 @@ Deno.serve(async (istek) => {
       'Content-Profile': SEMA,
       'Accept-Profile': SEMA,
     },
-    body: '{}',
+    body: JSON.stringify(govde),
   });
+
+  const istekGovdesi = await istek.json().catch(() => ({})) as { islem?: string; kod?: string };
+  if (istekGovdesi.islem === 'kaydet') {
+    if (!istekGovdesi.kod) return yanit({ hata: 'Kod gerekli.' }, 400);
+    try {
+      const apple = await fetch('https://appleid.apple.com/auth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: UYGULAMA,
+          client_secret: await istemciSirri(UYGULAMA),
+          code: istekGovdesi.kod,
+          grant_type: 'authorization_code',
+        }),
+      });
+      if (!apple.ok) return yanit({ kaydedildi: false, neden: `Apple ${apple.status}`, ayrinti: await apple.text() }, 502);
+      const { refresh_token } = await apple.json() as { refresh_token?: string };
+      if (!refresh_token) return yanit({ kaydedildi: false, neden: 'yenileme jetonu yok' }, 502);
+      const kayit = await rpcCagir('apple_jetonu_kaydet', { p_jeton: refresh_token, p_istemci: UYGULAMA });
+      if (!kayit.ok) return yanit({ kaydedildi: false, neden: 'kayıt', ayrinti: await kayit.text() }, 502);
+      return yanit({ kaydedildi: true });
+    } catch (e) {
+      return yanit({ kaydedildi: false, neden: e instanceof Error ? e.message : String(e) }, 500);
+    }
+  }
+
+  const rpc = await rpcCagir('apple_jetonu_al', {});
   if (!rpc.ok) return yanit({ hata: 'Jeton okunamadı.', ayrinti: await rpc.text() }, 502);
   const satirlar = await rpc.json() as { yenileme_jetonu: string; istemci: string }[];
   const jeton = satirlar[0];

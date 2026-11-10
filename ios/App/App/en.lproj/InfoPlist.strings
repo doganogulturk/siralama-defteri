@@ -1,0 +1,5 @@
+/* iOS izin pencerelerinin İngilizce metinleri (Info.plist'teki anahtarlar). */
+"NSCameraUsageDescription" = "The camera is used for Blind Ranking with camera and for taking photos of your entries.";
+"NSMicrophoneUsageDescription" = "The microphone records your voice in the Blind Ranking with camera video.";
+"NSPhotoLibraryAddUsageDescription" = "Lets you save your game videos and share images to your photo library.";
+"NSPhotoLibraryUsageDescription" = "Lets you choose photos for your entries from your library.";

@@ -45,8 +45,10 @@ export const tr = {
       { ad: 'Lahmacun', kategoriler: ['Acılı', 'Acısız'], sira: ['Urfa usulü', 'Antep usulü', 'Kıbrıs usulü'], asla: 'Donmuş' },
     ] as { ad: string; kategoriler: [string, string]; sira: [string, string, string]; asla: string }[],
     kiyas: { sen: 'Sen', arkadas: 'Ayşe', senin: 'Yaprak', onun: 'İskender', etiket: 'Aynı damak' },
-    /** 3. adımın sahnesi Kör Tier'in tanıtım kartı: S'de 2. ve 3., 1. A'ya, 4. B'ye iniyor. */
-    zevk: { maddeler: ['Sütlaç', 'Baklava', 'Künefe', 'Kazandibi'] },
+    /** 3. adımın sahnesi Kör Sıralama'nın tanıtım kartı: yuvalarda 2. ve 3.; 1. üçüncü yuvaya, 4. ikinciye iniyor. */
+    korSahne: ['Ezogelin', 'Mercimek', 'Yayla', 'Tarhana'],
+    /** 4. adımın sahnesi Kör Tier'in tanıtım kartı: S'de 2. ve 3.; 1. A'ya, 4. B'ye iniyor. */
+    korTierSahne: ['Sütlaç', 'Baklava', 'Künefe', 'Kazandibi'],
     adimMetinleri: [
       {
         etiket: 'Sıralama Defteri',
@@ -59,9 +61,14 @@ export const tr = {
         metin: 'Günün Sayıları, Günün Doğru Sırası, Günün İşlemleri: herkese aynı, her gün yeni. Tam yerine koyduğun her kayıt 10 puan.',
       },
       {
-        etiket: 'Oyunlar',
+        etiket: 'Kör Sıralama',
         baslik: ['Sıradakini ', 'bilmeden', ' diz.'],
-        metin: 'Kör Sıralama’da kayıtlar birer birer gelir; Tier’de S’den D’ye kademelere koyarsın. Çorbalardan şehirlere onlarca liste, giriş yapmadan.',
+        metin: 'Birer birer gelen kayıtları sırala, koyduğun yer bir daha değişmez. İster 1’den 10’a…',
+      },
+      {
+        etiket: 'Kör Tier',
+        baslik: ['Sıradakini ', 'bilmeden', ' diz.'],
+        metin: '…ister S’den D’ye. Çorbalardan şehirlere onlarca liste, giriş yapmadan.',
       },
       {
         etiket: 'Paylaş',

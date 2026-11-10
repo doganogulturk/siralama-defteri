@@ -48,7 +48,8 @@ export const en: Mesajlar = {
       { ad: 'Lahmacun', kategoriler: ['Spicy', 'Mild'], sira: ['Urfa style', 'Antep style', 'Cypriot style'], asla: 'Frozen' },
     ],
     kiyas: { sen: 'You', arkadas: 'Ayşe', senin: 'Yaprak', onun: 'İskender', etiket: 'Same taste' },
-    zevk: { maddeler: ['Rice pudding', 'Baklava', 'Künefe', 'Kazandibi'] },
+    korSahne: ['Ezogelin', 'Lentil', 'Yayla', 'Tarhana'],
+    korTierSahne: ['Rice pudding', 'Baklava', 'Künefe', 'Kazandibi'],
     adimMetinleri: [
       {
         etiket: 'Sıralama Defteri',
@@ -61,9 +62,14 @@ export const en: Mesajlar = {
         metin: 'Today’s Numbers, Today’s True Order, Today’s Arithmetic: the same for everyone, new every day. Each entry in exactly the right spot scores 10.',
       },
       {
-        etiket: 'Games',
+        etiket: 'Blind Ranking',
         baslik: ['Rank it ', 'blind.', ''],
-        metin: 'In Blind Ranking entries arrive one by one; in Tier you drop them into S to D. Dozens of lists from soups to cities, no sign-in needed.',
+        metin: 'Rank entries as they arrive one by one; once placed, they stay put. From 1 to 10…',
+      },
+      {
+        etiket: 'Blind Tiers',
+        baslik: ['Rank it ', 'blind.', ''],
+        metin: '…or from S to D. Dozens of lists from soups to cities, no sign-in needed.',
       },
       {
         etiket: 'Share',

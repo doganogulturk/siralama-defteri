@@ -8,15 +8,16 @@ import OyunSahnesi from './oyna/OyunSahnesi';
 import { messages } from '@/lib/i18n';
 
 /*
- * Oturumsuz açılış: tek ekranlık, kaydırılabilir tanıtım. Dört adım yatayda yan yana
+ * Oturumsuz açılış: tek ekranlık, kaydırılabilir tanıtım. Beş adım yatayda yan yana
  * (scroll-snap — parmakla kaydırma tarayıcının kendisi), altta noktalar ve hep görünen
  * giriş düğmesi. Adımlar kendiliğinden ilerliyor; kullanıcı dokununca duruyor.
  * Sahneler genel ikon değil, uygulamanın kendi arayüzünden küçük, hareketli parçalar:
  *   1. defter — sırayla öne geçen örnek listeler;
  *   2. Bugün — Günün İşlemleri'nin tanıtım kartı (Doğru Sıra'nın iki hamlesi);
- *   3. oyunlar — Kör Tier'in tanıtım kartı (kör gelen kart, tier kademeleri);
- *   4. paylaş — iki şampiyon ve uyum halkası.
- * 2 ve 3 oyunların giriş ekranındaki kartın kendisi (`OyunSahnesi`): oyun değişirse tanıtım da.
+ *   3. Kör Sıralama — oyunun tanıtım kartı ("ister 1'den 10'a…");
+ *   4. Kör Tier — oyunun tanıtım kartı ("…ister S'den D'ye"; başlık 3 ile aynı, metin devamı);
+ *   5. paylaş — iki şampiyon ve uyum halkası.
+ * 2–4 oyunların giriş ekranındaki kartın kendisi (`OyunSahnesi`): oyun değişirse tanıtım da.
  */
 
 interface OrnekKayit { ad: string; foto: string }
@@ -118,9 +119,14 @@ function BugunSahnesi() {
   return <OyunSahnesi tur="dogru-sira" renk="#9333ea" simge="🧮" etiket={m.oyna.gununIslemleri} maddeler={ISLEM_ORNEGI} />;
 }
 
-function OyunlarSahnesi() {
+function KorSahnesi() {
   const m = messages();
-  return <OyunSahnesi tur="kor-tier" renk="#c2436f" simge="🍮" etiket={m.tier.korAd} maddeler={m.tanitim.zevk.maddeler} />;
+  return <OyunSahnesi tur="kor" renk="#c2410c" simge="🍲" etiket={m.kor.ad} maddeler={m.tanitim.korSahne} />;
+}
+
+function KorTierSahnesi() {
+  const m = messages();
+  return <OyunSahnesi tur="kor-tier" renk="#c2436f" simge="🍮" etiket={m.tier.korAd} maddeler={m.tanitim.korTierSahne} />;
 }
 
 /** Paylaş, karşılaştır: iki şampiyon ve dolan uyum halkası. */
@@ -139,10 +145,10 @@ function KarsilastirSahnesi() {
   );
 }
 
-const SAHNELER = [GirisDestesi, BugunSahnesi, OyunlarSahnesi, KarsilastirSahnesi];
+const SAHNELER = [GirisDestesi, BugunSahnesi, KorSahnesi, KorTierSahnesi, KarsilastirSahnesi];
 const ADIM_SAYISI = SAHNELER.length;
-/** Oyun adımlarında (2, 3) "Hemen oyna" bağlantısı: oyunlar giriş istemiyor. */
-const OYUN_ADIMLARI = [1, 2];
+/** Oyun adımlarında "Hemen oyna": oyunlar giriş istemiyor; Kör Sıralama ve Kör Tier kendi modunu açıyor. */
+const OYUN_ADRESLERI: (string | null)[] = [null, '/oyna', '/oyna?mod=kor', '/oyna?mod=kor-tier', null];
 
 function adimlar() {
   return messages().tanitim.adimMetinleri.map((a, i) => ({
@@ -154,7 +160,7 @@ function adimlar() {
 }
 
 /** Adımın ekranda kalma süresi; oyun kartlarının iki hamlesi 8 saniyede bitiyor. */
-const SURELER_MS = [5200, 8400, 8400, 5200];
+const SURELER_MS = [5200, 8400, 8400, 8400, 5200];
 
 /**
  * `girisDugmesi` yoksa (giriş yapmış kullanıcı Hesabım → "Nasıl çalışır?" ile açtı) altta
@@ -210,7 +216,7 @@ export default function Tanitim({ girisDugmesi }: { girisDugmesi?: React.ReactNo
             <p className="tn-etiket-ust">{i + 1} / {ADIMLAR.length} · {a.etiket}</p>
             <h1 className="tn-baslik">{a.baslik}</h1>
             <p className="tn-metin">{a.metin}</p>
-            {OYUN_ADIMLARI.includes(i) && <Link href="/oyna" className="tn-kor-dugme">{m.tanitim.hemenOyna}</Link>}
+            {OYUN_ADRESLERI[i] && <Link href={OYUN_ADRESLERI[i]} className="tn-kor-dugme">{m.tanitim.hemenOyna}</Link>}
           </section>
         ))}
       </div>

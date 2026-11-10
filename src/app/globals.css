@@ -2728,6 +2728,9 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   .mobile-brand-settings:active { transform: scale(0.97); }
 
   .sticky-top { margin: 0 -24px; padding: 0 24px; }
+  /* Liste sütunu kendi içinde kayıyor ve zaten güvenli alanın altında başlıyor: başlık sütunun
+     tepesine yapışsın (uygulamada iPad'de güvenli alan payı ilk satırın üstüne biniyordu). */
+  .list .sticky-top { top: 0; }
   .desk-arama { display: flex; justify-content: flex-end; flex-shrink: 0; margin-left: auto; }
   .desk-arama .arama { width: 220px; }
   .mobile-arama { display: none; }

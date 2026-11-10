@@ -3597,7 +3597,8 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   width: 100%;
   max-width: 460px;
   margin: 0 auto;
-  padding: calc(14px + env(safe-area-inset-top)) 20px 0;
+  /* Güvenli alan payı gövdenin tel şeridinde (`--tel`); burada yeniden eklenmiyor. */
+  padding: 14px 20px 0;
 }
 .tn-bar { gap: 10px; }
 .tn-dil { margin-left: auto; }
@@ -3637,7 +3638,7 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
 .tn-sahne {
   display: grid;
   place-items: center;
-  height: min(38dvh, 300px);
+  height: min(34dvh, 280px);
   margin-bottom: 8px;
 }
 .tn-etiket-ust {
@@ -3670,7 +3671,7 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   margin: 0 auto;
   padding: 6px 24px calc(14px + env(safe-area-inset-bottom));
 }
-.tn-alt .gate-btn { margin-top: 0; }
+.tn-alt .gate-btn { min-height: 50px; margin-top: 0; }
 .tn-alt .gate-yasal { margin-top: 0; }
 .tn-noktalar { display: flex; justify-content: center; gap: 6px; padding: 4px 0 6px; }
 .tn-noktalar button {
@@ -3682,7 +3683,12 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
 }
 .tn-noktalar button.is-on { width: 24px; background: var(--accent); }
 
-/* Alçak ekran: sahne küçülüyor ki metin ve düğme sığsın. */
+/* Telefon boyu (iki giriş düğmesiyle alt bölüm uzun): sahne biraz küçülüyor ki metin sığsın. */
+@media (max-height: 940px) {
+  .tn-sahne { height: 27dvh; }
+  .tn-sahne > * { scale: 0.86; }
+}
+/* Alçak ekran: sahne daha da küçülüyor ki metin ve düğme sığsın. */
 @media (max-height: 680px) {
   .tn-sahne { height: 30dvh; }
   .tn-sahne .gate-deste { scale: 0.8; }

@@ -4,13 +4,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Marka from './Marka';
 import DilSecici from './DilSecici';
+import OyunSahnesi from './oyna/OyunSahnesi';
 import { messages } from '@/lib/i18n';
 
 /*
  * Oturumsuz açılış: tek ekranlık, kaydırılabilir tanıtım. Dört adım yatayda yan yana
  * (scroll-snap — parmakla kaydırma tarayıcının kendisi), altta noktalar ve hep görünen
  * giriş düğmesi. Adımlar kendiliğinden ilerliyor; kullanıcı dokununca duruyor.
- * Sahneler genel ikon değil, uygulamanın kendi arayüzünden küçük, hareketli parçalar.
+ * Sahneler genel ikon değil, uygulamanın kendi arayüzünden küçük, hareketli parçalar:
+ *   1. defter — sırayla öne geçen örnek listeler;
+ *   2. Bugün — Günün İşlemleri'nin tanıtım kartı (Doğru Sıra'nın iki hamlesi);
+ *   3. oyunlar — Kör Tier'in tanıtım kartı (kör gelen kart, tier kademeleri);
+ *   4. paylaş — iki şampiyon ve uyum halkası.
+ * 2 ve 3 oyunların giriş ekranındaki kartın kendisi (`OyunSahnesi`): oyun değişirse tanıtım da.
  */
 
 interface OrnekKayit { ad: string; foto: string }
@@ -25,7 +31,7 @@ const DESTE_RENKLERI: { renk: string; sira: [string, string, string]; asla: stri
   { renk: '#e03c10', sira: ['#5a2d1a', '#b8321a', '#8c1f12'], asla: '#7a1f3d' },
   { renk: '#6b4fbb', sira: ['#6f4a2f', '#b07a4a', '#3d2a1f'], asla: '#8a8577' },
   { renk: '#127a5b', sira: ['#b8742f', '#8a4b22', '#d9a55a'], asla: '#c9b79c' },
-  { renk: '#b45309', sira: ['#7c9a3a', '#c8932f', '#a86b2a'], asla: '#b5a58a' },
+  { renk: '#b45309', sira: ['#7c9a3a', '#c8932f', '#e6d6b0'], asla: '#b5a58a' },
   { renk: '#1f6feb', sira: ['#9b2d1f', '#c5501f', '#5e7d3a'], asla: '#b58a4a' },
   { renk: '#c2436f', sira: ['#b3421f', '#d0662e', '#8f3a1c'], asla: '#a39a8c' },
 ];
@@ -104,29 +110,17 @@ function GirisDestesi() {
   );
 }
 
-const TacIkon = (
-  <svg width="22" height="17" viewBox="0 0 26 20" aria-hidden="true">
-    <path d="M2 6l5.5 5L13 2l5.5 9L24 6l-2.4 12H4.4z" fill="currentColor" />
-  </svg>
-);
+/** Günün İşlemleri: dört işlem sonuca göre diziliyor. İşlemler iki dilde aynı. */
+const ISLEM_ORNEGI = ['24 ÷ 2', '35 − 9', '6 × 8', '9 × 9'];
 
-/** Sürükle, taçlandır: ikinci satır döngüyle en üste çıkıp tacı takıyor. */
-function SiralaSahnesi() {
-  const t = messages().tanitim;
-  const [s1, s2, s3] = t.sirala.satirlar;
-  return (
-    <div className="tn-sirala" aria-hidden="true">
-      {/* Numaralar yerinde duruyor, satırlar altlarında yer değiştiriyor. */}
-      <span className="tn-nolar"><i>1</i><i>2</i><i>3</i></span>
-      <span className="tn-satirlar">
-        <span className="tn-satir tn-s1"><b style={{ '--f': '#5a2d1a' } as React.CSSProperties} />{s1}</span>
-        <span className="tn-satir tn-s2"><b style={{ '--f': '#c5501f' } as React.CSSProperties} />{s2}<em className="tn-tac">{TacIkon}</em></span>
-        <span className="tn-satir tn-s3"><b style={{ '--f': '#8a8f2b' } as React.CSSProperties} />{s3}</span>
-      </span>
-      <span className="tn-cizgi">{t.birDahaAsla}</span>
-      <span className="tn-satir tn-asla"><i>✕</i><b style={{ '--f': '#8a8577' } as React.CSSProperties} />{t.sirala.asla}</span>
-    </div>
-  );
+function BugunSahnesi() {
+  const m = messages();
+  return <OyunSahnesi tur="dogru-sira" renk="#9333ea" simge="🧮" etiket={m.oyna.gununIslemleri} maddeler={ISLEM_ORNEGI} />;
+}
+
+function OyunlarSahnesi() {
+  const m = messages();
+  return <OyunSahnesi tur="kor-tier" renk="#c2436f" simge="🍮" etiket={m.tier.korAd} maddeler={m.tanitim.zevk.maddeler} />;
 }
 
 /** Paylaş, karşılaştır: iki şampiyon ve dolan uyum halkası. */
@@ -145,25 +139,10 @@ function KarsilastirSahnesi() {
   );
 }
 
-/** Kör Sıralama: kart düşüyor, boş bir yuvaya oturuyor; sıradaki geliyor. */
-function KorSahnesi() {
-  const k = messages().tanitim.kor;
-  return (
-    <div className="tn-kor" aria-hidden="true">
-      <span className="tn-kor-kart">{k.kart}</span>
-      <span className="tn-yuvalar">
-        <span className="tn-yuva is-dolu"><i>1</i>{k.dolu1}</span>
-        <span className="tn-yuva"><i>2</i></span>
-        <span className="tn-yuva tn-hedef"><i>3</i><em>{k.kart}</em></span>
-        <span className="tn-yuva"><i>4</i></span>
-        <span className="tn-yuva is-dolu"><i>5</i>{k.dolu5}</span>
-      </span>
-    </div>
-  );
-}
-
-const SAHNELER: React.ReactNode[] = [<GirisDestesi key="deste" />, <SiralaSahnesi key="sirala" />, <KarsilastirSahnesi key="kiyas" />, <KorSahnesi key="kor" />];
+const SAHNELER = [GirisDestesi, BugunSahnesi, OyunlarSahnesi, KarsilastirSahnesi];
 const ADIM_SAYISI = SAHNELER.length;
+/** Oyun adımlarında (2, 3) "Hemen oyna" bağlantısı: oyunlar giriş istemiyor. */
+const OYUN_ADIMLARI = [1, 2];
 
 function adimlar() {
   return messages().tanitim.adimMetinleri.map((a, i) => ({
@@ -174,7 +153,8 @@ function adimlar() {
   }));
 }
 
-const ARALIK_MS = 5200;
+/** Adımın ekranda kalma süresi; oyun kartlarının iki hamlesi 8 saniyede bitiyor. */
+const SURELER_MS = [5200, 8400, 8400, 5200];
 
 /**
  * `girisDugmesi` yoksa (giriş yapmış kullanıcı Hesabım → "Nasıl çalışır?" ile açtı) altta
@@ -196,7 +176,7 @@ export default function Tanitim({ girisDugmesi }: { girisDugmesi?: React.ReactNo
 
   useEffect(() => {
     if (elle || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const t = window.setTimeout(() => git((aktif + 1) % ADIM_SAYISI), ARALIK_MS);
+    const t = window.setTimeout(() => git((aktif + 1) % ADIM_SAYISI), SURELER_MS[aktif]);
     return () => window.clearTimeout(t);
   }, [aktif, elle]);
 
@@ -225,11 +205,12 @@ export default function Tanitim({ girisDugmesi }: { girisDugmesi?: React.ReactNo
             aria-roledescription={m.tanitim.adim}
             aria-label={`${i + 1} / ${ADIMLAR.length}`}
           >
-            <div className="tn-sahne">{a.sahne}</div>
+            {/* Adım öne gelince sahne baştan başlıyor: oyun kartı ilk hamleden oynasın. */}
+            <div className="tn-sahne" key={i === aktif ? 'aktif' : 'bekle'}><a.sahne /></div>
             <p className="tn-etiket-ust">{i + 1} / {ADIMLAR.length} · {a.etiket}</p>
             <h1 className="tn-baslik">{a.baslik}</h1>
             <p className="tn-metin">{a.metin}</p>
-            {i === ADIMLAR.length - 1 && <Link href="/oyna" className="tn-kor-dugme">{m.tanitim.hemenOyna}</Link>}
+            {OYUN_ADIMLARI.includes(i) && <Link href="/oyna" className="tn-kor-dugme">{m.tanitim.hemenOyna}</Link>}
           </section>
         ))}
       </div>

@@ -41,15 +41,14 @@ export const en: Mesajlar = {
     birDahaAsla: 'Never again',
     deste: [
       { ad: 'Cola', kategoriler: ['Regular', 'Sugar-free'], sira: ['Glass bottle', 'Can', 'Plastic bottle'], asla: 'Cherry cola' },
-      { ad: 'Turkish coffee', kategoriler: ['Plain', 'Medium'], sira: ['On embers', 'Copper pot', 'Machine-made'], asla: 'Microwaved' },
-      { ad: 'Döner', kategoriler: ['Meat', 'Chicken'], sira: ['Yaprak', 'İskender', 'Dürüm'], asla: 'Day-old' },
-      { ad: 'Baklava', kategoriler: ['Pistachio', 'Walnut'], sira: ['Carrot slice', 'Şöbiyet', 'Burma'], asla: 'Dry baklava' },
+      { ad: 'Coffees', kategoriler: ['Hot', 'Iced'], sira: ['Turkish coffee', 'Americano', 'Espresso'], asla: 'Instant coffee' },
+      { ad: 'Döner', kategoriler: ['Meat', 'Chicken'], sira: ['Yaprak döner', 'İskender', 'Dürüm döner'], asla: 'Minced döner' },
+      { ad: 'Desserts', kategoriler: ['Traditional', 'Modern'], sira: ['Baklava', 'Kadayıf', 'Rice pudding'], asla: 'Cold baklava' },
       { ad: 'Tea', kategoriler: ['Black', 'Herbal'], sira: ['Rabbit’s blood', 'Samovar', 'Linden'], asla: 'Tea bag' },
       { ad: 'Lahmacun', kategoriler: ['Spicy', 'Mild'], sira: ['Urfa style', 'Antep style', 'Cypriot style'], asla: 'Frozen' },
     ],
-    sirala: { satirlar: ['Lentil', 'Ezogelin', 'Yayla'], asla: 'Kelle paça' },
     kiyas: { sen: 'You', arkadas: 'Ayşe', senin: 'Yaprak', onun: 'İskender', etiket: 'Same taste' },
-    kor: { kart: 'Künefe', dolu1: 'Baklava', dolu5: 'Rice pudding' },
+    zevk: { maddeler: ['Rice pudding', 'Baklava', 'Künefe', 'Kazandibi'] },
     adimMetinleri: [
       {
         etiket: 'Sıralama Defteri',
@@ -57,19 +56,19 @@ export const en: Mesajlar = {
         metin: 'Build your own lists, from cola to coffee. Line up what you’ve tried with photos, and jot down what you haven’t.',
       },
       {
-        etiket: 'Drag',
-        baslik: ['Changed your mind? ', 'Move', ' it.'],
-        metin: 'Rank by dragging; the new champion takes the crown. What you didn’t like sits below the “Never again” line.',
+        etiket: 'Today',
+        baslik: ['A new game ', 'every day.', ''],
+        metin: 'Today’s Numbers, Today’s True Order, Today’s Arithmetic: the same for everyone, new every day. Each entry in exactly the right spot scores 10.',
+      },
+      {
+        etiket: 'Games',
+        baslik: ['Rank it ', 'blind.', ''],
+        metin: 'In Blind Ranking entries arrive one by one; in Tier you drop them into S to D. Dozens of lists from soups to cities, no sign-in needed.',
       },
       {
         etiket: 'Share',
         baslik: ['Compare with ', 'friends.', ''],
-        metin: 'Send your list as a link and let them make their own ranking. See together how far your tastes match.',
-      },
-      {
-        etiket: 'Game',
-        baslik: ['Blind ', 'Ranking.', ''],
-        metin: 'Ten entries arrive one by one; place each without knowing what comes next. Play right away, no sign-in.',
+        metin: 'Send your list or your game result as a link and let them rank it too. See together how far your tastes match.',
       },
     ],
   },

@@ -38,15 +38,15 @@ export const tr = {
     /** Destede sırayla öne geçen örnek listeler; renkleri ve fotoğraf kutucukları bileşende. */
     deste: [
       { ad: 'Kola', kategoriler: ['Şekerli', 'Şekersiz'], sira: ['Cam şişe', 'Kutu', 'Pet şişe'], asla: 'Vişneli kola' },
-      { ad: 'Türk kahvesi', kategoriler: ['Sade', 'Orta'], sira: ['Közde', 'Bakır cezve', 'Makinede'], asla: 'Mikrodalgada' },
-      { ad: 'Döner', kategoriler: ['Et', 'Tavuk'], sira: ['Yaprak', 'İskender', 'Dürüm'], asla: 'Dünden kalma' },
-      { ad: 'Baklava', kategoriler: ['Fıstıklı', 'Cevizli'], sira: ['Havuç dilimi', 'Şöbiyet', 'Burma'], asla: 'Kuru baklava' },
+      { ad: 'Kahveler', kategoriler: ['Sıcak', 'Soğuk'], sira: ['Türk kahvesi', 'Americano', 'Espresso'], asla: 'Hazır kahve' },
+      { ad: 'Döner', kategoriler: ['Et', 'Tavuk'], sira: ['Yaprak et döner', 'İskender', 'Dürüm döner'], asla: 'Kıyma döner' },
+      { ad: 'Tatlılar', kategoriler: ['Geleneksel', 'Modern'], sira: ['Baklava', 'Kadayıf', 'Sütlaç'], asla: 'Soğuk baklava' },
       { ad: 'Çay', kategoriler: ['Siyah', 'Bitki'], sira: ['Tavşan kanı', 'Semaver', 'Ihlamur'], asla: 'Poşet çay' },
       { ad: 'Lahmacun', kategoriler: ['Acılı', 'Acısız'], sira: ['Urfa usulü', 'Antep usulü', 'Kıbrıs usulü'], asla: 'Donmuş' },
     ] as { ad: string; kategoriler: [string, string]; sira: [string, string, string]; asla: string }[],
-    sirala: { satirlar: ['Mercimek', 'Ezogelin', 'Yayla'] as [string, string, string], asla: 'Kelle paça' },
     kiyas: { sen: 'Sen', arkadas: 'Ayşe', senin: 'Yaprak', onun: 'İskender', etiket: 'Aynı damak' },
-    kor: { kart: 'Künefe', dolu1: 'Baklava', dolu5: 'Sütlaç' },
+    /** 3. adımın sahnesi Kör Tier'in tanıtım kartı: S'de 2. ve 3., 1. A'ya, 4. B'ye iniyor. */
+    zevk: { maddeler: ['Sütlaç', 'Baklava', 'Künefe', 'Kazandibi'] },
     adimMetinleri: [
       {
         etiket: 'Sıralama Defteri',
@@ -54,19 +54,19 @@ export const tr = {
         metin: 'Koladan kahveye kendi listelerini kur. Denediklerini fotoğraflarıyla diz, denemediklerini kenara yaz.',
       },
       {
-        etiket: 'Sürükle',
-        baslik: ['Fikrin değişti mi? ', 'Yerini', ' değiştir.'],
-        metin: 'Sürükleyerek sırala; yeni şampiyon tacını takar. Beğenmediklerin “Bir daha asla” çizgisinin altında durur.',
+        etiket: 'Bugün',
+        baslik: ['Her gün yeni bir ', 'oyun.', ''],
+        metin: 'Günün Sayıları, Günün Doğru Sırası, Günün İşlemleri: herkese aynı, her gün yeni. Tam yerine koyduğun her kayıt 10 puan.',
+      },
+      {
+        etiket: 'Oyunlar',
+        baslik: ['Sıradakini ', 'bilmeden', ' diz.'],
+        metin: 'Kör Sıralama’da kayıtlar birer birer gelir; Tier’de S’den D’ye kademelere koyarsın. Çorbalardan şehirlere onlarca liste, giriş yapmadan.',
       },
       {
         etiket: 'Paylaş',
         baslik: ['Arkadaşınla ', 'karşılaştır.', ''],
-        metin: 'Listeni bir bağlantıyla gönder; o da kendi sırasını yapsın. Zevkleriniz yüzde kaç uyuşuyor, birlikte görün.',
-      },
-      {
-        etiket: 'Oyun',
-        baslik: ['Kör ', 'Sıralama.', ''],
-        metin: 'On kayıt birer birer gelir; sıradakini bilmeden her birini bir sıraya koy. Giriş yapmadan hemen oyna.',
+        metin: 'Listeni ya da oyun sonucunu bir bağlantıyla gönder; o da sıralasın. Zevkleriniz yüzde kaç uyuşuyor, birlikte görün.',
       },
     ] as { etiket: string; baslik: [string, string, string]; metin: string }[],
   },

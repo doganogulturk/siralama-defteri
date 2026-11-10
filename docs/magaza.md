@@ -96,7 +96,7 @@ Games need no sign-in. To build your own notebook, sign in with Apple or Google.
 | Gizlilik politikası | https://siralama-defteri.vercel.app/gizlilik |
 | Destek adresi | https://siralama-defteri.vercel.app/hesap-silme (iletişim ve hesap silme bilgisi) |
 | Telif | 2026 Doğan Oğultürk |
-| Ekran görüntüleri | `build/magaza/iphone` (6,9", 1320×2868) ve `build/magaza/ipad` (13", 2064×2752); sıra: tanıtım, liste, liste kademelerde, Oyna, Kör Sıralama, Tier, Doğru Sıra. `build/` depoda değil; yeniden üretmek için iPhone 18 Pro Max ve iPad Pro 13" simülatörleri, durum çubuğu `xcrun simctl status_bar … override --time 9:41`. |
+| Ekran görüntüleri | `build/magaza/iphone-6.3` (6,3", 1206×2622; App Store Connect bu boyutu istedi, 6,9" çekimlerden küçültüldü) ve `build/magaza/iphone` (6,9", 1320×2868) ve `build/magaza/ipad` (13", 2064×2752); sıra: tanıtım, liste, liste kademelerde, Oyna, Kör Sıralama, Tier, Doğru Sıra. `build/` depoda değil; yeniden üretmek için iPhone 18 Pro Max ve iPad Pro 13" simülatörleri, durum çubuğu `xcrun simctl status_bar … override --time 9:41`. |
 
 **Gizlilik etiketi (App Privacy):** izleme (tracking) yok. Toplanan veriler kullanıcının kimliğine bağlı, yalnızca uygulamanın çalışması için (App Functionality):
 - İletişim bilgisi: ad, e-posta adresi (Google / Apple girişinden)

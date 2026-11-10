@@ -104,7 +104,9 @@ Games need no sign-in. To build your own notebook, sign in with Apple or Google.
 - Tanımlayıcılar: kullanıcı kimliği (hesap)
 Uygulamada analitik yok (`Analitik` yalnızca web sitesinde).
 
-**Yaş derecelendirmesi:** kullanıcıların oluşturduğu içerik var (paylaşılan listeler); bildir ve engelle uygulamada. Diğer sorular "yok".
+**Yaş derecelendirmesi:** 4+ (hesaplanan). Kullanıcıların oluşturduğu içerik: evet (paylaşılan listeler; bildir ve engelle uygulamada); ebeveyn kontrolü, yaş doğrulama, serbest web, sosyal medya, mesajlaşma, reklam: hayır; olgun tema, tıbbi, cinsellik, şiddet, şans oyunu soruları: yok. Kullanım koşullarında yaş sınırı yok; konursa derecelendirme ona göre yükseltilmeli.
+
+**App Store Connect'te girilenler (10 Kasım 2026):** Türkçe, İngilizce (U.S.) ve İngilizce (U.K.) metinler; kategori Eğlence + Oyunlar/Bilgi Yarışması; ücretsiz, 175 ülke; gizlilik etiketi yayımlandı; yaş derecelendirmesi; sürüme 2. derleme bağlı; incelemede "giriş gerekli" kapalı.
 
 **İnceleme notu (App Review):**
 Oyunlar (Oyna sekmesi) giriş istemez. Kendi listelerini kurmak için "Apple ile devam et" ya da "Google ile devam et" yeterli; deneme hesabı gerekmez. Paylaşılan bir liste "Bildir" ile bildirilebilir, paylaşan kişi engellenebilir. Hesap silme: profil resmi → Hesabım → Hesabımı sil (Apple jetonu da iptal ediliyor). Kameralı Kör Sıralama'nın videosu cihazdan çıkmaz.

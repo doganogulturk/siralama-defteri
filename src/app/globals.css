@@ -3365,6 +3365,11 @@ button.detail-komsu:hover { background: var(--tint); color: var(--ink); }
   margin: 0 auto;
   padding: 0 16px env(safe-area-inset-bottom);
 }
+/* Dokunmatik tablet (iPad dikey): oyun ekranı telefondaki boyutta kalıp ekranın yarısını boş
+   bırakıyordu. Bütün oyun büyüyor; yükseklik büyütmeye bölünüyor ki ekrandan taşmasın. */
+@media (min-width: 700px) and (min-height: 1000px) and (pointer: coarse) {
+  .kor { zoom: 1.3; min-height: calc((100dvh - var(--tel)) / 1.3); }
+}
 .kor-bar {
   display: grid;
   grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap);

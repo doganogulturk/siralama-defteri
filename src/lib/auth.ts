@@ -43,7 +43,8 @@ export async function girisYap(saglayici: GirisSaglayici): Promise<void> {
     });
     if (error) throw error;
     const { Browser } = await import('@capacitor/browser');
-    await Browser.open({ url: data.url, presentationStyle: 'popover' });
+    // Tam ekran: iPad'de 'popover' ortada küçük, boş kalan bir pencere açıyordu.
+    await Browser.open({ url: data.url, presentationStyle: 'fullscreen' });
     return;
   }
   const yol = window.location.pathname + window.location.search;

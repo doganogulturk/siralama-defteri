@@ -180,6 +180,18 @@ export default function Tanitim({ girisDugmesi }: { girisDugmesi?: React.ReactNo
     el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' });
   };
 
+  // Ekran dönünce (iPad) ya da pencere boyu değişince iz yarım kartta kalmasın: öndeki adıma otur.
+  const aktifRef = useRef(aktif);
+  aktifRef.current = aktif;
+  useEffect(() => {
+    const otur = () => {
+      const el = iz.current;
+      if (el) el.scrollTo({ left: aktifRef.current * el.clientWidth, behavior: 'instant' });
+    };
+    window.addEventListener('resize', otur);
+    return () => window.removeEventListener('resize', otur);
+  }, []);
+
   useEffect(() => {
     if (elle || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const t = window.setTimeout(() => git((aktif + 1) % ADIM_SAYISI), SURELER_MS[aktif]);
@@ -213,10 +225,12 @@ export default function Tanitim({ girisDugmesi }: { girisDugmesi?: React.ReactNo
           >
             {/* Adım öne gelince sahne baştan başlıyor: oyun kartı ilk hamleden oynasın. */}
             <div className="tn-sahne" key={i === aktif ? 'aktif' : 'bekle'}><a.sahne /></div>
-            <p className="tn-etiket-ust">{i + 1} / {ADIMLAR.length} · {a.etiket}</p>
-            <h1 className="tn-baslik">{a.baslik}</h1>
-            <p className="tn-metin">{a.metin}</p>
-            {OYUN_ADRESLERI[i] && <Link href={OYUN_ADRESLERI[i]} className="tn-kor-dugme">{m.tanitim.hemenOyna}</Link>}
+            <div className="tn-yazi">
+              <p className="tn-etiket-ust">{i + 1} / {ADIMLAR.length} · {a.etiket}</p>
+              <h1 className="tn-baslik">{a.baslik}</h1>
+              <p className="tn-metin">{a.metin}</p>
+              {OYUN_ADRESLERI[i] && <Link href={OYUN_ADRESLERI[i]} className="tn-kor-dugme">{m.tanitim.hemenOyna}</Link>}
+            </div>
           </section>
         ))}
       </div>

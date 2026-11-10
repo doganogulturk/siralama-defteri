@@ -54,7 +54,10 @@ public class AppleGirisiPlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationCont
 
     public func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
         defer { bekleyen = nil }
-        if (error as? ASAuthorizationError)?.code == .canceled {
+        // Vazgeçmek ve cihazda Apple hesabı olmaması (.unknown; iOS "Ayarlar'da giriş yapın"
+        // uyarısını kendisi gösteriyor) sessiz geçiyor.
+        let kod = (error as? ASAuthorizationError)?.code
+        if kod == .canceled || kod == .unknown {
             bekleyen?.reject("Vazgeçildi.", "IPTAL")
         } else {
             bekleyen?.reject(error.localizedDescription, "HATA", error)

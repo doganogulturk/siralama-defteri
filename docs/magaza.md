@@ -108,5 +108,33 @@ Uygulamada analitik yok (`Analitik` yalnızca web sitesinde).
 
 **App Store Connect'te girilenler (10 Kasım 2026):** Türkçe, İngilizce (U.S.) ve İngilizce (U.K.) metinler; kategori Eğlence + Oyunlar/Bilgi Yarışması; ücretsiz, 175 ülke; gizlilik etiketi yayımlandı; yaş derecelendirmesi; sürüme 2. derleme bağlı; incelemede "giriş gerekli" kapalı.
 
-**İnceleme notu (App Review):**
+**İnceleme notu (ikinci gönderim, 11 Kasım 2026):** ilk gönderime Apple "Guideline 2.1 – Information Needed" yanıtı verdi: gerçek cihazdan ekran kaydı ve amaç, kurulum, dış servisler, bölge farkı, düzenlenmiş içerik açıklaması istedi. Notes alanına girilen metin (İngilizce; ekran kaydı Attachment olarak yüklendi):
+
+```
+Screen recording: attached (Attachment field). Recorded on iPhone, latest iOS, starting from app launch: intro, games without sign-in, Sign in with Apple, creating and ranking a list, sharing it, the shared page with Report and Block, and account deletion.
+
+1) PURPOSE AND AUDIENCE
+Sıralama Defteri ("Ranking Notebook") lets people rank the things they love and play short ranking games. It is for a general audience (4+), mainly Turkish and English speakers. It solves a simple problem: keeping your personal favorites (coffees, dishes, places) in order with photos, and turning taste into a quick game you can share with friends. Value: a personal ranking notebook plus daily puzzle-like ranking games (same game for everyone each day).
+
+2) HOW TO USE THE MAIN FEATURES (no demo account needed)
+- Games (no sign-in): open the "Oyna" (Play) tab. Today's games are at the top; Blind Ranking, Tier and Blind Tier use catalog lists; "Doğrusunu bul" games have a correct answer.
+- Own lists (sign-in): tap "Apple ile devam et" (Sign in with Apple) or "Google ile devam et". Then "Yeni liste" (New list) > add entries with a photo > drag to reorder > switch to "Tier" to split into S–D tiers.
+- Sharing: in a list, "Paylaş" (Share) creates a link. Shared content of other users opens on our website (siralama-defteri.vercel.app/p/...) and inside the app on the blind-ranking and comparison screens; every such page has "Bildir" (Report, with reasons) and "Bu kişiyi engelle" (Block this person). Blocked users' content is hidden behind a curtain. Reports are reviewed within 24 hours.
+- Account deletion: tap the profile picture > "Hesabım" (My account) > "Hesabımı sil" (Delete my account), type the confirmation word. All data is deleted and the Sign in with Apple token is revoked.
+- The app is bilingual; the language switch (TR/EN) is on the intro screen and in My account.
+
+3) EXTERNAL SERVICES
+- Supabase (database, authentication, photo storage, one edge function for Apple token revocation)
+- Sign in with Apple (native), Google Sign-In (OAuth via Supabase, in the system browser sheet)
+- Vercel (hosts our website: shared list pages and share images)
+No payments, no ads, no analytics or tracking in the app, no AI services.
+
+4) REGIONAL DIFFERENCES
+None. The app works the same in all regions; only the interface language follows the device (Turkish or English).
+
+5) REGULATED OR PROTECTED MATERIAL
+Not a regulated industry. Game data (e.g. planets, country populations) comes from public sources cited in the app. Photos are uploaded by users for their own lists; the Terms of Use prohibit infringing content and shared items can be reported.
+```
+
+**İlk inceleme notu (10 Kasım 2026):**
 Oyunlar (Oyna sekmesi) giriş istemez. Kendi listelerini kurmak için "Apple ile devam et" ya da "Google ile devam et" yeterli; deneme hesabı gerekmez. Paylaşılan bir liste "Bildir" ile bildirilebilir, paylaşan kişi engellenebilir. Hesap silme: profil resmi → Hesabım → Hesabımı sil (Apple jetonu da iptal ediliyor). Kameralı Kör Sıralama'nın videosu cihazdan çıkmaz.

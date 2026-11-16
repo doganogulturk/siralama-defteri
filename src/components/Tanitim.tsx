@@ -180,8 +180,12 @@ export default function Tanitim({ girisDugmesi }: { girisDugmesi?: React.ReactNo
   };
 
   // Ekran dönünce (iPad) ya da pencere boyu değişince iz yarım kartta kalmasın: öndeki adıma otur.
+  // Öndeki adım ref'te: dinleyici bir kez kuruluyor, adım değişince yeniden kurulmasın. Ref çizimde değil
+  // efektte güncelleniyor (React çizim sırasında ref'e yazmayı yasaklıyor).
   const aktifRef = useRef(aktif);
-  aktifRef.current = aktif;
+  useEffect(() => {
+    aktifRef.current = aktif;
+  }, [aktif]);
   useEffect(() => {
     const otur = () => {
       const el = iz.current;

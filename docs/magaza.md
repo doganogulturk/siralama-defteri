@@ -89,7 +89,7 @@ Games need no sign-in. To build your own notebook, sign in with Apple or Google.
 
 ## 1.1 güncellemesi
 
-1.0 (2) incelemedeyken (Kasım 2026) hazırlandı. Xcode'da `MARKETING_VERSION` 1.1 (Hakkında'daki sürümle aynı, `src/lib/surumler.ts`); yapı numarasını Xcode yüklerken veriyor. App Store Connect'te 1.1 sürüm sayfası ancak 1.0 onaylanınca (ya da reddedilince) açılabiliyor; derleme TestFlight'a önceden yüklenebilir.
+1.0 (2) incelemedeyken (Kasım 2026) hazırlandı. **16 Kasım 2026'da gönderildi:** 1.1 sürümü açıldı, derleme 1.1 (2) bağlandı, aşağıdaki yenilikler metni Türkçe, İngilizce (U.S.) ve İngilizce (U.K.) girildi, inceleme notu güncellendi (ilk satırı: ekran kaydı 1.0 gönderiminde, 1.1'de "Hesabım" Profil sayfası oldu; ek 1.1'e taşınmadı). Yayın: "Automatically release this version" (1.0'dan kalan ayar). Xcode'da `MARKETING_VERSION` 1.1 (Hakkında'daki sürümle aynı, `src/lib/surumler.ts`); yapı numarasını Xcode yüklerken veriyor. App Store Connect'te 1.1 sürüm sayfası ancak 1.0 onaylanınca (ya da reddedilince) açılabiliyor; derleme TestFlight'a önceden yüklenebilir.
 
 **Bu sürümdeki yenilikler (Türkçe):**
 ```

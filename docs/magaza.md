@@ -87,6 +87,33 @@ WITH FRIENDS
 
 Games need no sign-in. To build your own notebook, sign in with Apple or Google. You can delete your account and all your data from inside the app at any time.
 
+## 1.1 güncellemesi
+
+1.0 (2) incelemedeyken (Kasım 2026) hazırlandı. Xcode'da `MARKETING_VERSION` 1.1 (Hakkında'daki sürümle aynı, `src/lib/surumler.ts`); yapı numarasını Xcode yüklerken veriyor. App Store Connect'te 1.1 sürüm sayfası ancak 1.0 onaylanınca (ya da reddedilince) açılabiliyor; derleme TestFlight'a önceden yüklenebilir.
+
+**Bu sürümdeki yenilikler (Türkçe):**
+```
+• Yeni açılış ekranı: simgenin çubukları kendini sıralıyor.
+• Profil sayfası: profil fotoğrafına dokun; dil, tema ve çıkış burada.
+• Tema seçimi: Sistem, Açık ya da Koyu.
+• Hakkında: uygulamayı kimin geliştirdiği ve sürüm geçmişi.
+```
+
+**What's New (English):**
+```
+• New launch screen: the bars of the icon sort themselves.
+• Profile page: tap your profile picture; language, theme and sign out live here.
+• Theme choice: System, Light or Dark.
+• About: who builds the app and the version history.
+```
+
+**İnceleme notunda değişenler** (ikinci gönderimdeki metnin 2. bölümü; gerisi aynı):
+```
+- Account deletion: tap the profile picture > "Profil" (Profile) page > "Hesap silme" (Account deletion) > "Hesabımı sil" (Delete my account), type the confirmation word. All data is deleted and the Sign in with Apple token is revoked.
+- The app is bilingual; the language switch (Türkçe/English) is on the Profile page (and on the Play screen and legal pages when signed out). The theme (System/Light/Dark) is also chosen on the Profile page.
+```
+Ekran kaydı 1.0'ınki: hesap silme adımı artık "Hesabım" penceresi değil Profil sayfası. Apple yeniden kayıt isterse Profil üzerinden çekilmeli. Ekran görüntülerinde Hesabım penceresi yok, değişmeleri gerekmiyor.
+
 ## Ayarlar
 
 | Alan | Değer |

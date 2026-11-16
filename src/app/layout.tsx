@@ -7,6 +7,9 @@ import { GezintiIzi } from "@/components/oyna/OyunGeri";
 import UygulamaKoprusu from "@/components/UygulamaKoprusu";
 import DilKoku from "@/components/DilKoku";
 import AcilisPerdesi from "@/components/AcilisPerdesi";
+import TemaKoku from "@/components/TemaKoku";
+import { temaOzniteligi } from "@/lib/tema";
+import { istekTemasi } from "@/lib/tema-sunucu";
 import { istekDili } from "@/lib/i18n/sunucu";
 
 /*
@@ -47,7 +50,8 @@ export const metadata: Metadata = {
 };
 
 /*
- * Tarayıcı çubuğu sayfa zeminiyle aynı renkte; tema sistemi izliyor.
+ * Tarayıcı çubuğu sayfa zeminiyle aynı renkte; tema sistemi izliyor (Profil'de elle seçilirse `TemaKoku`
+ * iki etiketi de seçilen temanın rengine çeviriyor).
  * `viewportFit: cover`: sayfa çentiğin ve ana ekran çizgisinin altına uzanıyor; alt menü ve
  * yüzen düğme `env(safe-area-inset-*)` ile kendilerini içeri alıyor. Bu olmadan iPhone'da o
  * değerler hep 0.
@@ -72,8 +76,17 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const dil = await istekDili();
+  const tema = await istekTemasi();
   return (
-    <html lang={dil} className={`${geist.variable} ${instrumentSerif.variable}`}>
+    // `data-tema`: Profil'de elle seçilen tema (`lib/tema.ts`), çerezden; "sistem"de yok. Uygulama paketinde
+    // sunucu çerezi göremiyor, seçimi iOS sayfa başlamadan uyguluyor (`UygulamaViewController.swift`); öznitelik
+    // bu yüzden sunucununkinden farklı olabiliyor, kök etikette hidrasyon uyarısı kapalı (yalnızca bu etiket).
+    <html
+      lang={dil}
+      className={`${geist.variable} ${instrumentSerif.variable}`}
+      data-tema={temaOzniteligi(tema)}
+      suppressHydrationWarning
+    >
       <body>
         <DilKoku baslangic={dil}>
           {children}
@@ -81,6 +94,7 @@ export default async function RootLayout({
           <GezintiIzi />
           <UygulamaKoprusu />
           <AcilisPerdesi />
+          <TemaKoku />
         </DilKoku>
         <Analitik />
       </body>

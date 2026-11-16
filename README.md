@@ -19,6 +19,7 @@ Canlı: <https://siralama-defteri.vercel.app>
 - **Türkçe / English** — arayüz cihaz diliyle açılır, seçilip hatırlanır; paylaşımlar paylaşanın dilinde (`?l=en`).
 - **Hesabın tamamen silinmesi** — Hesap Silme sayfasından; mağazaların istediği gibi giriş kaydı dahil.
 - **Açılış perdesi** — ana sayfa açılınca simgenin çubukları kendini sıralar, altında ad ve imza; uygulamada iOS'un açılış ekranından sıçramadan devralır.
+- **Profil ve Hakkında** — profilde dil ve tema (Sistem · Açık · Koyu) seçimi ve çıkış; Hakkında'da geliştiren, iletişim ve sürüm geçmişi (`lib/surumler.ts`).
 - **Hazır şablonlar, PWA, açık/koyu tema, iki dilli yasal sayfalar.**
 
 Ayrıntılar ve gerekçeler `docs/` altında:

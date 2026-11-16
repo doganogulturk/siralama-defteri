@@ -7,8 +7,8 @@ import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
 const DILLER: Dil[] = ['tr', 'en'];
 
 /**
- * Türkçe / English seçimi: iki küçük düğme. Giriş ekranında (oturum yokken "Hesabım" açılamıyor),
- * "Hesabım"da ve yasal sayfalarda duruyor. Seçim hatırlanıyor ve bütün sayfa o dilde yeniden kuruluyor.
+ * Türkçe / English seçimi: iki küçük düğme. Profil'de; oturum yokken Profil açılamadığı için misafirin
+ * Oyna ekranında ve yasal sayfalarda da. Tanıtımda ve Hakkında'da yok. Seçim hatırlanıyor ve bütün sayfa o dilde yeniden kuruluyor.
  * `kisa`: dar üst çubuklarda "TR / EN"; tam ad ekran okuyucu için etikette kalıyor.
  */
 export default function DilSecici({ className = '', kisa = false }: { className?: string; kisa?: boolean }) {

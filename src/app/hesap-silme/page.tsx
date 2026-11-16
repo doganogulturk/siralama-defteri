@@ -19,7 +19,7 @@ const TURKCE = (
     <h2>Uygulamanın içinden (hemen)</h2>
     <ol>
       <li>Sıralama Defteri&apos;ne silmek istediğin hesapla giriş yap.</li>
-      <li>Sağ üstteki profil fotoğrafına dokun, açılan pencerede <strong>Hesap silme</strong>&apos;yi seç.</li>
+      <li>Sağ üstteki profil fotoğrafına dokun, açılan <strong>Profil</strong> sayfasının altındaki <strong>Hesap silme</strong>&apos;yi seç.</li>
       <li>Bu sayfanın sonundaki <strong>Hesabımı sil</strong> düğmesine dokun ve onayla.</li>
     </ol>
     <p>Hesabın ve bütün verilerin hemen silinir, oturumun kapanır. Bu işlem geri alınamaz.</p>
@@ -56,7 +56,7 @@ const INGILIZCE = (
     <h2>From within the app (immediately)</h2>
     <ol>
       <li>Sign in to Sıralama Defteri with the account you want to delete.</li>
-      <li>Tap your profile photo at the top right and choose <strong>Account deletion</strong> in the window that opens.</li>
+      <li>Tap your profile photo at the top right and choose <strong>Account deletion</strong> at the bottom of the <strong>Profile</strong> page.</li>
       <li>Tap <strong>Delete my account</strong> at the end of this page and confirm.</li>
     </ol>
     <p>Your account and all your data are deleted immediately and you are signed out. This cannot be undone.</p>

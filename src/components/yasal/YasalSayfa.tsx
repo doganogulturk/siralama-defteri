@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import Marka from '@/components/Marka';
-import DilSecici from '@/components/DilSecici';
+import MetinCubugu from '@/components/MetinCubugu';
 import { ILETISIM_EPOSTA, yasalSayfalar } from '@/lib/iletisim';
 import { diliSec } from '@/lib/i18n';
 import { useDilim, useMesajlar } from '@/lib/i18n/DilBaglami';
@@ -31,13 +30,7 @@ export default function YasalSayfa({ tr, en }: { tr: YasalSurum; en: YasalSurum 
   const m = mesajlar.yasal;
   return (
     <div className="metin-sayfa">
-      <header className="paylasim-bar metin-bar">
-        <Link href="/" className="paylasim-marka" aria-label={m.markaAnaSayfa}>
-          <Marka />
-        </Link>
-        <DilSecici className="metin-dil" kisa />
-        <Link href="/" className="metin-don">{m.uygulamayaDon}</Link>
-      </header>
+      <MetinCubugu dilSecici />
 
       <main>
         <h1 className="paylasim-baslik">{sayfa.baslik}</h1>

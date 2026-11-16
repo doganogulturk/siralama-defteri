@@ -3,7 +3,7 @@ import { tr, type Mesajlar } from './tr';
 
 /**
  * Arayüz dili: Türkçe ya da İngilizce. İlk açılışta seçim yoksa önce bağlantıdaki dil (`?l=en`: paylaşanın
- * dili), sonra cihazın dili (Türkçeyse Türkçe, değilse İngilizce); "Hesabım"dan ya da giriş ekranından
+ * dili), sonra cihazın dili (Türkçeyse Türkçe, değilse İngilizce); Profil'den ya da giriş ekranından
  * seçilirse o hatırlanır. Metinler iki sözlükte (tr.ts, en.ts); İngilizce sözlük Türkçeyle aynı yapıda olmak
  * zorunda olduğu için eksik çeviri derlemede yakalanır.
  *

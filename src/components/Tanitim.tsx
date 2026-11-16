@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Marka from './Marka';
-import DilSecici from './DilSecici';
 import OyunSahnesi from './oyna/OyunSahnesi';
 import { messages } from '@/lib/i18n';
 
@@ -163,7 +162,7 @@ function adimlar() {
 const SURELER_MS = [5200, 8400, 8400, 8400, 5200];
 
 /**
- * `girisDugmesi` yoksa (giriş yapmış kullanıcı Hesabım → "Nasıl çalışır?" ile açtı) altta
+ * `girisDugmesi` yoksa (giriş yapmış kullanıcı Profil → "Nasıl çalışır?" ile açtı) altta
  * giriş yerine listelerine dönüş.
  */
 export default function Tanitim({ girisDugmesi }: { girisDugmesi?: React.ReactNode }) {
@@ -202,7 +201,6 @@ export default function Tanitim({ girisDugmesi }: { girisDugmesi?: React.ReactNo
     <div className="tn">
       <header className="tn-bar">
         <Marka />
-        <DilSecici className="tn-dil" kisa />
         <Link href="/oyna" className="tn-oyna">{m.tanitim.oyna}</Link>
       </header>
 

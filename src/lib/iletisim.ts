@@ -10,7 +10,7 @@ export const ILETISIM_EPOSTA = 'doganogulturk@gmail.com';
 /** Gizlilik, KVKK ve koşulların son güncellendiği gün — içerik değişince bu da değişmeli. */
 export const YASAL_TARIH = { tr: '9 Kasım 2026', en: '9 November 2026' };
 
-/** Yasal sayfaların sırası: sayfaların altındaki gezinme ve "Hesabım"daki bağlantılar; adlar arayüz dilinde. */
+/** Yasal sayfaların sırası: sayfaların altındaki gezinme Profil ve Hakkında'daki bağlantılar; adlar arayüz dilinde. */
 /** `dil` verilmezse tarayıcıdaki dil (`messages()`); sunucuda da çizilen yerler dili vermeli. */
 export function yasalSayfalar(dil?: Dil) {
   const m = (dil ? sozluk(dil) : messages()).yasalBaglantilar;

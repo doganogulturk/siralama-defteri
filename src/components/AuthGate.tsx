@@ -43,7 +43,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   const yol = usePathname();
 
   // İlk açılış: tanıtım bir kez, kendiliğinden (sonra ana sayfada oyunlar). Bu cihazda görüldüyse
-  // bir daha değil; Hesabım → "Nasıl çalışır?" ya da `/tanitim` her zaman açıyor.
+  // bir daha değil; Profil → "Nasıl çalışır?" ya da `/tanitim` her zaman açıyor.
   const [ilkAcilis, setIlkAcilis] = useState<boolean | null>(null);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -81,8 +81,8 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   return (
     <>
       {children}
-      {/* Ana ekran hesabı kendi başlığında çiziyor; CSS bu bloğu orada gizliyor. */}
-      <Hesap user={user} className="account-btn" />
+      {/* Ana ekran hesabı kendi başlığında çiziyor; CSS bu bloğu orada gizliyor. Profil sayfası kendisi gösteriyor. */}
+      {yol !== '/profil' && <Hesap user={user} className="account-btn" />}
     </>
   );
 }

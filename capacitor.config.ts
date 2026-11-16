@@ -11,7 +11,8 @@ const config: CapacitorConfig = {
   appName: 'Sıralama Defteri',
   webDir: 'out',
   // Sayfa yüklenene kadar WebView'in zemini: açılıştan sonra bembeyaz bir an görünmesin (defter zemini).
-  backgroundColor: '#f7f6f2',
+  // Uygulamada UygulamaViewController bunu temaya göre AcilisZemin rengiyle değiştiriyor (koyu temada koyu).
+  backgroundColor: '#f8f7f4',
   ios: {
     // Kareli kâğıt güvenli alanın altına da uzansın; içerik `env(safe-area-inset-*)` ile içeride.
     contentInset: 'never',

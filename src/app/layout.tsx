@@ -6,6 +6,7 @@ import Pencereler from "@/components/Pencereler";
 import { GezintiIzi } from "@/components/oyna/OyunGeri";
 import UygulamaKoprusu from "@/components/UygulamaKoprusu";
 import DilKoku from "@/components/DilKoku";
+import AcilisPerdesi from "@/components/AcilisPerdesi";
 import { istekDili } from "@/lib/i18n/sunucu";
 
 /*
@@ -79,6 +80,7 @@ export default async function RootLayout({
           <Pencereler />
           <GezintiIzi />
           <UygulamaKoprusu />
+          <AcilisPerdesi />
         </DilKoku>
         <Analitik />
       </body>

@@ -18,6 +18,7 @@ Canlı: <https://siralama-defteri.vercel.app>
 - **Doğru Sıra** — doğru cevabı olan sıralamalar: ülkelerin nüfusu, iller, dağlar, padişahlar, tarihî olaylar… On madde karışık gelir, sürükleyerek dizilir, sonunda gerçek değerler açılır; puan gerçek sırayla uyum. Günün Doğru Sırası herkese aynı (`/oyna/dogru-sira/[liste]`).
 - **Türkçe / English** — arayüz cihaz diliyle açılır, seçilip hatırlanır; paylaşımlar paylaşanın dilinde (`?l=en`).
 - **Hesabın tamamen silinmesi** — Hesap Silme sayfasından; mağazaların istediği gibi giriş kaydı dahil.
+- **Açılış perdesi** — ana sayfa açılınca simgenin çubukları kendini sıralar, altında ad ve imza; uygulamada iOS'un açılış ekranından sıçramadan devralır.
 - **Hazır şablonlar, PWA, açık/koyu tema, iki dilli yasal sayfalar.**
 
 Ayrıntılar ve gerekçeler `docs/` altında:

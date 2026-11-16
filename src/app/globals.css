@@ -220,6 +220,138 @@ a { color: var(--accent-ink); }
 .marka-isaret rect:first-child { fill: var(--accent); }
 
 /* ═══════════════════════════════════════════════════════
+   AÇILIŞ PERDESİ — components/AcilisPerdesi.tsx
+   Zaman çizelgesi (ms): 0 simge sıralı (yerel açılış ekranıyla aynı kare) ·
+   150–450 çubuklar karışır · 600–850 en uzun en üste geçer, vurgu rengine döner ·
+   950–1200 kalan ikisi yer değiştirir · 1200 halka · 1250 ad soldan açılır ·
+   1450 imza · 2150–2650 perde çekilir. Bileşen perdeyi 2700'de kaldırıyor.
+═══════════════════════════════════════════════════════ */
+.acilis-perde {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  overflow: hidden;
+  background: var(--bg);
+  animation: acilis-cekil 500ms cubic-bezier(0.4, 0, 1, 1) 2150ms both;
+}
+/* Kareli kâğıt, sayfanınkiyle aynı ızgara; yerel açılış ekranının düz zemininden yavaşça belirir. */
+.acilis-perde::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--kare) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--kare) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: center top;
+  animation: acilis-belir 500ms ease-out both;
+}
+/* Simge ekranın tam ortasında, 96 px: LaunchScreen.storyboard'daki görselle aynı yer ve boy. */
+.acilis-simge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 96px;
+  height: 96px;
+  margin: -48px 0 0 -48px;
+  border-radius: 24px;
+}
+.acilis-simge svg { display: block; overflow: visible; }
+/* Renkler uygulamadaki marka işaretiyle aynı: kare mürekkep, çubuklar kâğıt, en uzunu vurgu. */
+.acilis-kare { fill: var(--ink); }
+.acilis-cubuk {
+  fill: var(--bg);
+  animation-duration: 1200ms;
+  animation-timing-function: cubic-bezier(0.5, 0, 0.2, 1);
+  animation-fill-mode: both;
+}
+.acilis-cubuk-1 { fill: var(--accent); animation-name: acilis-cubuk-1; }
+.acilis-cubuk-2 { animation-name: acilis-cubuk-2; }
+.acilis-cubuk-3 { animation-name: acilis-cubuk-3; }
+/* Sıralama bitince simgenin çevresinden yayılan halka. */
+.acilis-simge::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border: 3px solid var(--accent);
+  border-radius: 27px;
+  opacity: 0;
+  /* Dolgu yok: gecikme boyunca ilk karenin opaklığı öne taşınmasın. */
+  animation: acilis-halka 650ms ease-out 1180ms;
+}
+.acilis-ad {
+  position: absolute;
+  top: calc(50% + 48px + 22px);
+  left: 50%;
+  translate: -50% 0;
+  width: max-content;
+  color: var(--ink);
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  text-align: center;
+  animation: acilis-ac 620ms cubic-bezier(0.22, 1, 0.36, 1) 1250ms both;
+}
+.acilis-imza {
+  position: absolute;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom) + 2rem);
+  left: 0;
+  color: var(--mute);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-align: center;
+  animation: acilis-netles 700ms cubic-bezier(0.22, 1, 0.36, 1) 1450ms both;
+}
+@media (min-width: 900px) {
+  .acilis-ad { font-size: 2.4rem; }
+  .acilis-imza { font-size: 1.15rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .acilis-perde { display: none; }
+}
+
+/* Çubuklar 32 birimlik çizimde; bir sıra aşağısı 6.25 birim. Yüzdeler 1200 ms'nin dilimleri. */
+@keyframes acilis-cubuk-1 {
+  0%, 12.5% { transform: none; fill: var(--accent); }
+  25% { transform: translate(1.5px, 3.1px); fill: var(--bg); }
+  37.5%, 50% { transform: translateY(6.25px); fill: var(--bg); }
+  60% { transform: translate(1.5px, 3.1px); fill: var(--bg); }
+  70.8%, 100% { transform: none; fill: var(--accent); }
+}
+@keyframes acilis-cubuk-2 {
+  0%, 12.5% { transform: none; }
+  37.5%, 79.2% { transform: translateY(6.25px); }
+  89.6% { transform: translate(1.5px, 3.1px); }
+  100% { transform: none; }
+}
+@keyframes acilis-cubuk-3 {
+  0%, 12.5% { transform: none; }
+  37.5%, 50% { transform: translateY(-12.5px); }
+  70.8%, 79.2% { transform: translateY(-6.25px); }
+  100% { transform: none; }
+}
+@keyframes acilis-halka {
+  0% { opacity: 0.85; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.45); }
+}
+@keyframes acilis-belir { from { opacity: 0; } }
+@keyframes acilis-ac {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); }
+  to { opacity: 1; clip-path: inset(0 -8% 0 0); }
+}
+@keyframes acilis-netles {
+  from { opacity: 0; filter: blur(12px); transform: scale(1.05); }
+  to { opacity: 1; filter: blur(0); transform: none; }
+}
+@keyframes acilis-cekil {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: scale(0.96) translateY(-3%); }
+}
+
+/* ═══════════════════════════════════════════════════════
    İSKELET — mobil önce (tek sütun)
 ═══════════════════════════════════════════════════════ */
 .app { min-height: calc(100dvh - var(--tel)); }

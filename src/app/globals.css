@@ -257,7 +257,8 @@ a { color: var(--accent-ink); }
    Zaman çizelgesi (ms): 0 simge sıralı (yerel açılış ekranıyla aynı kare) ·
    150–450 çubuklar karışır · 600–850 en uzun en üste geçer, vurgu rengine döner ·
    950–1200 kalan ikisi yer değiştirir · 1200 halka · 1250 ad soldan açılır ·
-   1450 imza · 2150–2650 perde çekilir. Bileşen perdeyi 2700'de kaldırıyor.
+   1450 imza · 2600–3100 perde çekilir (ad ~1,4 sn okunsun). Bileşen perdeyi çekilme bitince
+   (`animationend`, adıyla) ya da en geç 3150'de kaldırıyor.
 ═══════════════════════════════════════════════════════ */
 .acilis-perde {
   position: fixed;
@@ -265,7 +266,7 @@ a { color: var(--accent-ink); }
   z-index: 500;
   overflow: hidden;
   background: var(--bg);
-  animation: acilis-cekil 500ms cubic-bezier(0.4, 0, 1, 1) 2150ms both;
+  animation: acilis-cekil 500ms cubic-bezier(0.4, 0, 1, 1) 2600ms both;
 }
 /* Kareli kâğıt, sayfanınkiyle aynı ızgara; yerel açılış ekranının düz zemininden yavaşça belirir. */
 .acilis-perde::before {

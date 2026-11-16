@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 /** Perdenin bütün animasyonunun süresi (globals.css → `.acilis-perde` çekilmesinin bitişi) ve biraz pay. */
-const PERDE_SURESI = 2700;
+const PERDE_SURESI = 3150;
 
 /*
  * Açılış perdesi: kareli kâğıdın ortasında uygulama simgesi; üç çubuk karışır ve kendini
@@ -44,7 +44,10 @@ export default function AcilisPerdesi() {
       aria-hidden="true"
       onPointerDown={() => setAcik(false)}
       onAnimationEnd={e => {
-        if (e.target === e.currentTarget) setAcik(false);
+        // Yalnızca perdenin çekilmesi bitince. Adına bakılıyor: kareli kâğıdın belirmesi (`::before`) de
+        // perdenin kendisinden olay gönderiyor ve hedefi aynı; ona bakılmazsa perde 0,5 sn'de kalkıyordu
+        // (uygulamada sayfa o süreden önce hazır, webde geliştirmede sonra; bu yüzden yalnızca uygulamada).
+        if (e.animationName === 'acilis-cekil') setAcik(false);
       }}
     >
       <span className="acilis-simge">
